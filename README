@@ -1,0 +1,6 @@
+RN1 software running on the local robot itself.
+
+Functionality in the beginning:
+Serial communication with the embedded CPU
+UDP communication with the client software
+Mapping, path finding

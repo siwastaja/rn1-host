@@ -28,6 +28,7 @@ typedef struct __attribute__ ((packed))
 	uint8_t num_obstacles;  // "is an obstacle" counter. Every time mapped, ++ if obstacle, -- if not. Saturated at 255.
 
 	uint8_t constraints;
+	uint8_t reserved;
 } map_unit_t;
 
 

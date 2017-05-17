@@ -2,10 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "mapping.h"
 #include "map_memdisk.h"
 
+extern uint32_t robot_id;
 
 int write_map_page(world_t* w, int pagex, int pagey)
 {
@@ -77,7 +79,9 @@ int load_map_page(world_t* w, int pagex, int pagey)
 	{
 		printf("Error: Reading map file failed. Initializing empty map\n");
 		memset(w->pages[pagex][pagey], 0, sizeof(map_page_t));
+		return 1;
 	}
+	return 0;
 }
 
 int unload_map_page(world_t* w, int pagex, int pagey)
@@ -96,9 +100,10 @@ int unload_map_page(world_t* w, int pagex, int pagey)
 	{
 		printf("Warn: Trying to unload a map page which is already free.\n");
 	}
+	return 0;
 }
 
-int unload_map_pages(world_t* w, cur_pagex, cur_pagey)
+int unload_map_pages(world_t* w, int cur_pagex, int cur_pagey)
 {
 	for(int x = 0; x < MAP_W; x++)
 	{
@@ -111,7 +116,24 @@ int unload_map_pages(world_t* w, cur_pagex, cur_pagey)
 
 		}
 	}
+	return 0;
 }
+
+int save_map_pages(world_t* w)
+{
+	for(int x = 0; x < MAP_W; x++)
+	{
+		for(int y = 0; y < MAP_W; y++)
+		{
+			if(w->pages[x][y])
+			{
+				write_map_page(w, x, y);
+			}
+		}
+	}
+	return 0;
+}
+
 
 void load_9pages(world_t* w, int pagex, int pagey)
 {
@@ -121,9 +143,9 @@ void load_9pages(world_t* w, int pagex, int pagey)
 		{
 			int xx = pagex+x;
 			int yy = pagey+y;
-			if(!world.pages[xx][yy])
+			if(!w->pages[xx][yy])
 			{
-				load_map_page(&world, xx, yy);
+				load_map_page(w, xx, yy);
 			}
 		}
 	}

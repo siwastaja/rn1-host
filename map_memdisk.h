@@ -14,12 +14,14 @@ int load_map_page(world_t* w, int pagex, int pagey);
 // Writes the map page to disk and frees the memory, setting the page pointer to 0.
 int unload_map_page(world_t* w, int pagex, int pagey);
 
-
 // Loads requested pagex, pagey and 8 pages around it.
 void load_9pages(world_t* w, int pagex, int pagey);
 
 // Scans through the world and unloads any loaded pages farther than 2 pages away from cur_pagex, cur_pagey.
-int unload_map_pages(world_t* w, cur_pagex, cur_pagey);
+int unload_map_pages(world_t* w, int cur_pagex, int cur_pagey);
+
+// Scans through the world and syncs any loaded pages to disk.
+int save_map_pages(world_t* w);
 
 
 #endif

@@ -6,6 +6,11 @@
 #include <sys/select.h>
 #include <errno.h>
 #include <math.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <string.h>
 
 #include "datatypes.h"
 #include "hwdata.h"
@@ -20,9 +25,12 @@
 uint32_t robot_id = 0xacdcabba; // Hopefully unique identifier for the robot.
 
 extern world_t world;
-
+#define BUFLEN 2048
 int main(int argc, char** argv)
 {
+	int port = 22334;
+	uint8_t buf[BUFLEN];
+
 	if(init_uart())
 	{
 		fprintf(stderr, "uart initialization failed. uart is required.\n");
@@ -32,7 +40,38 @@ int main(int argc, char** argv)
 	fd_set fds;
 	struct timeval select_time = {0, 100};
 
+
+	/* Create the socket and set it up to accept connections. */
+	struct sockaddr_in si_me, si_other, si_subscriber;
+	 
+	int udpsock, recv_len;
+	unsigned int slen = sizeof(si_other);
+	 
+	//create a UDP socket
+	if ((udpsock=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+	{
+		printf("Error opening UDP socket.\n");
+		return 1;
+	}
+	 
+	// zero out the structure
+	memset((char *) &si_me, 0, sizeof(si_me));
+	 
+	si_me.sin_family = AF_INET;
+	si_me.sin_port = htons(port);
+	si_me.sin_addr.s_addr = htonl(INADDR_ANY);
+	 
+	//bind socket to port
+	if( bind(udpsock , (struct sockaddr*)&si_me, sizeof(si_me) ) == -1)
+	{
+		printf("Error binding the port to the socket.\n");
+		return 1;
+	}
+
+
+
 	int fds_size = uart;
+	if(udpsock > fds_size) fds_size = udpsock;
 	if(STDIN_FILENO > fds_size) fds_size = STDIN_FILENO;
 	fds_size+=1;
 
@@ -41,6 +80,8 @@ int main(int argc, char** argv)
 		FD_ZERO(&fds);
 		FD_SET(uart, &fds);
 		FD_SET(STDIN_FILENO, &fds);
+		FD_SET(udpsock, &fds);
+
 		if(select(fds_size, &fds, NULL, NULL, &select_time) < 0)
 		{
 			fprintf(stderr, "select() error %d", errno);
@@ -61,6 +102,24 @@ int main(int argc, char** argv)
 		if(FD_ISSET(uart, &fds))
 		{
 			handle_uart();
+		}
+
+		if(FD_ISSET(udpsock, &fds))
+		{
+			if ((recv_len = recvfrom(udpsock, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == -1)
+			{
+				printf("recvfrom() failed");
+				return 1;
+			}
+			else
+			{
+				printf("Relaying message to robot.\n");
+				if(write(uart, &buf[1], recv_len-1) != recv_len-1)
+				{
+					printf("uart write error\n");
+				}
+			}
+
 		}
 
 		lidar_scan_t* p_lid;

@@ -40,59 +40,38 @@ void send_keepalive()
 
 int main(int argc, char** argv)
 {
-	int port = 22334;
-	uint8_t buf[BUFLEN];
-
 	if(init_uart())
 	{
-		fprintf(stderr, "uart initialization failed. uart is required.\n");
+		fprintf(stderr, "uart initialization failed.\n");
+		return 1;
+	}
+
+	if(init_tcp_comm())
+	{
+		fprintf(stderr, "TCP communication initialization failed.\n");
 		return 1;
 	}
 
 	fd_set fds;
-	struct timeval select_time = {0, 100};
-
-
-	/* Create the socket and set it up to accept connections. */
-	struct sockaddr_in si_me, si_other, si_subscriber;
-	 
-	int udpsock, recv_len;
-	unsigned int slen = sizeof(si_other);
-	 
-	//create a UDP socket
-	if ((udpsock=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
-	{
-		printf("Error opening UDP socket.\n");
-		return 1;
-	}
-	 
-	// zero out the structure
-	memset((char *) &si_me, 0, sizeof(si_me));
-	 
-	si_me.sin_family = AF_INET;
-	si_me.sin_port = htons(port);
-	si_me.sin_addr.s_addr = htonl(INADDR_ANY);
-	 
-	//bind socket to port
-	if( bind(udpsock , (struct sockaddr*)&si_me, sizeof(si_me) ) == -1)
-	{
-		printf("Error binding the port to the socket.\n");
-		return 1;
-	}
-
-
-
-	int fds_size = uart;
-	if(udpsock > fds_size) fds_size = udpsock;
-	if(STDIN_FILENO > fds_size) fds_size = STDIN_FILENO;
-	fds_size+=1;
 
 	while(1)
 	{
+		// Calculate fd_set size (biggest fd+1)
+		int fds_size = uart;
+		if(tcp_listener_sock > fds_size) fds_size = tcp_listener_sock;
+		if(tcp_client_sock > fds_size) fds_size = tcp_client_sock;
+		if(STDIN_FILENO > fds_size) fds_size = STDIN_FILENO;
+		fds_size+=1;
+
+
 		FD_ZERO(&fds);
 		FD_SET(uart, &fds);
 		FD_SET(STDIN_FILENO, &fds);
-		FD_SET(udpsock, &fds);
+		FD_SET(tcp_listener_sock, &fds);
+		if(tcp_client_sock >= 0)
+			FD_SET(tcp_client_sock, &fds);
+
+		struct timeval select_time = {0, 100};
 
 		if(select(fds_size, &fds, NULL, NULL, &select_time) < 0)
 		{
@@ -103,7 +82,7 @@ int main(int argc, char** argv)
 		if(FD_ISSET(STDIN_FILENO, &fds))
 		{
 			int cmd = fgetc(stdin);
-			if(cmd == 'Q')
+			if(cmd == 'q')
 				break;
 			if(cmd == 's')
 			{
@@ -116,22 +95,14 @@ int main(int argc, char** argv)
 			handle_uart();
 		}
 
-		if(FD_ISSET(udpsock, &fds))
+		if(tcp_client_sock >= 0 && FD_ISSET(tcp_client_sock, &fds))
 		{
-			if ((recv_len = recvfrom(udpsock, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == -1)
-			{
-				printf("recvfrom() failed");
-				return 1;
-			}
-			else
-			{
-				printf("Relaying message to robot.\n");
-				if(write(uart, &buf[1], recv_len-1) != recv_len-1)
-				{
-					printf("uart write error\n");
-				}
-			}
+			handle_tcp_client();
+		}
 
+		if(FD_ISSET(tcp_listener_sock, &fds))
+		{
+			handle_tcp_listener();
 		}
 
 

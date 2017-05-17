@@ -127,12 +127,11 @@ int main(int argc, char** argv)
 		{
 			int idx_x, idx_y, offs_x, offs_y;
 			printf("INFO: Got lidar scan.\n");
+			page_coords(p_lid->pos.x, p_lid->pos.y, &idx_x, &idx_y, &offs_x, &offs_y);
+			load_9pages(&world, idx_x, idx_y);
 			if(p_lid->status & LIDAR_STATUS_SYNCED_IMAGES)
 			{
 				// TODO: some error checking...
-				page_coords(p_lid->pos.x, p_lid->pos.y, &idx_x, &idx_y, &offs_x, &offs_y);
-				load_9pages(&world, idx_x, idx_y);
-
 				printf("INFO: Lidar scan images are synced.\n");
 				for(int i = 0; i < 360; i++)
 				{

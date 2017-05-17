@@ -26,6 +26,18 @@ uint32_t robot_id = 0xacdcabba; // Hopefully unique identifier for the robot.
 
 extern world_t world;
 #define BUFLEN 2048
+
+void send_keepalive()
+{
+	uint8_t buf[3] = {0x8f, 0x00, 0xff};
+	if(write(uart, buf, 3) != 3)
+	{
+		printf("uart write error\n");
+	}
+}
+
+
+
 int main(int argc, char** argv)
 {
 	int port = 22334;
@@ -122,6 +134,7 @@ int main(int argc, char** argv)
 
 		}
 
+
 		lidar_scan_t* p_lid;
 		if( (p_lid = get_lidar()) )
 		{
@@ -158,7 +171,8 @@ int main(int argc, char** argv)
 					}
 				}
 			}
-			
+
+			send_keepalive();			
 		}
 
 //		int idx_x, idx_y, offs_x, offs_y;

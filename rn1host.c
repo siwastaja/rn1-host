@@ -66,19 +66,38 @@ int main(int argc, char** argv)
 		lidar_scan_t* p_lid;
 		if( (p_lid = get_lidar()) )
 		{
+			int idx_x, idx_y, offs_x, offs_y;
 			printf("INFO: Got lidar scan.\n");
-			for(int i = 0; i < 360; i++)
+			if(p_lid->status & LIDAR_STATUS_SYNCED_IMAGES)
 			{
-				if(p_lid->scan[i] != 0)
+				// TODO: some error checking...
+				page_coords(p_lid->pos.x, p_lid->pos.y, &idx_x, &idx_y, &offs_x, &offs_y);
+				load_9pages(&world, idx_x, idx_y);
+
+				printf("INFO: Lidar scan images are synced.\n");
+				for(int i = 0; i < 360; i++)
 				{
-					int x = p_lid->pos.x + cos(2.0*M_PI*(   (((double)p_lid->pos.ang)/4294967296.0)  +  ((double)i/360.0)   )) * p_lid->scan[i];
-					int y = p_lid->pos.y + sin(2.0*M_PI*(   (((double)p_lid->pos.ang)/4294967296.0)  +  ((double)i/360.0)   )) * p_lid->scan[i];
+					int len = p_lid->scan[i];
+					if(len > 0)
+					{
+						double co = cos(2.0*M_PI*(   (((double)p_lid->pos.ang)/4294967296.0)  +  ((double)i/360.0)   ));
+						double si = sin(2.0*M_PI*(   (((double)p_lid->pos.ang)/4294967296.0)  +  ((double)i/360.0)   ));
 
-					int idx_x, idx_y, offs_x, offs_y;
-					page_coords(x, y, &idx_x, &idx_y, &offs_x, &offs_y);
-					load_9pages(&world, idx_x, idx_y); // TODO: load_9pages done on lidar scan middle coords only should be enough
+						int x, y;
+						for(int d = 0; d < len; d+=40)
+						{
+							x = p_lid->pos.x + co * d;
+							y = p_lid->pos.y + si * d;
 
-					world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest = UNIT_WALL;
+							page_coords(x, y, &idx_x, &idx_y, &offs_x, &offs_y);
+							world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest = UNIT_FREE;
+						}
+						x = p_lid->pos.x + co * len;
+						y = p_lid->pos.y + si * len;
+
+						page_coords(x, y, &idx_x, &idx_y, &offs_x, &offs_y);
+						world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest = UNIT_WALL;
+					}
 				}
 			}
 			

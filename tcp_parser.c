@@ -43,7 +43,7 @@ int tcp_send_msg(tcp_message_t* msg_type, void* msg)
 	sendbuf[1] = (msg_type->size>>8)&0xff;
 	sendbuf[2] = msg_type->size&0xff;
 
-	uint8_t* p_dest = sendbuf;
+	uint8_t* p_dest = sendbuf+3;
 	uint8_t* p_src = msg;
 
 	for(int field=0;;field++)
@@ -58,32 +58,35 @@ int tcp_send_msg(tcp_message_t* msg_type, void* msg)
 			case 's':
 			case 'S':
 			{
-				*(p_dest++) = (((uint16_t)(*(p_src++)) )>>8)&0xff;
-				*(p_dest++) = (((uint16_t)(*(p_src++)) )>>0)&0xff;
+				*(p_dest++) = (((*((uint16_t*)p_src)) )>>8)&0xff;
+				*(p_dest++) = (((*((uint16_t*)p_src)) )>>0)&0xff;
+				p_src+=2;
 			}
 			break;
 
 			case 'i':
 			case 'I':
 			{
-				*(p_dest++) = (((uint32_t)(*(p_src++)) )>>24)&0xff;
-				*(p_dest++) = (((uint32_t)(*(p_src++)) )>>16)&0xff;
-				*(p_dest++) = (((uint32_t)(*(p_src++)) )>>8)&0xff;
-				*(p_dest++) = (((uint32_t)(*(p_src++)) )>>0)&0xff;
+				*(p_dest++) = (((*((uint32_t*)p_src)) )>>24)&0xff;
+				*(p_dest++) = (((*((uint32_t*)p_src)) )>>16)&0xff;
+				*(p_dest++) = (((*((uint32_t*)p_src)) )>>8)&0xff;
+				*(p_dest++) = (((*((uint32_t*)p_src)) )>>0)&0xff;
+				p_src+=4;
 			}
 			break;
 
 			case 'l':
 			case 'L':
 			{
-				*(p_dest++) = (((uint64_t)(*(p_src++)) )>>56)&0xff;
-				*(p_dest++) = (((uint64_t)(*(p_src++)) )>>48)&0xff;
-				*(p_dest++) = (((uint64_t)(*(p_src++)) )>>40)&0xff;
-				*(p_dest++) = (((uint64_t)(*(p_src++)) )>>32)&0xff;
-				*(p_dest++) = (((uint64_t)(*(p_src++)) )>>24)&0xff;
-				*(p_dest++) = (((uint64_t)(*(p_src++)) )>>16)&0xff;
-				*(p_dest++) = (((uint64_t)(*(p_src++)) )>>8)&0xff;
-				*(p_dest++) = (((uint64_t)(*(p_src++)) )>>0)&0xff;
+				*(p_dest++) = (((*((uint64_t*)p_src)) )>>56)&0xff;
+				*(p_dest++) = (((*((uint64_t*)p_src)) )>>48)&0xff;
+				*(p_dest++) = (((*((uint64_t*)p_src)) )>>40)&0xff;
+				*(p_dest++) = (((*((uint64_t*)p_src)) )>>32)&0xff;
+				*(p_dest++) = (((*((uint64_t*)p_src)) )>>24)&0xff;
+				*(p_dest++) = (((*((uint64_t*)p_src)) )>>16)&0xff;
+				*(p_dest++) = (((*((uint64_t*)p_src)) )>>8)&0xff;
+				*(p_dest++) = (((*((uint64_t*)p_src)) )>>0)&0xff;
+				p_src+=8;
 			}
 			break;
 

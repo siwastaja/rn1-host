@@ -17,6 +17,8 @@
 #include "map_memdisk.h"
 #include "mapping.h"
 #include "uart.h"
+#include "tcp_comm.h"
+#include "tcp_parser.h"
 
 #ifndef M_PI
 #define M_PI 3.141592653589793238
@@ -52,8 +54,6 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	fd_set fds;
-
 	while(1)
 	{
 		// Calculate fd_set size (biggest fd+1)
@@ -64,6 +64,7 @@ int main(int argc, char** argv)
 		fds_size+=1;
 
 
+		fd_set fds;
 		FD_ZERO(&fds);
 		FD_SET(uart, &fds);
 		FD_SET(STDIN_FILENO, &fds);
@@ -97,7 +98,13 @@ int main(int argc, char** argv)
 
 		if(tcp_client_sock >= 0 && FD_ISSET(tcp_client_sock, &fds))
 		{
-			handle_tcp_client();
+			int ret = handle_tcp_client();
+			printf("handle_tcp_client() returned %d\n", ret);
+
+			if(ret == TCP_CR_DEST_MID)
+			{
+				printf("  ---> DEST params: %d, %d\n", msg_cr_dest.x, msg_cr_dest.y);
+			}
 		}
 
 		if(FD_ISSET(tcp_listener_sock, &fds))

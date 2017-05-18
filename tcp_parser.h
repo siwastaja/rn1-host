@@ -24,7 +24,18 @@ typedef struct
 		'l' int64_t
 		'L' uint64_t
 	*/
+	int ret;
 } tcp_message_t;
+
+
+#define TCP_CR_DEST_MID    55
+typedef struct __attribute__ ((packed))
+{
+	int32_t x;
+	int32_t y;
+} tcp_cr_dest_t;
+
+extern tcp_cr_dest_t   msg_cr_dest;
 
 int tcp_parser(int sock);
 

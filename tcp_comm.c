@@ -1,3 +1,4 @@
+#define _BSD_SOURCE // for usleep
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -95,9 +96,10 @@ int handle_tcp_client()
 int tcp_send(uint8_t* buf, int len)
 {
 	int timeout = 100;
-	uint8_t p_buf = buf;
+	uint8_t* p_buf = buf;
 	while(len)
 	{
+		printf("INFO: write %d  %d\n", tcp_client_sock, len);
 		int ret = write(tcp_client_sock, p_buf, len);
 		if(ret < 0)
 		{
@@ -131,4 +133,6 @@ int tcp_send(uint8_t* buf, int len)
 			}
 		}
 	}
+
+	return 0;
 }

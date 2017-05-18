@@ -3,9 +3,7 @@
 
 typedef struct
 {
-	// Where to write / where to read from; 
-	// if writing to NULL, message is dumped to stdout for debug
-	// if reading from NULL, operation is aborted.
+	// Where to write when receiving. This field is ignored for tx. 
 	// Remember to use packed structs
 	void* p_data; 
 	// Message ID
@@ -37,6 +35,19 @@ typedef struct __attribute__ ((packed))
 
 extern tcp_cr_dest_t   msg_cr_dest;
 
+#define TCP_RC_POS_MID    130
+typedef struct __attribute__ ((packed))
+{
+	int16_t ang;
+	int32_t x;
+	int32_t y;
+} tcp_rc_pos_t;
+
+extern tcp_message_t   msgmeta_rc_pos;
+extern tcp_rc_pos_t    msg_rc_pos;
+
 int tcp_parser(int sock);
+
+int tcp_send_msg(tcp_message_t* msg_type, void* msg);
 
 #endif

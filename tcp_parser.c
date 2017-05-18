@@ -19,20 +19,90 @@ tcp_message_t msgmeta_cr_dest =
 };
 
 
-
 #define NUM_CR_MSGS 1
 tcp_message_t* CR_MSGS[NUM_CR_MSGS] =
 {
 	&msgmeta_cr_dest
 };
 
+
+
 // Robot->Client messages
-tcp_message_t msg_rc_pos =
+tcp_message_t msgmeta_rc_pos =
 {
 	0,
 	129,
 	10, "sii"
 };
+tcp_rc_pos_t    msg_rc_pos;
+
+int tcp_send_msg(tcp_message_t* msg_type, void* msg)
+{
+	static uint8_t sendbuf[65536];
+	sendbuf[0] = msg_type->mid;
+	sendbuf[1] = (msg_type->size>>8)&0xff;
+	sendbuf[2] = msg_type->size&0xff;
+
+	uint8_t* p_dest = sendbuf;
+	uint8_t* p_src = msg;
+
+	for(int field=0;;field++)
+	{
+		switch(msg_type->types[field])
+		{
+			case 'b':
+			case 'B':
+				*(p_dest++) = *(p_src++);
+			break;
+
+			case 's':
+			case 'S':
+			{
+				*(p_dest++) = (((uint16_t)(*(p_src++)) )>>8)&0xff;
+				*(p_dest++) = (((uint16_t)(*(p_src++)) )>>0)&0xff;
+			}
+			break;
+
+			case 'i':
+			case 'I':
+			{
+				*(p_dest++) = (((uint32_t)(*(p_src++)) )>>24)&0xff;
+				*(p_dest++) = (((uint32_t)(*(p_src++)) )>>16)&0xff;
+				*(p_dest++) = (((uint32_t)(*(p_src++)) )>>8)&0xff;
+				*(p_dest++) = (((uint32_t)(*(p_src++)) )>>0)&0xff;
+			}
+			break;
+
+			case 'l':
+			case 'L':
+			{
+				*(p_dest++) = (((uint64_t)(*(p_src++)) )>>56)&0xff;
+				*(p_dest++) = (((uint64_t)(*(p_src++)) )>>48)&0xff;
+				*(p_dest++) = (((uint64_t)(*(p_src++)) )>>40)&0xff;
+				*(p_dest++) = (((uint64_t)(*(p_src++)) )>>32)&0xff;
+				*(p_dest++) = (((uint64_t)(*(p_src++)) )>>24)&0xff;
+				*(p_dest++) = (((uint64_t)(*(p_src++)) )>>16)&0xff;
+				*(p_dest++) = (((uint64_t)(*(p_src++)) )>>8)&0xff;
+				*(p_dest++) = (((uint64_t)(*(p_src++)) )>>0)&0xff;
+			}
+			break;
+
+			case 0:
+				goto PARSE_END;
+
+			default:
+				fprintf(stderr, "ERROR: parse type string has invalid character 0x%02x\n", msg_type->types[field]);
+				return -2;
+		}
+	}
+
+	PARSE_END: ;
+
+	printf("INFO: Sending tcp, size=%d\n", msg_type->size+3);
+	tcp_send(sendbuf, msg_type->size+3);
+
+	return 0;
+}
 
 /*
 Return value:

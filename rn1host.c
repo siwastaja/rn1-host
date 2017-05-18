@@ -54,6 +54,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
+	int cnt = 0;
 	while(1)
 	{
 		// Calculate fd_set size (biggest fd+1)
@@ -118,6 +119,16 @@ int main(int argc, char** argv)
 		{
 			int idx_x, idx_y, offs_x, offs_y;
 			printf("INFO: Got lidar scan.\n");
+
+			if(tcp_client_sock >= 0)
+			{
+				msg_rc_pos.ang=p_lid->pos.ang>>16;
+				msg_rc_pos.x=p_lid->pos.x;
+				msg_rc_pos.y=p_lid->pos.y;
+				tcp_send_msg(&msgmeta_rc_pos, &msg_rc_pos);
+			}
+
+
 			page_coords(p_lid->pos.x, p_lid->pos.y, &idx_x, &idx_y, &offs_x, &offs_y);
 			load_9pages(&world, idx_x, idx_y);
 			if(p_lid->status & LIDAR_STATUS_SYNCED_IMAGES)
@@ -158,6 +169,13 @@ int main(int argc, char** argv)
 
 		// Do some "garbage collection":
 //		unload_map_pages(&world,);
+
+		cnt++;
+		if(cnt > 1000)
+		{
+			cnt = 0;
+		}
+
 	}
 
 	return 0;

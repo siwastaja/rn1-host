@@ -13,6 +13,8 @@
 #include <sys/select.h>
 #include <sys/ioctl.h>
 
+#include "tcp_parser.h"
+
 int tcp_listener_sock;
 int tcp_client_sock = -1; // One client at the time is allowed.
 
@@ -77,7 +79,6 @@ int handle_tcp_listener()
 }
 
 // Ring buffer implemented using overflowing uint16_t counters.
-#define TCP_RX_BUF_LEN 65536
 uint16_t tcp_rx_ring_wr;
 uint16_t tcp_rx_ring_rd;
 uint8_t tcp_buf[TCP_RX_BUF_LEN];
@@ -101,4 +102,7 @@ int handle_tcp_client()
 		tcp_rx_ring_wr += n_read; // Overflow is desired, implementing ring buffer.
 		usleep(10);
 	}
+
+	parse_tcp_buffer();
 }
+

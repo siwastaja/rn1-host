@@ -78,31 +78,9 @@ int handle_tcp_listener()
 	        ntohs(clientname.sin_port));
 }
 
-// Ring buffer implemented using overflowing uint16_t counters.
-uint16_t tcp_rx_ring_wr;
-uint16_t tcp_rx_ring_rd;
-uint8_t tcp_buf[TCP_RX_BUF_LEN];
-
 // Call this when you have data in tcp_client_sock input buffer, for example, after using select()
 int handle_tcp_client()
 {
-	while(1)
-	{
-		int space_left = TCP_RX_BUF_LEN - (int)tcp_rx_ring_wr;
-		int n_read = read(tcp_client_sock, tcp_buf, space_left);
-		if(n_read < 0)
-		{
-			fprintf(stderr, "TCP client socket read error %d (%s)\n", errno, strerror(errno));
-			return 1;
-		}
-		if(n_read == 0)
-		{
-			return 0;
-		}
-		tcp_rx_ring_wr += n_read; // Overflow is desired, implementing ring buffer.
-		usleep(10);
-	}
-
-	parse_tcp_buffer();
+	return tcp_parser(tcp_client_sock);
 }
 

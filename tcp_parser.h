@@ -26,6 +26,6 @@ typedef struct
 	*/
 } tcp_message_t;
 
-void parse_tcp_buffer();
+int tcp_parser(int sock);
 
 #endif

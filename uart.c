@@ -48,8 +48,8 @@ static int set_uart_attribs(int fd, int speed)
 
 int uart;
 
-//const char serial_dev[] = "/dev/serial0";
-const char serial_dev[] = "/dev/ttyUSB0";
+const char serial_dev[] = "/dev/serial0";
+//const char serial_dev[] = "/dev/ttyUSB0";
 
 int init_uart()
 {

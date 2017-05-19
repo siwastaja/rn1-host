@@ -101,7 +101,7 @@ int tcp_send_msg(tcp_message_t* msg_type, void* msg)
 
 	PARSE_END: ;
 
-	printf("INFO: Sending tcp, size=%d\n", msg_type->size+3);
+	//printf("INFO: Sending tcp, size=%d\n", msg_type->size+3);
 	tcp_send(sendbuf, msg_type->size+3);
 
 	return 0;

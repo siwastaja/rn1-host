@@ -93,8 +93,8 @@ typedef struct
 	uint32_t id;
 
 	map_page_t*  pages[MAP_W][MAP_W];
+	uint8_t changed[MAP_W][MAP_W];
 	qmap_page_t* qpages[MAP_W][MAP_W];
-
 } world_t;
 
 void page_coords(int mm_x, int mm_y, int* pageidx_x, int* pageidx_y, int* pageoffs_x, int* pageoffs_y);

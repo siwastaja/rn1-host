@@ -99,7 +99,6 @@ int tcp_send(uint8_t* buf, int len)
 	uint8_t* p_buf = buf;
 	while(len)
 	{
-		printf("INFO: write %d  %d\n", tcp_client_sock, len);
 		int ret = write(tcp_client_sock, p_buf, len);
 		if(ret < 0)
 		{
@@ -110,7 +109,7 @@ int tcp_send(uint8_t* buf, int len)
 		}
 		else if(ret == 0)
 		{
-			printf("INFO: tcp_send(): write() wrote 0, closing TCP connection.\n");
+			printf("INFO: tcp_send(): write() returned 0, closing TCP connection.\n");
 			close(tcp_client_sock);
 			tcp_client_sock = -1;
 			return -2;

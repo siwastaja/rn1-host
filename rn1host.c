@@ -29,6 +29,10 @@ uint32_t robot_id = 0xacdcabba; // Hopefully unique identifier for the robot.
 extern world_t world;
 #define BUFLEN 2048
 
+int32_t cur_ang;
+int32_t cur_x;
+int32_t cur_y;
+
 int main(int argc, char** argv)
 {
 	if(init_uart())
@@ -106,13 +110,14 @@ int main(int argc, char** argv)
 		if( (p_lid = get_lidar()) )
 		{
 			int idx_x, idx_y, offs_x, offs_y;
-			printf("INFO: Got lidar scan.\n");
+//			printf("INFO: Got lidar scan.\n");
 
+			cur_ang = p_lid->pos.ang; cur_x = p_lid->pos.x; cur_y = p_lid->pos.y;
 			if(tcp_client_sock >= 0)
 			{
-				msg_rc_pos.ang=p_lid->pos.ang>>16;
-				msg_rc_pos.x=p_lid->pos.x;
-				msg_rc_pos.y=p_lid->pos.y;
+				msg_rc_pos.ang = cur_ang>>16;
+				msg_rc_pos.x = cur_x;
+				msg_rc_pos.y = cur_y;
 				tcp_send_msg(&msgmeta_rc_pos, &msg_rc_pos);
 			}
 
@@ -121,8 +126,13 @@ int main(int argc, char** argv)
 			load_9pages(&world, idx_x, idx_y);
 			if(p_lid->status & LIDAR_STATUS_SYNCED_IMAGES)
 			{
+
+				world.changed[idx_x][idx_y] = 1;
+
 				// TODO: some error checking...
-				printf("INFO: Lidar scan images are synced.\n");
+//				printf("INFO: Lidar scan images are synced.\n");
+//				int max_x = -2000000000, max_y = -2000000000;
+//				int min_x = 2000000000, min_y = 2000000000;
 				for(int i = 0; i < 360; i++)
 				{
 					int len = p_lid->scan[i];
@@ -143,8 +153,11 @@ int main(int argc, char** argv)
 						x = p_lid->pos.x + co * len;
 						y = p_lid->pos.y + si * len;
 
+//						if(x>max_x) x = max_x; if(y>max_y) y = max_y; 
+//						if(x<min_x) x = min_x; if(y<min_y) y = min_y;
 						page_coords(x, y, &idx_x, &idx_y, &offs_x, &offs_y);
 						world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest = UNIT_WALL;
+						world.changed[idx_x][idx_y] = 1;
 					}
 				}
 			}
@@ -152,16 +165,19 @@ int main(int argc, char** argv)
 			send_keepalive();			
 		}
 
-//		int idx_x, idx_y, offs_x, offs_y;
-//		page_coords(x, y, &idx_x, &idx_y, &offs_x, &offs_y);
-
-		// Do some "garbage collection":
-//		unload_map_pages(&world,);
-
 		cnt++;
-		if(cnt > 1000)
+		if(cnt > 100000)
 		{
 			cnt = 0;
+
+			int idx_x, idx_y, offs_x, offs_y;
+			page_coords(cur_x, cur_y, &idx_x, &idx_y, &offs_x, &offs_y);
+
+			// Do some "garbage collection" by disk-syncing and deallocating far-away map pages.
+			unload_map_pages(&world, idx_x, idx_y);
+
+			// Sync all changed map pages to disk
+			save_map_pages(&world);
 		}
 
 	}

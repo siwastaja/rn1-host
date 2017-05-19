@@ -127,35 +127,3 @@ void handle_uart()
 	rxloc++;
 }
 
-void send_keepalive()
-{
-	uint8_t buf[3] = {0x8f, 0x00, 0xff};
-	if(write(uart, buf, 3) != 3)
-	{
-		printf("uart write error\n");
-	}
-}
-
-void move_to(int32_t x, int32_t y)
-{
-	uint8_t buf[12];
-
-	buf[0] = 0x82;
-	buf[1] = I32_I7_4(x);
-	buf[2] = I32_I7_3(x);
-	buf[3] = I32_I7_2(x);
-	buf[4] = I32_I7_1(x);
-	buf[5] = I32_I7_0(x);
-	buf[6] = I32_I7_4(y);
-	buf[7] = I32_I7_3(y);
-	buf[8] = I32_I7_2(y);
-	buf[9] = I32_I7_1(y);
-	buf[10] = I32_I7_0(y);
-	buf[11] = 0xff;
-	if(write(uart, buf, 12) != 12)
-	{
-		printf("uart write error\n");
-	}
-}
-
-

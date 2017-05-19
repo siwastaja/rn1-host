@@ -29,6 +29,8 @@ int write_map_page(world_t* w, int pagex, int pagey)
 		printf("Error: Writing map data failed\n");
 	}
 	fclose(f);
+	w->changed[pagex][pagey] = 0;
+
 	return 0;
 }
 
@@ -38,6 +40,8 @@ int read_map_page(world_t* w, int pagex, int pagey)
 	sprintf(fname, "%08x_%u_%u_%u.map", robot_id, w->id, pagex, pagey);
 
 	printf("Info: Attempting to read map page %s\n", fname);
+
+	w->changed[pagex][pagey] = 0;
 
 	FILE *f = fopen(fname, "r");
 	if(!f)
@@ -65,19 +69,19 @@ int load_map_page(world_t* w, int pagex, int pagey)
 	}
 	else
 	{
-		printf("Info: Allocating mem for page %d,%d\n", pagex, pagey);
+//		printf("Info: Allocating mem for page %d,%d\n", pagex, pagey);
 		w->pages[pagex][pagey] = malloc(sizeof(map_page_t));
 	}
 
 	int ret = read_map_page(w, pagex, pagey);
 	if(ret == 2)
 	{
-		printf("Info: map file didn't exist, initializing empty map\n");
+		printf("Info: map page file didn't exist, initializing empty map page\n");
 		memset(w->pages[pagex][pagey], 0, sizeof(map_page_t));
 	}
 	else if(ret)
 	{
-		printf("Error: Reading map file failed. Initializing empty map\n");
+		printf("Error: Reading map page file failed. Initializing empty map page\n");
 		memset(w->pages[pagex][pagey], 0, sizeof(map_page_t));
 		return 1;
 	}
@@ -88,13 +92,18 @@ int unload_map_page(world_t* w, int pagex, int pagey)
 {
 	if(w->pages[pagex][pagey])
 	{
-		if(write_map_page(w, pagex, pagey))
+		if(w->changed[pagex][pagey])
 		{
-			printf("Error: writing map page (%d,%d) to disk failed\n", pagex, pagey);
+			if(write_map_page(w, pagex, pagey))
+			{
+				printf("Error: writing map page (%d,%d) to disk failed\n", pagex, pagey);
+			}
 		}
-		printf("Info: Freeing mem for page %d,%d\n", pagex, pagey);
+//		printf("Info: Freeing mem for page %d,%d\n", pagex, pagey);
 		free(w->pages[pagex][pagey]);
 		w->pages[pagex][pagey] = 0;
+		w->changed[pagex][pagey] = 0;
+
 	}
 	else
 	{
@@ -125,7 +134,7 @@ int save_map_pages(world_t* w)
 	{
 		for(int y = 0; y < MAP_W; y++)
 		{
-			if(w->pages[x][y])
+			if(w->pages[x][y] && w->changed[x][y])
 			{
 				write_map_page(w, x, y);
 			}

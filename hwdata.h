@@ -8,4 +8,9 @@ int parse_uart_msg(uint8_t* buf, int len);
 lidar_scan_t* get_lidar();
 
 
+void send_keepalive();
+void move_to(int32_t x, int32_t y);
+
+
+
 #endif

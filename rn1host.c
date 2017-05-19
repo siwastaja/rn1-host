@@ -29,17 +29,6 @@ uint32_t robot_id = 0xacdcabba; // Hopefully unique identifier for the robot.
 extern world_t world;
 #define BUFLEN 2048
 
-void send_keepalive()
-{
-	uint8_t buf[3] = {0x8f, 0x00, 0xff};
-	if(write(uart, buf, 3) != 3)
-	{
-		printf("uart write error\n");
-	}
-}
-
-
-
 int main(int argc, char** argv)
 {
 	if(init_uart())
@@ -100,11 +89,10 @@ int main(int argc, char** argv)
 		if(tcp_client_sock >= 0 && FD_ISSET(tcp_client_sock, &fds))
 		{
 			int ret = handle_tcp_client();
-			printf("handle_tcp_client() returned %d\n", ret);
-
 			if(ret == TCP_CR_DEST_MID)
 			{
 				printf("  ---> DEST params: %d, %d\n", msg_cr_dest.x, msg_cr_dest.y);
+				move_to(msg_cr_dest.x, msg_cr_dest.y);
 			}
 		}
 

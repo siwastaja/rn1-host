@@ -45,8 +45,8 @@ void tcp_send_lidar(lidar_scan_t* p_lid)
 	const int size = 13+180*2;
 	uint8_t buf[size];
 	buf[0] = TCP_RC_LIDAR_MID;
-	buf[1] = (size>>8)&0xff;
-	buf[2] = size&0xff;
+	buf[1] = ((size-3)>>8)&0xff;
+	buf[2] = (size-3)&0xff;
 
 	int r_ang = p_lid->robot_pos.ang>>16;
 	int r_x = p_lid->robot_pos.x;

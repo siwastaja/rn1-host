@@ -109,6 +109,16 @@ int main(int argc, char** argv)
 		lidar_scan_t* p_lid;
 		if( (p_lid = get_lidar()) )
 		{
+			static int lidar_cnt = 0;
+
+			lidar_cnt++;
+			if(lidar_cnt > 5)
+			{
+				tcp_send_lidar(p_lid);
+				lidar_cnt = 0;
+			}
+
+
 			int idx_x, idx_y, offs_x, offs_y;
 //			printf("INFO: Got lidar scan.\n");
 
@@ -125,6 +135,7 @@ int main(int argc, char** argv)
 			load_9pages(&world, idx_x, idx_y);
 			if(p_lid->significant_for_mapping)
 			{
+				lidar_cnt = 0;
 				tcp_send_lidar(p_lid);
 				world.changed[idx_x][idx_y] = 1;
 				// TODO: some error checking...

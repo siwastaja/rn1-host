@@ -114,7 +114,7 @@ int main(int argc, char** argv)
 			lidar_cnt++;
 			if(lidar_cnt > 5)
 			{
-				tcp_send_lidar(p_lid);
+				if(tcp_client_sock >= 0) tcp_send_lidar(p_lid);
 				lidar_cnt = 0;
 			}
 
@@ -136,7 +136,7 @@ int main(int argc, char** argv)
 			if(p_lid->significant_for_mapping)
 			{
 				lidar_cnt = 0;
-				tcp_send_lidar(p_lid);
+				if(tcp_client_sock >= 0) tcp_send_lidar(p_lid);
 				world.changed[idx_x][idx_y] = 1;
 				// TODO: some error checking...
 				printf("INFO: Got significant lidar scan, adding to map.\n");

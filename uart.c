@@ -114,7 +114,7 @@ void handle_uart()
 		return;
 	}
 
-	if(rxloc > 1000)
+	if(rxloc > 2000)
 		rxloc = 0;
 
 	if(byte > 127)

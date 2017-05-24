@@ -19,7 +19,6 @@
 #include "uart.h"
 #include "tcp_comm.h"
 #include "tcp_parser.h"
-#include "../rn1-brain/comm.h"
 
 #ifndef M_PI
 #define M_PI 3.141592653589793238

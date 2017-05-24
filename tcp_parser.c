@@ -82,8 +82,8 @@ void tcp_send_lidar(lidar_scan_t* p_lid)
 		if(y>127) y = 127; else if(y<-128) y=-128;
 
 		// i goes += 2, which is handy here:
-		buf[13+i] = x;
-		buf[13+i+1] = y;
+		buf[13+i] = (int8_t)x;
+		buf[13+i+1] = (int8_t)y;
 
 	}
 

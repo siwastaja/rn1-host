@@ -50,10 +50,13 @@ extern tcp_rc_pos_t    msg_rc_pos;
 
 #define TCP_RC_LIDAR_MID    131
 
+#define TCP_RC_DBG_MID    132
+
 int tcp_parser(int sock);
 
 int tcp_send_msg(tcp_message_t* msg_type, void* msg);
 
 void tcp_send_lidar(lidar_scan_t* p_lid);
+void tcp_send_hwdbg(int32_t* dbg);
 
 #endif

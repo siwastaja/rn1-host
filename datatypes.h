@@ -24,4 +24,6 @@ typedef struct
 	point_t scan[360];
 } lidar_scan_t;
 
+extern int32_t hwdbg[10];
+
 #endif

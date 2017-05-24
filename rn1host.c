@@ -109,6 +109,8 @@ int main(int argc, char** argv)
 		lidar_scan_t* p_lid;
 		if( (p_lid = get_lidar()) )
 		{
+			tcp_send_hwdbg(hwdbg);
+
 			static int lidar_cnt = 0;
 
 			lidar_cnt++;

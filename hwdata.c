@@ -13,6 +13,8 @@ int lidar_wr = 0;
 int lidar_rd = 0;
 lidar_scan_t lidars[LIDAR_RING_BUF_LEN];
 
+int32_t hwdbg[10];
+
 lidar_scan_t* get_lidar()
 {
 	if(lidar_wr == lidar_rd)
@@ -75,6 +77,15 @@ int parse_uart_msg(uint8_t* buf, int len)
 			}
 
 			lidar_wr++; if(lidar_wr >= LIDAR_RING_BUF_LEN) lidar_wr = 0;
+		}
+		break;
+
+		case 0xd2:
+		{
+			for(int i=0; i<10; i++)
+			{
+				hwdbg[i] = I7x5_I32(buf[i*5+1],buf[i*5+2],buf[i*5+3],buf[i*5+4],buf[i*5+5]);
+			}
 		}
 		break;
 	}

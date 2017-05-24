@@ -32,7 +32,7 @@ tcp_message_t* CR_MSGS[NUM_CR_MSGS] =
 tcp_message_t msgmeta_rc_pos =
 {
 	0,
-	129,
+	TCP_RC_POS_MID,
 	10, "sii"
 };
 tcp_rc_pos_t    msg_rc_pos;

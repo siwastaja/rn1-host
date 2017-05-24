@@ -1,6 +1,8 @@
 #ifndef TCP_PARSER_H
 #define TCP_PARSER_H
 
+#include "datatypes.h"
+
 typedef struct
 {
 	// Where to write when receiving. This field is ignored for tx. 
@@ -46,8 +48,12 @@ typedef struct __attribute__ ((packed))
 extern tcp_message_t   msgmeta_rc_pos;
 extern tcp_rc_pos_t    msg_rc_pos;
 
+#define TCP_RC_LIDAR_MID    131
+
 int tcp_parser(int sock);
 
 int tcp_send_msg(tcp_message_t* msg_type, void* msg);
+
+void tcp_send_lidar(lidar_scan_t* p_lid);
 
 #endif

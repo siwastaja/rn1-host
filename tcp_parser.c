@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include "datatypes.h"
 #include "tcp_comm.h"
 #include "tcp_parser.h"
 
@@ -35,6 +36,60 @@ tcp_message_t msgmeta_rc_pos =
 	10, "sii"
 };
 tcp_rc_pos_t    msg_rc_pos;
+
+#define I32TOBUF(i_, b_, s_) {b_[(s_)] = ((i_)>>24)&0xff; b_[(s_)+1] = ((i_)>>16)&0xff; b_[(s_)+2] = ((i_)>>8)&0xff; b_[(s_)+3] = ((i_)>>0)&0xff; }
+#define I16TOBUF(i_, b_, s_) {b_[(s_)] = ((i_)>>8)&0xff; b_[(s_)+1] = ((i_)>>0)&0xff; }
+
+void tcp_send_lidar(lidar_scan_t* p_lid)
+{
+	const int size = 13+180*2;
+	uint8_t buf[size];
+	buf[0] = TCP_RC_LIDAR_MID;
+	buf[1] = (size>>8)&0xff;
+	buf[2] = size&0xff;
+
+	int r_ang = p_lid->robot_pos.ang>>16;
+	int r_x = p_lid->robot_pos.x;
+	int r_y = p_lid->robot_pos.y;
+
+	I16TOBUF(r_ang, buf, 3);
+	I32TOBUF(r_x, buf, 5);
+	I32TOBUF(r_y, buf, 9);
+
+	for(int i=0; i<360; i+=2)
+	{
+		int x = 0;
+		int y = 0;
+		// to save space, send every other sample; if the first is invalid, the second will be ok.
+		// Also, to save space, send offsets to the middle.
+		// Convert measurements to 4cm/unit so that int8 is enough. range=508cm. Saturate measurements over that.
+		if(p_lid->scan[i].valid)
+		{
+			x = p_lid->scan[i].x - r_x;
+			y = p_lid->scan[i].y - r_y;
+		}
+		else if(p_lid->scan[i+1].valid)
+		{
+			x = p_lid->scan[i+1].x;
+			y = p_lid->scan[i+1].y;
+		}
+		// else send 0,0 to denote invalid point.
+
+		x/=40;
+		y/=40;
+
+		if(x>127) x = 127; else if(x<-128) x=-128;
+		if(y>127) y = 127; else if(y<-128) y=-128;
+
+		// i goes += 2, which is handy here:
+		buf[13+i] = x;
+		buf[13+i+1] = y;
+
+	}
+
+	tcp_send(buf, size);
+
+}
 
 int tcp_send_msg(tcp_message_t* msg_type, void* msg)
 {

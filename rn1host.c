@@ -125,6 +125,7 @@ int main(int argc, char** argv)
 			load_9pages(&world, idx_x, idx_y);
 			if(p_lid->significant_for_mapping)
 			{
+				tcp_send_lidar(p_lid);
 				world.changed[idx_x][idx_y] = 1;
 				// TODO: some error checking...
 				printf("INFO: Got significant lidar scan, adding to map.\n");

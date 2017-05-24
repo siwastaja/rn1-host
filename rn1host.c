@@ -19,6 +19,7 @@
 #include "uart.h"
 #include "tcp_comm.h"
 #include "tcp_parser.h"
+#include "../rn1-brain/comm.h"
 
 #ifndef M_PI
 #define M_PI 3.141592653589793238
@@ -112,7 +113,7 @@ int main(int argc, char** argv)
 			int idx_x, idx_y, offs_x, offs_y;
 //			printf("INFO: Got lidar scan.\n");
 
-			cur_ang = p_lid->pos.ang; cur_x = p_lid->pos.x; cur_y = p_lid->pos.y;
+			cur_ang = p_lid->robot_pos.ang; cur_x = p_lid->robot_pos.x; cur_y = p_lid->robot_pos.y;
 			if(tcp_client_sock >= 0)
 			{
 				msg_rc_pos.ang = cur_ang>>16;
@@ -121,44 +122,26 @@ int main(int argc, char** argv)
 				tcp_send_msg(&msgmeta_rc_pos, &msg_rc_pos);
 			}
 
-
-			page_coords(p_lid->pos.x, p_lid->pos.y, &idx_x, &idx_y, &offs_x, &offs_y);
+			page_coords(p_lid->robot_pos.x, p_lid->robot_pos.y, &idx_x, &idx_y, &offs_x, &offs_y);
 			load_9pages(&world, idx_x, idx_y);
-			if(p_lid->status & LIDAR_STATUS_SYNCED_IMAGES)
+			if(p_lid->significant_for_mapping)
 			{
-
 				world.changed[idx_x][idx_y] = 1;
-
 				// TODO: some error checking...
-//				printf("INFO: Lidar scan images are synced.\n");
+				printf("INFO: Got significant lidar scan, adding to map.\n");
 //				int max_x = -2000000000, max_y = -2000000000;
 //				int min_x = 2000000000, min_y = 2000000000;
 				for(int i = 0; i < 360; i++)
 				{
-					int len = p_lid->scan[i];
-					if(len > 0)
-					{
-						double co = cos(2.0*M_PI*(   (((double)p_lid->pos.ang)/4294967296.0)  +  ((double)i/360.0)   ));
-						double si = sin(2.0*M_PI*(   (((double)p_lid->pos.ang)/4294967296.0)  +  ((double)i/360.0)   ));
+					if(!p_lid->scan[i].valid) continue;
+					int x = p_lid->scan[i].x;
+					int y = p_lid->scan[i].y;
 
-						int x, y;
-						for(int d = 0; d < len; d+=40)
-						{
-							x = p_lid->pos.x + co * d;
-							y = p_lid->pos.y + si * d;
-
-							page_coords(x, y, &idx_x, &idx_y, &offs_x, &offs_y);
-							world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest = UNIT_FREE;
-						}
-						x = p_lid->pos.x + co * len;
-						y = p_lid->pos.y + si * len;
-
-//						if(x>max_x) x = max_x; if(y>max_y) y = max_y; 
-//						if(x<min_x) x = min_x; if(y<min_y) y = min_y;
-						page_coords(x, y, &idx_x, &idx_y, &offs_x, &offs_y);
-						world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest = UNIT_WALL;
-						world.changed[idx_x][idx_y] = 1;
-					}
+//					if(x>max_x) x = max_x; if(y>max_y) y = max_y; 
+//					if(x<min_x) x = min_x; if(y<min_y) y = min_y;
+					page_coords(x, y, &idx_x, &idx_y, &offs_x, &offs_y);
+					world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest = UNIT_WALL;
+					world.changed[idx_x][idx_y] = 1;
 				}
 			}
 

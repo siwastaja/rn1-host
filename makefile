@@ -14,3 +14,6 @@ all: rn1host
 
 rn1host: $(OBJ)
 	$(LD) $(LDFLAGS) -o rn1host $^ -lm
+
+e:
+	gedit --new-window rn1host.c datatypes.h mapping.h mapping.c uart.h uart.c hwdata.c hwdata.c tcp_parser.h tcp_parser.c &

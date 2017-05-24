@@ -4,6 +4,7 @@
 #include "uart.h"
 
 #include "../rn1-brain/comm.h" // For the convenient 7-bit data handling macros.
+#define I14x2_I16(msb,lsb) ((int16_t)( ( ((uint16_t)(msb)<<9) | ((uint16_t)(lsb)<<2) ) ))
 
 
 #define LIDAR_RING_BUF_LEN 8
@@ -30,14 +31,49 @@ int parse_uart_msg(uint8_t* buf, int len)
 	{
 		case 0x84:
 		{
-			lidars[lidar_wr].status = buf[1];
+			/*
+			 Lidar-based 2D MAP on uart:
+
+			num_bytes
+			 1	uint8 start byte
+			 1	uint7 status
+			 2	int14 cur_ang (at the middle point of the lidar scan)  (not used for turning the image, just to include robot coords)
+			 5	int32 cur_x   ( " " )
+			 5	int32 cur_y   ( " " )
+			 1	int7  correction return value
+			 2	int14 ang_corr (for information only)
+			 2	int14 x_corr (for information only)
+			 2	int14 y_corr (for information only) 
+			1440	360 * point
+				  2	int14  x referenced to cur_x
+				  2	int14  y referenced to cur_y
+
+				Total: 1461
+				Time to tx at 115200: ~130 ms
+
+			*/
+
+			lidars[lidar_wr].significant_for_mapping = buf[1];
+			lidars[lidar_wr].robot_pos.ang = (I7I7_U16_lossy(buf[2], buf[3]))<<16;
+			int mid_x = lidars[lidar_wr].robot_pos.x = I7x5_I32(buf[4],buf[5],buf[6],buf[7],buf[8]);
+			int mid_y = lidars[lidar_wr].robot_pos.y = I7x5_I32(buf[9],buf[10],buf[11],buf[12],buf[13]);
+
 			for(int i = 0; i < 360; i++)
 			{
-				lidars[lidar_wr].scan[i] = buf[14+2*i+1]<<7 | buf[14+2*i];
+				int x = I14x2_I16(buf[21+4*i+0], buf[21+4*i+1])>>2;
+				int y = I14x2_I16(buf[21+4*i+2], buf[21+4*i+3])>>2;
+				if(x != 0 && y != 0)
+				{
+					lidars[lidar_wr].scan[i].x = x + mid_x;
+					lidars[lidar_wr].scan[i].y = y + mid_y;
+					lidars[lidar_wr].scan[i].valid = 1;
+				}
+				else
+				{
+					lidars[lidar_wr].scan[i].valid = 0;
+				}
 			}
-			lidars[lidar_wr].pos.ang = (I7I7_U16_lossy(buf[2], buf[3]))<<16;
-			lidars[lidar_wr].pos.x = I7x5_I32(buf[4],buf[5],buf[6],buf[7],buf[8]);
-			lidars[lidar_wr].pos.y = I7x5_I32(buf[9],buf[10],buf[11],buf[12],buf[13]);
+
 			lidar_wr++; if(lidar_wr >= LIDAR_RING_BUF_LEN) lidar_wr = 0;
 		}
 		break;

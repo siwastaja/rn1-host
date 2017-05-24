@@ -12,11 +12,16 @@ typedef struct
 
 typedef struct
 {
-	int status;
-	pos_t pos;
-	int16_t scan[360];
-} lidar_scan_t;
+	int valid;
+	int32_t x;   // in mm
+	int32_t y;
+} point_t;
 
-#define LIDAR_STATUS_SYNCED_IMAGES 0b1100
+typedef struct
+{
+	int significant_for_mapping;
+	pos_t robot_pos;
+	point_t scan[360];
+} lidar_scan_t;
 
 #endif

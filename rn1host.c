@@ -164,6 +164,7 @@ int main(int argc, char** argv)
 		sonar_scan_t* p_son;
 		if( (p_son = get_sonar()) )
 		{
+			printf("INFO: Got sonar scan.\n");
 			static int sonar_cnt = 0;
 
 			sonar_cnt++;
@@ -173,9 +174,8 @@ int main(int argc, char** argv)
 				sonar_cnt = 0;
 
 				int idx_x, idx_y, offs_x, offs_y;
-				printf("INFO: Got sonar scan.\n");
 
-				for(int i=0; i<3; i++)
+/*				for(int i=0; i<3; i++)
 				{
 					if(!p_son->scan[i].valid) continue;
 
@@ -184,6 +184,7 @@ int main(int argc, char** argv)
 					world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest |= UNIT_ITEM;
 					world.changed[idx_x][idx_y] = 1;
 				}
+*/
 			}
 
 		}

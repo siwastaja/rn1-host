@@ -171,19 +171,19 @@ int main(int argc, char** argv)
 			{
 				if(tcp_client_sock >= 0) tcp_send_sonar(p_son);
 				sonar_cnt = 0;
-			}
 
-			int idx_x, idx_y, offs_x, offs_y;
-			printf("INFO: Got sonar scan.\n");
+				int idx_x, idx_y, offs_x, offs_y;
+	//			printf("INFO: Got sonar scan.\n");
 
-			for(int i=0; i<3; i++)
-			{
-				if(!p_son->scan[i].valid) continue;
+				for(int i=0; i<3; i++)
+				{
+					if(!p_son->scan[i].valid) continue;
 
-				page_coords(p_son->scan[i].x, p_son->scan[i].y, &idx_x, &idx_y, &offs_x, &offs_y);
-				load_9pages(&world, idx_x, idx_y);
-				world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest |= UNIT_ITEM;
-				world.changed[idx_x][idx_y] = 1;
+					page_coords(p_son->scan[i].x, p_son->scan[i].y, &idx_x, &idx_y, &offs_x, &offs_y);
+					load_9pages(&world, idx_x, idx_y);
+					world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest |= UNIT_ITEM;
+					world.changed[idx_x][idx_y] = 1;
+				}
 			}
 
 		}

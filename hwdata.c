@@ -8,10 +8,15 @@
 
 
 #define LIDAR_RING_BUF_LEN 8
+#define SONAR_RING_BUF_LEN 16
 
 int lidar_wr = 0;
 int lidar_rd = 0;
+int sonar_wr = 0;
+int sonar_rd = 0;
+
 lidar_scan_t lidars[LIDAR_RING_BUF_LEN];
+sonar_scan_t sonars[SONAR_RING_BUF_LEN];
 
 int32_t hwdbg[10];
 
@@ -26,6 +31,19 @@ lidar_scan_t* get_lidar()
 	lidar_rd++; if(lidar_rd >= LIDAR_RING_BUF_LEN) lidar_rd = 0;
 	return ret;
 }
+
+sonar_scan_t* get_sonar()
+{
+	if(sonar_wr == sonar_rd)
+	{
+		return 0;
+	}
+	
+	sonar_scan_t* ret = &sonars[sonar_rd];
+	sonar_rd++; if(sonar_rd >= SONAR_RING_BUF_LEN) sonar_rd = 0;
+	return ret;
+}
+
 
 int parse_uart_msg(uint8_t* buf, int len)
 {
@@ -80,6 +98,21 @@ int parse_uart_msg(uint8_t* buf, int len)
 		}
 		break;
 
+		case 0x85:
+		{
+			/*
+				Sonar-based 2D map
+			*/
+			for(int i = 0; i < 3; i++)
+			{
+				sonars[sonar_wr].scan[i].valid = (buf[1]&(1<<i))?1:0;
+				sonars[sonar_wr].scan[i].x = I7x5_I32(buf[2+10*i],buf[3+10*i],buf[4+10*i],buf[5+10*i],buf[6+10*i]);
+				sonars[sonar_wr].scan[i].y = I7x5_I32(buf[7+10*i],buf[8+10*i],buf[9+10*i],buf[10+10*i],buf[11+10*i]);
+			}
+
+			sonar_wr++; if(sonar_wr >= SONAR_RING_BUF_LEN) sonar_wr = 0;
+
+		}
 		case 0xd2:
 		{
 			for(int i=0; i<10; i++)

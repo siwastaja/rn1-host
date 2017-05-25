@@ -6,6 +6,7 @@
 
 int parse_uart_msg(uint8_t* buf, int len);
 lidar_scan_t* get_lidar();
+sonar_scan_t* get_sonar();
 
 
 void send_keepalive();

@@ -113,6 +113,8 @@ int parse_uart_msg(uint8_t* buf, int len)
 			sonar_wr++; if(sonar_wr >= SONAR_RING_BUF_LEN) sonar_wr = 0;
 
 		}
+		break;
+
 		case 0xd2:
 		{
 			for(int i=0; i<10; i++)

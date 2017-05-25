@@ -173,7 +173,7 @@ int main(int argc, char** argv)
 				sonar_cnt = 0;
 
 				int idx_x, idx_y, offs_x, offs_y;
-	//			printf("INFO: Got sonar scan.\n");
+				printf("INFO: Got sonar scan.\n");
 
 				for(int i=0; i<3; i++)
 				{

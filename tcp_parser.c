@@ -113,7 +113,7 @@ void tcp_send_sonar(sonar_scan_t* p_son)
 	buf[0] = TCP_RC_SONAR_MID;
 	buf[1] = ((size-3)>>8)&0xff;
 	buf[2] = (size-3)&0xff;
-	buf[3] = p_son->scan[2].valid<<2 | p_son->scan[1].valid<<1 | p_son->scan[0].valid;
+	buf[3] = (p_son->scan[2].valid<<2) | (p_son->scan[1].valid<<1) | (p_son->scan[0].valid);
 
 	for(int i=0; i<3; i++)
 	{

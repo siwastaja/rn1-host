@@ -549,7 +549,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	int best_dy = 0;
 
 	int do_not_map = 0;
-	if(best_score < 5000)
+	if(best_score < 1000)
 	{
 		if(best_matched == 0)
 		{

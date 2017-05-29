@@ -107,19 +107,18 @@ int main(int argc, char** argv)
 
 
 		lidar_scan_t* p_lid;
-		if( (p_lid = get_lidar()) )
+
+		if( (p_lid = get_significant_lidar()) || (p_lid = get_basic_lidar()) )
 		{
 			if(tcp_client_sock >= 0) tcp_send_hwdbg(hwdbg);
 
-			static int lidar_cnt = 0;
-
-			lidar_cnt++;
-			if(lidar_cnt > 5)
+			static int lidar_send_cnt = 0;
+			lidar_send_cnt++;
+			if(lidar_send_cnt > 5)
 			{
 				if(tcp_client_sock >= 0) tcp_send_lidar(p_lid);
-				lidar_cnt = 0;
+				lidar_send_cnt = 0;
 			}
-
 
 			int idx_x, idx_y, offs_x, offs_y;
 //			printf("INFO: Got lidar scan.\n");
@@ -137,25 +136,20 @@ int main(int argc, char** argv)
 			load_9pages(&world, idx_x, idx_y);
 			if(p_lid->significant_for_mapping)
 			{
-				lidar_cnt = 0;
+				lidar_send_cnt = 0;
 				if(tcp_client_sock >= 0) tcp_send_lidar(p_lid);
-				world.changed[idx_x][idx_y] = 1;
-				// TODO: some error checking...
 				printf("INFO: Got significant lidar scan, adding to map.\n");
-//				int max_x = -2000000000, max_y = -2000000000;
-//				int min_x = 2000000000, min_y = 2000000000;
-				for(int i = 0; i < 360; i++)
-				{
-					if(!p_lid->scan[i].valid) continue;
-					int x = p_lid->scan[i].x;
-					int y = p_lid->scan[i].y;
+				static int n_lidars_to_map = 0;
+				static lidar_scan_t* lidars_to_map[10];
+				lidars_to_map[n_lidars_to_map] = p_lid;
 
-//					if(x>max_x) x = max_x; if(y>max_y) y = max_y; 
-//					if(x<min_x) x = min_x; if(y<min_y) y = min_y;
-					page_coords(x, y, &idx_x, &idx_y, &offs_x, &offs_y);
-					world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest = UNIT_WALL;
-					world.changed[idx_x][idx_y] = 1;
+				n_lidars_to_map++;
+				if(n_lidars_to_map == 10)
+				{
+					map_lidars(&world, n_lidars_to_map, lidars_to_map);
+					n_lidars_to_map = 0;
 				}
+
 			}
 
 			send_keepalive();			

@@ -7,20 +7,24 @@
 #define I14x2_I16(msb,lsb) ((int16_t)( ( ((uint16_t)(msb)<<9) | ((uint16_t)(lsb)<<2) ) ))
 
 
-#define LIDAR_RING_BUF_LEN 8
+#define SIGNIFICANT_LIDAR_RING_BUF_LEN 32
+#define LIDAR_RING_BUF_LEN 16
 #define SONAR_RING_BUF_LEN 16
 
 int lidar_wr = 0;
 int lidar_rd = 0;
+int significant_lidar_wr = 0;
+int significant_lidar_rd = 0;
 int sonar_wr = 0;
 int sonar_rd = 0;
 
 lidar_scan_t lidars[LIDAR_RING_BUF_LEN];
+lidar_scan_t significant_lidars[SIGNIFICANT_LIDAR_RING_BUF_LEN];
 sonar_scan_t sonars[SONAR_RING_BUF_LEN];
 
 int32_t hwdbg[10];
 
-lidar_scan_t* get_lidar()
+lidar_scan_t* get_basic_lidar()
 {
 	if(lidar_wr == lidar_rd)
 	{
@@ -31,6 +35,19 @@ lidar_scan_t* get_lidar()
 	lidar_rd++; if(lidar_rd >= LIDAR_RING_BUF_LEN) lidar_rd = 0;
 	return ret;
 }
+
+lidar_scan_t* get_significant_lidar()
+{
+	if(significant_lidar_wr == significant_lidar_rd)
+	{
+		return 0;
+	}
+	
+	lidar_scan_t* ret = &significant_lidars[significant_lidar_rd];
+	significant_lidar_rd++; if(significant_lidar_rd >= SIGNIFICANT_LIDAR_RING_BUF_LEN) significant_lidar_rd = 0;
+	return ret;
+}
+
 
 sonar_scan_t* get_sonar()
 {
@@ -73,10 +90,12 @@ int parse_uart_msg(uint8_t* buf, int len)
 
 			*/
 
-			lidars[lidar_wr].significant_for_mapping = buf[1];
-			lidars[lidar_wr].robot_pos.ang = (I7I7_U16_lossy(buf[2], buf[3]))<<16;
-			int mid_x = lidars[lidar_wr].robot_pos.x = I7x5_I32(buf[4],buf[5],buf[6],buf[7],buf[8]);
-			int mid_y = lidars[lidar_wr].robot_pos.y = I7x5_I32(buf[9],buf[10],buf[11],buf[12],buf[13]);
+			int is_significant = buf[1];
+			lidar_scan_t* lid = is_significant?&significant_lidars[significant_lidar_wr]:&lidars[lidar_wr];
+			lid->significant_for_mapping = is_significant;
+			lid->robot_pos.ang = (I7I7_U16_lossy(buf[2], buf[3]))<<16;
+			int mid_x = lid->robot_pos.x = I7x5_I32(buf[4],buf[5],buf[6],buf[7],buf[8]);
+			int mid_y = lid->robot_pos.y = I7x5_I32(buf[9],buf[10],buf[11],buf[12],buf[13]);
 
 			for(int i = 0; i < 360; i++)
 			{
@@ -84,17 +103,24 @@ int parse_uart_msg(uint8_t* buf, int len)
 				int y = I14x2_I16(buf[21+4*i+2], buf[21+4*i+3])>>2;
 				if(x != 0 && y != 0)
 				{
-					lidars[lidar_wr].scan[i].x = x + mid_x;
-					lidars[lidar_wr].scan[i].y = y + mid_y;
-					lidars[lidar_wr].scan[i].valid = 1;
+					lid->scan[i].x = x + mid_x;
+					lid->scan[i].y = y + mid_y;
+					lid->scan[i].valid = 1;
 				}
 				else
 				{
-					lidars[lidar_wr].scan[i].valid = 0;
+					lid->scan[i].valid = 0;
 				}
 			}
 
-			lidar_wr++; if(lidar_wr >= LIDAR_RING_BUF_LEN) lidar_wr = 0;
+			if(is_significant)
+			{
+				significant_lidar_wr++; if(significant_lidar_wr >= SIGNIFICANT_LIDAR_RING_BUF_LEN) significant_lidar_wr = 0;
+			}
+			else
+			{
+				lidar_wr++; if(lidar_wr >= LIDAR_RING_BUF_LEN) lidar_wr = 0;
+			}
 		}
 		break;
 

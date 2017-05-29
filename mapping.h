@@ -2,11 +2,12 @@
 #define MAPPING_H
 
 #include <stdint.h>
-
+#include "datatypes.h"
 
 #define UNIT_FREE	0
 #define UNIT_ITEM	(1<<0)	// Small obstacle, detected by sonars or bumping into it
 #define UNIT_WALL	(1<<1)	// Obstacle seen by the lidar.
+#define UNIT_MAPPED     (1<<7)  // We have seen this area.
 
 #define CONSTRAINT_FORBIDDEN 	(1<<0)	// "Don't go here" unit
 
@@ -98,5 +99,8 @@ typedef struct
 } world_t;
 
 void page_coords(int mm_x, int mm_y, int* pageidx_x, int* pageidx_y, int* pageoffs_x, int* pageoffs_y);
+
+int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list);
+
 
 #endif

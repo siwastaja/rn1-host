@@ -189,6 +189,8 @@ void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)
 		return;
 	}
 
+	printf("INFO: Correcting robot pos by %d, %d, %d\n", da>>16, dx, dy);
+
 	uint8_t buf[12];
 
 	buf[0] = 0x89;

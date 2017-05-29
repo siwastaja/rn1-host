@@ -168,7 +168,9 @@ int main(int argc, char** argv)
 			send_keepalive();			
 		}
 		else
-			ignore_lidars--; // stop ignoring lidars once no more is coming.
+		{
+			if(ignore_lidars>0) ignore_lidars--; // stop ignoring lidars once no more is coming.
+		}
 
 		sonar_scan_t* p_son;
 		if( (p_son = get_sonar()) )

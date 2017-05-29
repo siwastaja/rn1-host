@@ -108,61 +108,67 @@ int main(int argc, char** argv)
 
 		lidar_scan_t* p_lid;
 
+		static int ignore_lidars = 0;
 		if( (p_lid = get_significant_lidar()) || (p_lid = get_basic_lidar()) )
 		{
-			if(tcp_client_sock >= 0) tcp_send_hwdbg(hwdbg);
-
-			static int lidar_send_cnt = 0;
-			lidar_send_cnt++;
-			if(lidar_send_cnt > 5)
+			if(ignore_lidars)
 			{
-				if(tcp_client_sock >= 0) tcp_send_lidar(p_lid);
-				lidar_send_cnt = 0;
+				printf("INFO: Ignoring lidar scan.\n");
 			}
-
-			int idx_x, idx_y, offs_x, offs_y;
-//			printf("INFO: Got lidar scan.\n");
-
-			cur_ang = p_lid->robot_pos.ang; cur_x = p_lid->robot_pos.x; cur_y = p_lid->robot_pos.y;
-			if(tcp_client_sock >= 0)
+			else
 			{
-				msg_rc_pos.ang = cur_ang>>16;
-				msg_rc_pos.x = cur_x;
-				msg_rc_pos.y = cur_y;
-				tcp_send_msg(&msgmeta_rc_pos, &msg_rc_pos);
-			}
 
-			page_coords(p_lid->robot_pos.x, p_lid->robot_pos.y, &idx_x, &idx_y, &offs_x, &offs_y);
-			load_9pages(&world, idx_x, idx_y);
-			if(p_lid->significant_for_mapping)
-			{
-				lidar_send_cnt = 0;
-				if(tcp_client_sock >= 0) tcp_send_lidar(p_lid);
-				printf("INFO: Got significant lidar scan, adding to map.\n");
-				static int n_lidars_to_map = 0;
-				static lidar_scan_t* lidars_to_map[10];
-				lidars_to_map[n_lidars_to_map] = p_lid;
+				if(tcp_client_sock >= 0) tcp_send_hwdbg(hwdbg);
 
-				n_lidars_to_map++;
-				if(n_lidars_to_map == 10)
+				static int lidar_send_cnt = 0;
+				lidar_send_cnt++;
+				if(lidar_send_cnt > 5)
 				{
-					int32_t da, dx, dy;
-					map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
-					correct_robot_pos(da, dx, dy);
-					// Get and ignore all lidar images:
-					int sig_ignores = 0, bas_ignores = 0;
-					while(get_significant_lidar()) sig_ignores++;
-					while(get_basic_lidar()) bas_ignores++;
-
-					if(sig_ignores || bas_ignores)
-						printf("INFO: Ignored %d basic and %d significant lidar scans.\n", bas_ignores, sig_ignores);
-					n_lidars_to_map = 0;
+					if(tcp_client_sock >= 0) tcp_send_lidar(p_lid);
+					lidar_send_cnt = 0;
 				}
 
+				int idx_x, idx_y, offs_x, offs_y;
+	//			printf("INFO: Got lidar scan.\n");
+
+				cur_ang = p_lid->robot_pos.ang; cur_x = p_lid->robot_pos.x; cur_y = p_lid->robot_pos.y;
+				if(tcp_client_sock >= 0)
+				{
+					msg_rc_pos.ang = cur_ang>>16;
+					msg_rc_pos.x = cur_x;
+					msg_rc_pos.y = cur_y;
+					tcp_send_msg(&msgmeta_rc_pos, &msg_rc_pos);
+				}
+
+				page_coords(p_lid->robot_pos.x, p_lid->robot_pos.y, &idx_x, &idx_y, &offs_x, &offs_y);
+				load_9pages(&world, idx_x, idx_y);
+				if(p_lid->significant_for_mapping)
+				{
+					lidar_send_cnt = 0;
+					if(tcp_client_sock >= 0) tcp_send_lidar(p_lid);
+					printf("INFO: Got significant lidar scan, adding to lidar list.\n");
+					static int n_lidars_to_map = 0;
+					static lidar_scan_t* lidars_to_map[10];
+					lidars_to_map[n_lidars_to_map] = p_lid;
+
+					n_lidars_to_map++;
+					if(n_lidars_to_map == 10)
+					{
+						int32_t da, dx, dy;
+						map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
+						correct_robot_pos(da, dx, dy);
+						// Get and ignore all lidar images:
+						ignore_lidars = 1;
+						n_lidars_to_map = 0;
+					}
+
+				}
 			}
 
 			send_keepalive();			
 		}
+		else
+			ignore_lidars = 0; // stop ignoring lidars once no more is coming.
 
 		sonar_scan_t* p_son;
 		if( (p_son = get_sonar()) )

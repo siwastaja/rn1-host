@@ -471,6 +471,8 @@ does not implement "I'm lost, where am I?" functionality.
 
 */
 
+int bigger_search_area = 0;
+
 int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy)
 {
 	*da = 0;
@@ -500,13 +502,27 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 
 	fprintf(fdbg, "PASS 1\nda;dx;dy;score;match_walls;exacts;new_walls;discovered_walls\n");
 
-	int best_score = -999999;
-	int best1_da=0, best1_dx=0, best1_dy=0;
-	for(int da=-10*ANG_1_DEG; da<=10*ANG_1_DEG; da+=ANG_1_DEG)
+	int a_range = 8;
+	int x_range = 320;
+	int y_range = 320;
+	int a_step = ANG_1_DEG;
+
+	if(bigger_search_area)
 	{
-		for(int dx=-400; dx<=400; dx+=80)
+		printf("INFO: Using bigger search area, this will take long\n");
+		a_range = 16;
+		x_range = 480;
+		y_range = 480;
+		a_step = 2*ANG_1_DEG;
+	}
+
+	int best_score = -999999;
+	int best1_da=0, best1_dx=0, best1_dy=0, best_matched=0;
+	for(int da=-1*a_range*ANG_1_DEG; da<=a_range*ANG_1_DEG; da+=a_step)
+	{
+		for(int dx=-1*x_range; dx<=x_range; dx+=80)
 		{
-			for(int dy=-400; dy<=400; dy+=80)
+			for(int dy=-1*y_range; dy<=y_range; dy+=80)
 			{
 				int n_matched_walls=0, n_exactly_matched_walls=0, n_new_walls=0, n_discovered_walls=0;
 				int score_now = score(w, n_lidars, lidar_list, 
@@ -519,6 +535,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 				if(score_now > best_score)
 				{
 					best_score = score_now;
+					best_matched = n_matched_walls;
 					best1_da = da;
 					best1_dx = dx;
 					best1_dy = dy;
@@ -531,12 +548,24 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	int best_dx = 0;
 	int best_dy = 0;
 
-	if(best_score < 1000)
+	int do_not_map = 0;
+	if(best_score < 5000)
 	{
-		printf("Info: best score (%d) is so low that area is considered unmapped, and being mapped with no correction.\n", best_score);
+		if(best_matched == 0)
+		{
+			printf("Info: area seems unmapped, and is being mapped with no correction.\n");
+			bigger_search_area = 0;
+		}
+		else
+		{
+			printf("Info: best score (%d) is so low that we are clearly lost! Mapping is prevented.\n", best_score);
+			do_not_map = 1;
+			bigger_search_area = 1;
+		}
 	}
 	else
 	{
+		bigger_search_area = 0;
 		fprintf(fdbg, "\nPASS 2\nda;dx;dy;score;match_walls;exacts;new_walls;discovered_walls\n");
 
 		best_score = -999999;
@@ -571,13 +600,16 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 		best_dy = best2_dy;
 	}
 
-	printf("Info: Map search complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best_da/(float)ANG_1_DEG, best_dx, best_dy, best_score);
+	if(!do_not_map)
+	{
+		printf("Info: Map search complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best_da/(float)ANG_1_DEG, best_dx, best_dy, best_score);
 
-	do_mapping(w, n_lidars, lidar_list, best_da, best_dx, best_dy, mid_x, mid_y);
+		do_mapping(w, n_lidars, lidar_list, best_da, best_dx, best_dy, mid_x, mid_y);
 
-	*da = best_da;
-	*dx = best_dx;
-	*dy = best_dy;
+		*da = best_da;
+		*dx = best_dx;
+		*dy = best_dy;
+	}
 
 	return 0;
 }

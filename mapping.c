@@ -326,11 +326,27 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	load_9pages(&world, pagex, pagey);
 
 	// Add our temporary map to the actual map.
-	int area_start_x = (rotate_mid_x/MAP_UNIT_W - TEMP_MAP_MIDDLE)*MAP_UNIT_W;
-	int area_start_y = (rotate_mid_y/MAP_UNIT_W - TEMP_MAP_MIDDLE)*MAP_UNIT_W;
-	page_coords(area_start_x, area_start_y, &pagex, &pagey, &offsx, &offsy);
-
 	// Don't loop near to the edges, we are comparing neighbouring cells inside the loop.
+	// Operate by reading a copy, writing to actual map, so that what we have just now written doesn't affect the adjacent units:
+
+	
+	int mid_x_mm = (rotate_mid_x/MAP_UNIT_W)*MAP_UNIT_W;
+	int mid_y_mm = (rotate_mid_y/MAP_UNIT_W)*MAP_UNIT_W;
+	page_coords(mid_x_mm, mid_y_mm, &pagex, &pagey, &offsx, &offsy);
+
+	static map_page_t copies[3][3];
+
+	int copy_pagex_start = pagex-1;
+	int copy_pagey_start = pagey-1;
+
+	for(int i = 0; i<3; i++)
+	{
+		for(int o=0; o<3; o++)
+		{
+			memcpy(&copies[i][o], &w->pages[copy_pagex_start+i][copy_pagey_start+o], sizeof(map_page_t)*9);
+		}
+	}
+
 	for(int iy = 2; iy < TEMP_MAP_W-2; iy++)
 	{
 		for(int ix = 2; ix < TEMP_MAP_W-2; ix++)
@@ -362,12 +378,25 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 				if(ox < 0) { ox += MAP_PAGE_W; px--;} 
 				if(oy < 0) { oy += MAP_PAGE_W; py--;}
 
+				int copy_px = px - copy_pagex_start;
+				int copy_py = py - copy_pagey_start;
+
+				if(copy_px < 0 || copy_px > 2 || copy_py < 0 || copy_py > 2)
+				{
+					printf("ERROR: invalid copy_px (%d) or copy_py (%d)\n", copy_px, copy_py);
+					free(temp_map);
+					return -3;
+				}
+
 				int not_found_cnt = 9;
 				for(int iy=-1; iy<=1; iy++)
 				{
 					for(int ix=-1; ix<=1; ix++)
 					{
-						if(w->pages[px][py]->units[ox][oy].result & UNIT_WALL)
+						copy_px = px - copy_pagex_start;
+						copy_py = py - copy_pagey_start;
+
+						if(copies[copy_px][copy_py].units[ox][oy].result & UNIT_WALL)
 						{
 							// Existing wall here, it suffices, increase the seen count.
 							PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_seen);

@@ -201,6 +201,11 @@ void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)
 	buf[5] = I16_MS((int16_t)dy);
 	buf[6] = I16_LS((int16_t)dy);
 	buf[7] = 0xff;
+
+	for(int i=0; i<8; i++)
+		printf("  %02x ", buf[i]);
+	printf("\n");
+
 	send_uart(buf, 8);
 }
 

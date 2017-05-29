@@ -274,7 +274,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 				else // dy < 0
 				{
 					float dx_per_step = (float)dx/(float)dy;
-					for(int iy = 0; iy < dy; iy++)
+					for(int iy = 0; iy < -1*dy; iy++)
 					{
 						int cur_x = robot_x - dx_per_step*(float)iy;
 						int cur_y = robot_y - iy;

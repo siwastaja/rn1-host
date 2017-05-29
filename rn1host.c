@@ -150,8 +150,12 @@ int main(int argc, char** argv)
 					map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
 					correct_robot_pos(da, dx, dy);
 					// Get and ignore all lidar images:
-					while(get_significant_lidar()) ;
-					while(get_basic_lidar()) ;
+					int sig_ignores = 0, bas_ignores = 0;
+					while(get_significant_lidar()) sig_ignores++;
+					while(get_basic_lidar()) bas_ignores++;
+
+					if(sig_ignores || bas_ignores)
+						printf("INFO: Ignored %d basic and %d significant lidar scans.\n", bas_ignores, sig_ignores);
 					n_lidars_to_map = 0;
 				}
 

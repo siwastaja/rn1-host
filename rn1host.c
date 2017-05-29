@@ -158,7 +158,7 @@ int main(int argc, char** argv)
 						map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
 						correct_robot_pos(da, dx, dy);
 						// Get and ignore all lidar images:
-						ignore_lidars = 10000;
+						ignore_lidars = 50000;
 						n_lidars_to_map = 0;
 					}
 

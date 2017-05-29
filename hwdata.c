@@ -1,6 +1,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <unistd.h> // for sleep
 
 #include "datatypes.h"
 #include "uart.h"
@@ -202,10 +203,7 @@ void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)
 	buf[6] = I16_LS((int16_t)dy);
 	buf[7] = 0xff;
 
-	for(int i=0; i<8; i++)
-		printf("  %02x ", buf[i]);
-	printf("\n");
-
 	send_uart(buf, 8);
+	sleep(1); // for debugging an issue...
 }
 

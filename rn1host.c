@@ -158,7 +158,7 @@ int main(int argc, char** argv)
 						map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
 						correct_robot_pos(da, dx, dy);
 						// Get and ignore all lidar images:
-						ignore_lidars = 1;
+						ignore_lidars = 1000;
 						n_lidars_to_map = 0;
 					}
 
@@ -168,7 +168,7 @@ int main(int argc, char** argv)
 			send_keepalive();			
 		}
 		else
-			ignore_lidars = 0; // stop ignoring lidars once no more is coming.
+			ignore_lidars--; // stop ignoring lidars once no more is coming.
 
 		sonar_scan_t* p_son;
 		if( (p_son = get_sonar()) )

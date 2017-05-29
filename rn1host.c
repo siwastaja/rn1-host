@@ -149,6 +149,9 @@ int main(int argc, char** argv)
 					int32_t da, dx, dy;
 					map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
 					correct_robot_pos(da, dx, dy);
+					// Get and ignore all lidar images:
+					while(get_significant_lidar()) ;
+					while(get_basic_lidar()) ;
 					n_lidars_to_map = 0;
 				}
 

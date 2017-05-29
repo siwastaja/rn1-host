@@ -100,7 +100,7 @@ typedef struct
 
 void page_coords(int mm_x, int mm_y, int* pageidx_x, int* pageidx_y, int* pageoffs_x, int* pageoffs_y);
 
-int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list);
+int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy);
 
 
 #endif

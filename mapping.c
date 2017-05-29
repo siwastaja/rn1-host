@@ -347,9 +347,9 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		}
 	}
 
-	for(int iy = 2; iy < TEMP_MAP_W-2; iy++)
+	for(int iy = 3; iy < TEMP_MAP_W-3; iy++)
 	{
-		for(int ix = 2; ix < TEMP_MAP_W-2; ix++)
+		for(int ix = 3; ix < TEMP_MAP_W-3; ix++)
 		{
 			int x_mm = (rotate_mid_x/MAP_UNIT_W - TEMP_MAP_MIDDLE + ix)*MAP_UNIT_W;
 			int y_mm = (rotate_mid_y/MAP_UNIT_W - TEMP_MAP_MIDDLE + iy)*MAP_UNIT_W;
@@ -388,10 +388,10 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 					return -3;
 				}
 
-				int not_found_cnt = 9;
-				for(int iy=-1; iy<=1; iy++)
+				int not_found_cnt = 16;
+				for(int iy=-2; iy<=2; iy++)
 				{
-					for(int ix=-1; ix<=1; ix++)
+					for(int ix=-2; ix<=2; ix++)
 					{
 						copy_px = px - copy_pagex_start;
 						copy_py = py - copy_pagey_start;
@@ -471,8 +471,11 @@ does not implement "I'm lost, where am I?" functionality.
 
 */
 
-int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list)
+int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy)
 {
+	*da = 0;
+	*dx = 0;
+	*dy = 0;
 
 	if(n_lidars > 32)
 	{
@@ -571,6 +574,10 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list)
 	printf("Info: Map search complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best_da/(float)ANG_1_DEG, best_dx, best_dy, best_score);
 
 	do_mapping(w, n_lidars, lidar_list, best_da, best_dx, best_dy, mid_x, mid_y);
+
+	*da = best_da;
+	*dx = best_dx;
+	*dy = best_dy;
 
 	return 0;
 }

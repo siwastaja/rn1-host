@@ -146,7 +146,9 @@ int main(int argc, char** argv)
 				n_lidars_to_map++;
 				if(n_lidars_to_map == 10)
 				{
-					map_lidars(&world, n_lidars_to_map, lidars_to_map);
+					int32_t da, dx, dy;
+					map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
+					correct_robot_pos(da, dx, dy);
 					n_lidars_to_map = 0;
 				}
 
@@ -169,7 +171,7 @@ int main(int argc, char** argv)
 				page_coords(p_son->scan[i].x, p_son->scan[i].y, &idx_x, &idx_y, &offs_x, &offs_y);
 				load_9pages(&world, idx_x, idx_y);
 				world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest |= UNIT_ITEM;
-				world.changed[idx_x][idx_y] = 1;
+				//world.changed[idx_x][idx_y] = 1;
 			}
 		}
 

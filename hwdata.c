@@ -1,5 +1,7 @@
 
 #include <stdint.h>
+#include <stdio.h>
+
 #include "datatypes.h"
 #include "uart.h"
 
@@ -177,5 +179,26 @@ void move_to(int32_t x, int32_t y)
 	buf[10] = I32_I7_0(y);
 	buf[11] = 0xff;
 	send_uart(buf, 12);
+}
+
+void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)
+{
+	if(dx < -32767 || dx > 32767 || dy < -32767 || dy > 32767)
+	{
+		printf("ERROR: out of range coords in correct_robot_pos()\n");
+		return;
+	}
+
+	uint8_t buf[12];
+
+	buf[0] = 0x89;
+	buf[1] = I16_MS(da>>16);
+	buf[2] = I16_LS(da>>16);
+	buf[3] = I16_MS((int16_t)dx);
+	buf[4] = I16_LS((int16_t)dx);
+	buf[5] = I16_MS((int16_t)dy);
+	buf[6] = I16_LS((int16_t)dy);
+	buf[7] = 0xff;
+	send_uart(buf, 8);
 }
 

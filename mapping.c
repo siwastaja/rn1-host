@@ -374,7 +374,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 			if(w_cnt) // Wall found
 			{
-				int px = pagex, py = pagey, ox = offsx-2, oy = offsy-2;
+				int px = pagex, py = pagey, ox = offsx-1, oy = offsy-1;
 				if(ox < 0) { ox += MAP_PAGE_W; px--;} 
 				if(oy < 0) { oy += MAP_PAGE_W; py--;}
 
@@ -388,10 +388,10 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 					return -3;
 				}
 
-				int not_found_cnt = 16;
-				for(int iy=-2; iy<=2; iy++)
+				int not_found_cnt = 9;
+				for(int iy=-1; iy<=1; iy++)
 				{
-					for(int ix=-2; ix<=2; ix++)
+					for(int ix=-1; ix<=1; ix++)
 					{
 						copy_px = px - copy_pagex_start;
 						copy_py = py - copy_pagey_start;

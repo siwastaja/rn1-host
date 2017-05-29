@@ -289,9 +289,8 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		}
 	}
 
-	// Output 768x768x8bit raw images for debug.
-	FILE* dbg_fs = fopen("dbg_image_seen.data", "w");
-	FILE* dbg_fw = fopen("dbg_image_wall.data", "w");
+	// Output 768x768x24bit raw image for debug.
+	FILE* dbg_f = fopen("dbg_image.data", "w");
 
 	for(int iy = 0; iy < TEMP_MAP_W; iy++)
 	{
@@ -314,13 +313,13 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			s_cnt*=20;
 			w_cnt*=20;
 
-			fputc(s_cnt, dbg_fs);
-			fputc(w_cnt, dbg_fw);
+			fputc(w_cnt, dbg_f); // R
+			fputc(s_cnt, dbg_f); // G
+			fputc(0, dbg_f);
 		}
 	}
 
-	fclose(dbg_fs);
-	fclose(dbg_fw);
+	fclose(dbg_f);
 
 	// Load relevant 9 pages in memory
 	page_coords(rotate_mid_x, rotate_mid_y, &pagex, &pagey, &offsx, &offsy);

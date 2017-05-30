@@ -96,11 +96,11 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			// Rotate the point by da and then shift by dx, dy.
 			float ang = (float)da/((float)ANG_1_DEG*360.0)*2.0*M_PI;
 	
-			int pre_x = lid->scan[p].x - rotate_mid_x;
-			int pre_y = lid->scan[p].y - rotate_mid_y;
+			int pre_x = lid->scan[p].x /*- rotate_mid_x*/;
+			int pre_y = lid->scan[p].y /*- rotate_mid_y*/;
 
-			int x = pre_x*cos(ang) + pre_y*sin(ang) + rotate_mid_x + dx;
-			int y = -1*pre_x*sin(ang) + pre_y*cos(ang) + rotate_mid_y + dy;
+			int x = pre_x /*pre_x*cos(ang) + pre_y*sin(ang) + rotate_mid_x*/ + dx;
+			int y = pre_y /*-1*pre_x*sin(ang) + pre_y*cos(ang) + rotate_mid_y*/ + dy;
 
 			int is_match = 0;
 			int seen_with_no_wall = 9;
@@ -503,7 +503,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 
 	fprintf(fdbg, "PASS 1\nda;dx;dy;score;match_walls;exacts;new_walls;discovered_walls\n");
 
-	int a_range = 8;
+	int a_range = 0;
 	int x_range = 320;
 	int y_range = 320;
 	int a_step = 1*ANG_1_DEG;
@@ -519,27 +519,28 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 
 	int best_score = -999999;
 	int best1_da=0, best1_dx=0, best1_dy=0, best_matched=0;
-	for(int da=-1*a_range*ANG_1_DEG; da<=a_range*ANG_1_DEG; da+=a_step)
+	int ida = 0;
+//	for(int ida=-1*a_range*ANG_1_DEG; ida<=a_range*ANG_1_DEG; ida+=a_step)
 	{
-		for(int dx=-1*x_range; dx<=x_range; dx+=80)
+		for(int idx=-1*x_range; idx<=x_range; idx+=80)
 		{
-			for(int dy=-1*y_range; dy<=y_range; dy+=80)
+			for(int idy=-1*y_range; idy<=y_range; idy+=80)
 			{
 				int n_matched_walls=0, n_exactly_matched_walls=0, n_new_walls=0, n_discovered_walls=0;
 				int score_now = score(w, n_lidars, lidar_list, 
-					da, dx, dy, mid_x, mid_y,
+					ida, idx, idy, mid_x, mid_y,
 					&n_matched_walls, &n_exactly_matched_walls, &n_new_walls, &n_discovered_walls);
 
 				fprintf(fdbg, "%.2f;%d;%d;%d;%d;%d;%d;%d\n",
-					(float)da/(float)ANG_1_DEG, dx, dy, score_now, n_matched_walls, n_exactly_matched_walls, n_new_walls, n_discovered_walls);
+					(float)ida/(float)ANG_1_DEG, idx, idy, score_now, n_matched_walls, n_exactly_matched_walls, n_new_walls, n_discovered_walls);
 
 				if(score_now > best_score)
 				{
 					best_score = score_now;
 					best_matched = n_matched_walls;
-					best1_da = da;
-					best1_dx = dx;
-					best1_dy = dy;
+					best1_da = ida;
+					best1_dx = idx;
+					best1_dy = idy;
 				}
 			}
 		}
@@ -571,26 +572,26 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 
 		best_score = -999999;
 		int best2_da=0, best2_dx=0, best2_dy=0;
-		for(int da=best1_da-2*ANG_0_5_DEG; da<=best1_da+2*ANG_0_5_DEG; da+=ANG_0_5_DEG)
+//		for(int ida=best1_da-2*ANG_0_5_DEG; ida<=best1_da+2*ANG_0_5_DEG; ida+=ANG_0_5_DEG)
 		{
-			for(int dx=best1_dx-60; dx<=best1_dx+60; dx+=20)
+			for(int idx=best1_dx-60; idx<=best1_dx+60; idx+=20)
 			{
-				for(int dy=best1_dy-60; dy<=best1_dy+60; dy+=20)
+				for(int idy=best1_dy-60; idy<=best1_dy+60; idy+=20)
 				{
 					int n_matched_walls=0, n_exactly_matched_walls=0, n_new_walls=0, n_discovered_walls=0;
 					int score_now = score(w, n_lidars, lidar_list, 
-						da, dx, dy, mid_x, mid_y,
+						ida, idx, idy, mid_x, mid_y,
 						&n_matched_walls, &n_exactly_matched_walls, &n_new_walls, &n_discovered_walls);
 
 					fprintf(fdbg, "%.2f;%d;%d;%d;%d;%d;%d;%d\n",
-						(float)da/(float)ANG_1_DEG, dx, dy, score_now, n_matched_walls, n_exactly_matched_walls, n_new_walls, n_discovered_walls);
+						(float)ida/(float)ANG_1_DEG, idx, idy, score_now, n_matched_walls, n_exactly_matched_walls, n_new_walls, n_discovered_walls);
 
 					if(score_now > best_score)
 					{
 						best_score = score_now;
-						best2_da = da;
-						best2_dx = dx;
-						best2_dy = dy;
+						best2_da = ida;
+						best2_dx = idx;
+						best2_dy = idy;
 					}
 				}
 			}

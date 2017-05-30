@@ -96,11 +96,11 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			// Rotate the point by da and then shift by dx, dy.
 			float ang = (float)da/((float)ANG_1_DEG*360.0)*2.0*M_PI;
 	
-			int pre_x = lid->scan[p].x /*- rotate_mid_x*/;
-			int pre_y = lid->scan[p].y /*- rotate_mid_y*/;
+			int pre_x = lid->scan[p].x - rotate_mid_x;
+			int pre_y = lid->scan[p].y - rotate_mid_y;
 
-			int x = pre_x /*pre_x*cos(ang) + pre_y*sin(ang) + rotate_mid_x*/ + dx;
-			int y = pre_y /*-1*pre_x*sin(ang) + pre_y*cos(ang) + rotate_mid_y*/ + dy;
+			int x = pre_x*cos(ang) + pre_y*sin(ang) + rotate_mid_x + dx;
+			int y = -1*pre_x*sin(ang) + pre_y*cos(ang) + rotate_mid_y + dy;
 
 			int is_match = 0;
 			int seen_with_no_wall = 9;
@@ -112,9 +112,9 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 //			if(offsy < 0) { offsy += MAP_PAGE_W; pagey--;}
 
 			// Wall in any neighbouring cell is considered a match.
-			for(int ix=-40; ix<=40; ix+=40)
+			for(int ix=-30; ix<=30; ix+=30)
 			{
-				for(int iy=-40; iy<=40; iy+=40)
+				for(int iy=-30; iy<=30; iy+=30)
 				{
 					page_coords(x+ix, y+iy, &pagex, &pagey, &offsx, &offsy);
 					if(w->pages[pagex][pagey]->units[offsx][offsy].result & UNIT_WALL)
@@ -374,9 +374,9 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 				tmp>>=1;
 			}
 
-			if(w_cnt) // Wall found
+			if(w_cnt > 2) // Walls found in several images
 			{
-				int px = pagex, py = pagey, ox = offsx-1, oy = offsy-1;
+				int px = pagex, py = pagey, ox = offsx-2, oy = offsy-2;
 				if(ox < 0) { ox += MAP_PAGE_W; px--;} 
 				if(oy < 0) { oy += MAP_PAGE_W; py--;}
 
@@ -390,10 +390,10 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 					return -3;
 				}
 
-				int not_found_cnt = 9;
-				for(int iy=-1; iy<=1; iy++)
+				int not_found_cnt = 25;
+				for(int iy=-2; iy<=2; iy++)
 				{
-					for(int ix=-1; ix<=1; ix++)
+					for(int ix=-2; ix<=2; ix++)
 					{
 						copy_px = px - copy_pagex_start;
 						copy_py = py - copy_pagey_start;
@@ -419,7 +419,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 					w->changed[pagex][pagey] = 1;
 				}
 			}
-			else if(s_cnt)
+			else if(s_cnt > 3)
 			{
 				// We don't have a wall, but we mapped this unit nevertheless.
 				w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_MAPPED;
@@ -504,7 +504,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 
 	fprintf(fdbg, "PASS 1\nda;dx;dy;score;match_walls;exacts;new_walls;discovered_walls\n");
 
-	int a_range = 0;
+	int a_range = 5;
 	int x_range = 320;
 	int y_range = 320;
 	int a_step = 1*ANG_1_DEG;
@@ -520,8 +520,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 
 	int best_score = -999999;
 	int best1_da=0, best1_dx=0, best1_dy=0, best_matched=0;
-	int ida = 0;
-//	for(int ida=-1*a_range*ANG_1_DEG; ida<=a_range*ANG_1_DEG; ida+=a_step)
+	for(int ida=-1*a_range*ANG_1_DEG; ida<=a_range*ANG_1_DEG; ida+=a_step)
 	{
 		for(int idx=-1*x_range; idx<=x_range; idx+=80)
 		{
@@ -552,7 +551,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	int best_dy = 0;
 
 	int do_not_map = 0;
-	if(best_score < 5000)
+	if(best_score < 3000)
 	{
 		if(best_matched == 0) // zero matched walls
 		{
@@ -573,7 +572,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 
 		best_score = -999999;
 		int best2_da=0, best2_dx=0, best2_dy=0;
-//		for(int ida=best1_da-2*ANG_0_5_DEG; ida<=best1_da+2*ANG_0_5_DEG; ida+=ANG_0_5_DEG)
+		for(int ida=best1_da-2*ANG_0_5_DEG; ida<=best1_da+2*ANG_0_5_DEG; ida+=ANG_0_5_DEG)
 		{
 			for(int idx=best1_dx-60; idx<=best1_dx+60; idx+=20)
 			{

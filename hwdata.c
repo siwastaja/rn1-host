@@ -94,6 +94,25 @@ int parse_uart_msg(uint8_t* buf, int len)
 			*/
 
 			int is_significant = buf[1];
+
+			if(is_significant)
+			{
+				int next = significant_lidar_wr+1; if(next >= SIGNIFICANT_LIDAR_RING_BUF_LEN) next = 0;
+				if(next == significant_lidar_rd)
+				{
+					printf("WARNING: lidar ring buffer overrun prevented by ignoring lidar scan (significant scan).\n");
+				}
+			}
+			else
+			{
+				int next = lidar_wr+1; if(next >= LIDAR_RING_BUF_LEN) next = 0;
+				if(next == lidar_rd)
+				{
+					printf("WARNING: lidar ring buffer overrun prevented by ignoring lidar scan (basic scan).\n");
+				}
+			}
+
+
 			lidar_scan_t* lid = is_significant?&significant_lidars[significant_lidar_wr]:&lidars[lidar_wr];
 			lid->significant_for_mapping = is_significant;
 			lid->robot_pos.ang = (I7I7_U16_lossy(buf[2], buf[3]))<<16;

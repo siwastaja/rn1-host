@@ -113,7 +113,7 @@ int main(int argc, char** argv)
 		{
 			if(ignore_lidars)
 			{
-//				if(p_lid->significant_for_mapping) printf("INFO: Ignoring significant lidar scan.\n");
+				if(p_lid->significant_for_mapping) printf("INFO: Ignoring significant lidar scan.\n");
 			}
 			else
 			{

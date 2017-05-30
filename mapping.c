@@ -105,12 +105,17 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			int is_match = 0;
 			int seen_with_no_wall = 9;
 
+			page_coords(x, y, &pagex, &pagey, &offsx, &offsy);
+
+			offsx--; offsy--;
+			if(offsx < 0) { offsx += MAP_PAGE_W; pagex--;} 
+			if(offsy < 0) { offsy += MAP_PAGE_W; pagey--;}
+
 			// Wall in any neighbouring cell is considered a match.
 			for(int ix=-1; ix<=1; ix++)
 			{
 				for(int iy=-1; iy<=1; iy++)
 				{
-					page_coords(x+ix, y+iy, &pagex, &pagey, &offsx, &offsy);
 					if(w->pages[pagex][pagey]->units[offsx][offsy].result & UNIT_WALL)
 					{
 						is_match = 1;
@@ -124,12 +129,12 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 						}
 
 					}
-
+					offsy++; if(offsy >= MAP_PAGE_W) {offsy = 0; pagey++;} 
 				}
+				offsx++; if(offsx >= MAP_PAGE_W) {offsx = 0; pagex++;} 
 			}
 
 			if(is_match) n_matches++;
-			if(is_exact) n_exacts++;
 			// All 9 units were mapped "no wall" before, so we surely have a new wall:
 			if(seen_with_no_wall == 0) n_news++;
 
@@ -545,9 +550,9 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	int best_dy = 0;
 
 	int do_not_map = 0;
-	if(best_score < 1000)
+	if(best_score < 5000)
 	{
-		if(best_matched == 0)
+		if(best_matched == 0) // zero matched walls
 		{
 			printf("Info: area seems unmapped, and is being mapped with no correction.\n");
 			bigger_search_area = 0;

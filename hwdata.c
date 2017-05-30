@@ -46,8 +46,6 @@ lidar_scan_t* get_significant_lidar()
 		return 0;
 	}
 	
-	printf("DBG: get significant, wr=%d, rd=%d\n", significant_lidar_wr, significant_lidar_rd);
-
 	lidar_scan_t* ret = &significant_lidars[significant_lidar_rd];
 	significant_lidar_rd++; if(significant_lidar_rd >= SIGNIFICANT_LIDAR_RING_BUF_LEN) significant_lidar_rd = 0;
 	return ret;
@@ -73,7 +71,6 @@ int parse_uart_msg(uint8_t* buf, int len)
 	{
 		case 0x84:
 		{
-			printf("INFO: got 0x84: %u, len = %d\n", buf[1], len);
 			/*
 			 Lidar-based 2D MAP on uart:
 

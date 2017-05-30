@@ -506,7 +506,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	int a_range = 8;
 	int x_range = 320;
 	int y_range = 320;
-	int a_step = ANG_1_DEG;
+	int a_step = 2*ANG_1_DEG;
 
 	if(bigger_search_area)
 	{
@@ -571,7 +571,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 
 		best_score = -999999;
 		int best2_da=0, best2_dx=0, best2_dy=0;
-		for(int da=best1_da-2*ANG_0_5_DEG; da<=best1_da+2*ANG_0_5_DEG; da+=ANG_0_5_DEG)
+		for(int da=best1_da-3*ANG_0_5_DEG; da<=best1_da+3*ANG_0_5_DEG; da+=ANG_0_5_DEG)
 		{
 			for(int dx=best1_dx-60; dx<=best1_dx+60; dx+=20)
 			{

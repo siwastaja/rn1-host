@@ -112,10 +112,11 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 //			if(offsy < 0) { offsy += MAP_PAGE_W; pagey--;}
 
 			// Wall in any neighbouring cell is considered a match.
-//			for(int ix=-1; ix<=1; ix++)
-//			{
-//				for(int iy=-1; iy<=1; iy++)
-//				{
+			for(int ix=-40; ix<=40; ix+=40)
+			{
+				for(int iy=-40; iy<=40; iy+=40)
+				{
+					page_coords(x+ix, y+iy, &pagex, &pagey, &offsx, &offsy);
 					if(w->pages[pagex][pagey]->units[offsx][offsy].result & UNIT_WALL)
 					{
 						is_match = 1;
@@ -130,13 +131,13 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 					}
 //					offsy++; if(offsy >= MAP_PAGE_W) {offsy = 0; pagey++;} 
-//				}
+				}
 //				offsx++; if(offsx >= MAP_PAGE_W) {offsx = 0; pagex++;} 
-//			}
+			}
 
 			if(is_match) n_matches++;
 			// There is no wall, and most of the 9 units were mapped "no wall" before, so we have a new wall:
-			if(!is_match && seen_with_no_wall < 9 /*!!!!!!!!*/) n_news++;
+			if(!is_match && seen_with_no_wall < 3) n_news++;
 
 			
 			
@@ -522,9 +523,9 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	int ida = 0;
 //	for(int ida=-1*a_range*ANG_1_DEG; ida<=a_range*ANG_1_DEG; ida+=a_step)
 	{
-		for(int idx=-1*x_range; idx<=x_range; idx+=40) //!!!!1
+		for(int idx=-1*x_range; idx<=x_range; idx+=80)
 		{
-			for(int idy=-1*y_range; idy<=y_range; idy+=40) //!!!1
+			for(int idy=-1*y_range; idy<=y_range; idy+=80)
 			{
 				int n_matched_walls=0, n_exactly_matched_walls=0, n_new_walls=0, n_discovered_walls=0;
 				int score_now = score(w, n_lidars, lidar_list, 

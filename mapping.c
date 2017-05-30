@@ -522,9 +522,9 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	int ida = 0;
 //	for(int ida=-1*a_range*ANG_1_DEG; ida<=a_range*ANG_1_DEG; ida+=a_step)
 	{
-		for(int idx=-1*x_range; idx<=x_range; idx+=80)
+		for(int idx=-1*x_range; idx<=x_range; idx+=40) //!!!!1
 		{
-			for(int idy=-1*y_range; idy<=y_range; idy+=80)
+			for(int idy=-1*y_range; idy<=y_range; idy+=40) //!!!1
 			{
 				int n_matched_walls=0, n_exactly_matched_walls=0, n_new_walls=0, n_discovered_walls=0;
 				int score_now = score(w, n_lidars, lidar_list, 
@@ -612,6 +612,8 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 		*dx = best_dx;
 		*dy = best_dy;
 	}
+
+	fclose(fdbg);
 
 	return 0;
 }

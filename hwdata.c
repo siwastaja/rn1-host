@@ -73,6 +73,7 @@ int parse_uart_msg(uint8_t* buf, int len)
 	{
 		case 0x84:
 		{
+			printf("INFO: got 0x84, len = %d\n", len);
 			/*
 			 Lidar-based 2D MAP on uart:
 

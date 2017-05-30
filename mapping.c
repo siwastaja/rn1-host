@@ -160,6 +160,7 @@ typedef struct  // Each bit represents each lidar scan (i.e., 32 lidar scans max
 #define TEMP_MAP_MIDDLE (TEMP_MAP_W/2)
 
 #define PLUS_SAT_255(x) {if((x)<255) (x)++;}
+#define MINUS_SAT_0(x) {if((x)>0) (x)--;}
 
 static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	         int32_t da, int32_t dx, int32_t dy, int32_t rotate_mid_x, int32_t rotate_mid_y)
@@ -441,6 +442,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 						{
 							// Existing wall here, it suffices, increase the seen count.
 							PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_seen);
+							PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles);
 							w->changed[px][py] = 1;
 						}
 						else
@@ -455,6 +457,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 					// No wall - we have a new wall.
 					w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_WALL | UNIT_MAPPED;
 					PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_seen);
+					PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles);
 					w->changed[pagex][pagey] = 1;
 				}
 			}
@@ -464,6 +467,13 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 				// We don't have a wall, but we mapped this unit nevertheless.
 				w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_MAPPED;
 				PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_seen);
+				MINUS_SAT_0(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles);
+
+				if((int)w->pages[pagex][pagey]->units[offsx][offsy].num_seen > (2*(int)w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles + 5))
+				{
+					// Wall has vanished
+					w->pages[pagex][pagey]->units[offsx][offsy].result &= ~(UNIT_WALL);
+				}
 				w->changed[pagex][pagey] = 1;
 			}
 		}

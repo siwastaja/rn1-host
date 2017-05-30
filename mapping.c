@@ -374,7 +374,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 				tmp>>=1;
 			}
 
-			if(w_cnt > 2) // Walls found in several images
+			if(w_cnt > 1) // Walls found in several images
 			{
 				int px = pagex, py = pagey, ox = offsx-2, oy = offsy-2;
 				if(ox < 0) { ox += MAP_PAGE_W; px--;} 
@@ -419,7 +419,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 					w->changed[pagex][pagey] = 1;
 				}
 			}
-			else if(s_cnt > 3)
+			else if(s_cnt > 2)
 			{
 				// We don't have a wall, but we mapped this unit nevertheless.
 				w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_MAPPED;

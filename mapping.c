@@ -74,7 +74,6 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 	int n_points = 0;
 	int n_matches = 0;
-	int n_exacts = 0;
 	int n_news = 0;
 
 	// Go through all valid points in all lidars in the lidar_list.
@@ -104,7 +103,6 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			int y = -1*pre_x*sin(ang) + pre_y*cos(ang) + rotate_mid_y + dy;
 
 			int is_match = 0;
-			int is_exact = 0;
 			int seen_with_no_wall = 9;
 
 			// Wall in any neighbouring cell is considered a match.
@@ -116,8 +114,6 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 					if(w->pages[pagex][pagey]->units[offsx][offsy].result & UNIT_WALL)
 					{
 						is_match = 1;
-						if(ix==0 && iy==0) 
-							is_exact = 1;
 					}
 					else
 					{
@@ -144,14 +140,14 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 	// Write the results
 	if(n_matched_walls) *n_matched_walls = n_matches;
-	if(n_exactly_matched_walls) *n_exactly_matched_walls = n_exacts;
+	if(n_exactly_matched_walls) *n_exactly_matched_walls = 0;
 	if(n_new_walls) *n_new_walls = n_news;
 	if(n_discovered_walls) *n_discovered_walls = n_points - n_matches;
 
 	// Return the score: bigger = better
 	// Exact matches have a slight effect on the result.
 	// New walls decrease the score.
-	return n_matches*5 + n_exacts - n_news*5;
+	return n_matches*5 - n_news*5;
 }
 
 typedef struct  // Each bit represents each lidar scan (i.e., 32 lidar scans max).

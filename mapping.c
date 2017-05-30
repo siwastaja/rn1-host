@@ -107,10 +107,6 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 			page_coords(x, y, &pagex, &pagey, &offsx, &offsy);
 
-//			offsx--; offsy--;
-//			if(offsx < 0) { offsx += MAP_PAGE_W; pagex--;} 
-//			if(offsy < 0) { offsy += MAP_PAGE_W; pagey--;}
-
 			// Wall in any neighbouring cell is considered a match.
 			for(int ix=-30; ix<=30; ix+=30)
 			{
@@ -130,9 +126,7 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 						}
 
 					}
-//					offsy++; if(offsy >= MAP_PAGE_W) {offsy = 0; pagey++;} 
 				}
-//				offsx++; if(offsx >= MAP_PAGE_W) {offsx = 0; pagex++;} 
 			}
 
 			if(is_match) n_matches++;
@@ -374,9 +368,9 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 				tmp>>=1;
 			}
 
-			if(w_cnt > 0)
+			if(w_cnt > 3) // A wall is very clearly here.
 			{
-				int px = pagex, py = pagey, ox = offsx-2, oy = offsy-2;
+				int px = pagex, py = pagey, ox = offsx-1, oy = offsy-1;
 				if(ox < 0) { ox += MAP_PAGE_W; px--;} 
 				if(oy < 0) { oy += MAP_PAGE_W; py--;}
 
@@ -390,10 +384,10 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 					return -3;
 				}
 
-				int not_found_cnt = 25;
-				for(int iy=-2; iy<=2; iy++)
+				int not_found_cnt = 9;
+				for(int iy=-1; iy<=1; iy++)
 				{
-					for(int ix=-2; ix<=2; ix++)
+					for(int ix=-1; ix<=1; ix++)
 					{
 						copy_px = px - copy_pagex_start;
 						copy_py = py - copy_pagey_start;
@@ -411,15 +405,61 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 					oy++; if(oy >= MAP_PAGE_W) {oy=0; py++;}
 				}
 
-				if(not_found_cnt == 0)
+				if(not_found_cnt < 3)
 				{
-					// No wall in map already - we have a new wall.
+					// No wall, or only one or two wall units in map already - we have a new wall.
 					w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_WALL | UNIT_MAPPED;
 					PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_seen);
 					w->changed[pagex][pagey] = 1;
 				}
 			}
-			else if(s_cnt > 1)
+			else if(w_cnt > 1) // A wall is here, but not so clearly
+			{
+				int px = pagex, py = pagey, ox = offsx-1, oy = offsy-1;
+				if(ox < 0) { ox += MAP_PAGE_W; px--;} 
+				if(oy < 0) { oy += MAP_PAGE_W; py--;}
+
+				int copy_px = px - copy_pagex_start;
+				int copy_py = py - copy_pagey_start;
+
+				if(copy_px < 0 || copy_px > 2 || copy_py < 0 || copy_py > 2)
+				{
+					printf("ERROR: invalid copy_px (%d) or copy_py (%d)\n", copy_px, copy_py);
+					free(temp_map);
+					return -3;
+				}
+
+				int not_found_cnt = 9;
+				for(int iy=-1; iy<=1; iy++)
+				{
+					for(int ix=-1; ix<=1; ix++)
+					{
+						copy_px = px - copy_pagex_start;
+						copy_py = py - copy_pagey_start;
+
+						if(copies[copy_px][copy_py].units[ox][oy].result & UNIT_WALL)
+						{
+							// Existing wall here, it suffices, increase the seen count.
+							PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_seen);
+							w->changed[px][py] = 1;
+						}
+						else
+							not_found_cnt--;
+						ox++; if(ox >= MAP_PAGE_W) {ox=0; px++;}
+					}
+					oy++; if(oy >= MAP_PAGE_W) {oy=0; py++;}
+				}
+
+				if(not_found_cnt < 1)
+				{
+					// No wall - we have a new wall.
+					w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_WALL | UNIT_MAPPED;
+					PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_seen);
+					w->changed[pagex][pagey] = 1;
+				}
+			}
+
+			if(w_cnt == 0 && s_cnt > 3)
 			{
 				// We don't have a wall, but we mapped this unit nevertheless.
 				w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_MAPPED;

@@ -190,6 +190,8 @@ void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)
 		return;
 	}
 
+	da *= -1; // I have no idea why this works backwards...
+
 	printf("INFO: Correcting robot pos by %d, %d, %d\n", da>>16, dx, dy);
 
 	uint8_t buf[12];

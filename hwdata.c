@@ -46,6 +46,8 @@ lidar_scan_t* get_significant_lidar()
 		return 0;
 	}
 	
+	printf("DBG: get significant, wr=%d, rd=%d\n", significant_lidar_wr, significant_lidar_rd);
+
 	lidar_scan_t* ret = &significant_lidars[significant_lidar_rd];
 	significant_lidar_rd++; if(significant_lidar_rd >= SIGNIFICANT_LIDAR_RING_BUF_LEN) significant_lidar_rd = 0;
 	return ret;
@@ -101,6 +103,7 @@ int parse_uart_msg(uint8_t* buf, int len)
 				if(next == significant_lidar_rd)
 				{
 					printf("WARNING: lidar ring buffer overrun prevented by ignoring lidar scan (significant scan).\n");
+					break;
 				}
 			}
 			else
@@ -109,6 +112,7 @@ int parse_uart_msg(uint8_t* buf, int len)
 				if(next == lidar_rd)
 				{
 					printf("WARNING: lidar ring buffer overrun prevented by ignoring lidar scan (basic scan).\n");
+					break;
 				}
 			}
 

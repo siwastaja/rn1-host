@@ -94,7 +94,7 @@ int parse_uart_msg(uint8_t* buf, int len)
 
 			*/
 
-			int is_significant = buf[1];
+			int is_significant = buf[1]&1;
 
 			if(is_significant)
 			{
@@ -117,6 +117,7 @@ int parse_uart_msg(uint8_t* buf, int len)
 
 
 			lidar_scan_t* lid = is_significant?&significant_lidars[significant_lidar_wr]:&lidars[lidar_wr];
+			lid->is_invalid = (buf[1]&2)?1:0;
 			lid->significant_for_mapping = is_significant;
 			lid->robot_pos.ang = (I7I7_U16_lossy(buf[2], buf[3]))<<16;
 			int mid_x = lid->robot_pos.x = I7x5_I32(buf[4],buf[5],buf[6],buf[7],buf[8]);

@@ -31,6 +31,7 @@ typedef struct
 typedef struct
 {
 	int significant_for_mapping;
+	int is_invalid; // May be distorted due to excessive robot acceleration (collision, drop, etc.)
 	pos_t robot_pos;
 	point_t scan[LIDAR_SCAN_POINTS];
 } lidar_scan_t;

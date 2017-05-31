@@ -146,20 +146,45 @@ int main(int argc, char** argv)
 				{
 					lidar_send_cnt = 0;
 					if(tcp_client_sock >= 0) tcp_send_lidar(p_lid);
-					printf("INFO: Got significant lidar scan, adding to lidar list.\n");
-					static int n_lidars_to_map = 0;
-					static lidar_scan_t* lidars_to_map[10];
-					lidars_to_map[n_lidars_to_map] = p_lid;
 
-					n_lidars_to_map++;
-					if(n_lidars_to_map == 10)
+					static int n_lidars_to_map = 0;
+					static lidar_scan_t* lidars_to_map[16];
+					if(p_lid->is_invalid)
 					{
-						int32_t da, dx, dy;
-						map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
-						correct_robot_pos(da, dx, dy);
-						// Get and ignore all lidar images:
-						ignore_lidars = 50000;
-						n_lidars_to_map = 0;
+						if(n_lidars_to_map < 5)
+						{
+							printf("INFO: Got DISTORTED significant lidar scan, but we have too few lidar images -> mapping queue reset\n");
+							map_next_with_larger_search_area();
+							n_lidars_to_map = 0;
+						}
+						else
+						{
+							printf("INFO: Got DISTORTED significant lidar scan, running mapping early, based on previous images\n");
+							int32_t da, dx, dy;
+							map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
+							correct_robot_pos(da, dx, dy);
+							// Get and ignore all lidar images:
+							ignore_lidars = 50000;
+							n_lidars_to_map = 0;
+							map_next_with_larger_search_area();
+
+						}
+					}
+					else
+					{
+						printf("INFO: Got significant lidar scan, adding to the mapping queue.\n");
+						lidars_to_map[n_lidars_to_map] = p_lid;
+
+						n_lidars_to_map++;
+						if(n_lidars_to_map == 12)
+						{
+							int32_t da, dx, dy;
+							map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
+							correct_robot_pos(da, dx, dy);
+							// Get and ignore all lidar images:
+							ignore_lidars = 50000;
+							n_lidars_to_map = 0;
+						}
 					}
 
 				}

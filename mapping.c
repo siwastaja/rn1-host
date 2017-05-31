@@ -525,6 +525,13 @@ does not implement "I'm lost, where am I?" functionality.
 
 int bigger_search_area = 0;
 
+void map_next_with_larger_search_area()
+{
+	if(bigger_search_area == 0)
+		bigger_search_area = 1;
+}
+
+
 int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy)
 {
 	*da = 0;
@@ -554,17 +561,25 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 
 	fprintf(fdbg, "PASS 1\nda;dx;dy;score;match_walls;exacts;new_walls;discovered_walls\n");
 
-	int a_range = 5;
-	int x_range = 320;
-	int y_range = 320;
+	int a_range = 4;
+	int x_range = 240;
+	int y_range = 240;
 	int a_step = 1*ANG_1_DEG;
 
-	if(bigger_search_area)
+	if(bigger_search_area == 1)
 	{
-		printf("INFO: Using bigger search area, this will take long\n");
-		a_range = 16;
-		x_range = 480;
-		y_range = 480;
+		printf("INFO: Using bigger search area, this will take longer\n");
+		a_range = 10;
+		x_range = 400;
+		y_range = 400;
+		a_step = 1*ANG_1_DEG;
+	}
+	else if(bigger_search_area == 2)
+	{
+		printf("INFO: Using MUCH bigger search area, this will take quite long\n");
+		a_range = 20;
+		x_range = 560;
+		y_range = 560;
 		a_step = 2*ANG_1_DEG;
 	}
 
@@ -612,7 +627,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 		{
 			printf("Info: best score (%d) is so low that we are clearly lost! Mapping is prevented.\n", best_score);
 			do_not_map = 1;
-			bigger_search_area = 1;
+			bigger_search_area = 2;
 		}
 	}
 	else

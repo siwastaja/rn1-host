@@ -377,20 +377,23 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 			}
 
-			printf("expec: %d,%d ; next: %d,%d\n", x, y, next_x, next_y);
+			int w_cnt_at_next = 0;
+			uint32_t tmp = temp_map[next_y*TEMP_MAP_W+next_x].wall;
+			while(tmp) { w_cnt_at_next++; tmp>>=1;}
 
-//			int w_cnt = 0;
-//			uint32_t tmp = temp_map[next_y*TEMP_MAP_W+next_x].wall;
-//			while(tmp)
-//			{
-//				w_cnt++;
-//				tmp>>=1;
-//			}
+			int w_cnt_at_cur = 0;
+			tmp = temp_map[y*TEMP_MAP_W+x].wall;
+			while(tmp) { w_cnt_at_cur++; tmp>>=1;}
 
-			if(temp_map[next_y*TEMP_MAP_W+next_x].wall) // There is a wall in the next spot, too
+			if(w_cnt_at_next > w_cnt_at_cur) // next spot wins
 			{
-				temp_map[y*TEMP_MAP_W + x].wall &= ~(1UL<<l); // remove the wall where it was.
-				temp_map[next_y*TEMP_MAP_W+next_x].wall |= 1UL<<l; // Mark it to the next spot.
+				temp_map[next_y*TEMP_MAP_W+next_x].wall |= temp_map[y*TEMP_MAP_W + x].wall; // Mark all hits to the next spot.
+				temp_map[y*TEMP_MAP_W + x].wall = 0; // remove the wall from where it was.
+			}
+			else // cur pos wins
+			{
+				temp_map[y*TEMP_MAP_W+x].wall |= temp_map[next_y*TEMP_MAP_W + next_x].wall; // Mark all those hits to the current spot
+				temp_map[next_y*TEMP_MAP_W + next_x].wall = 0; // remove the wall from the next spot
 			}
 		}
 	}

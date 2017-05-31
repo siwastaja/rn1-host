@@ -360,35 +360,37 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			int dx = x - robot_x;
 			int dy = y - robot_y;
 
-			int cur_x, cur_y;
+			int next_x, next_y;
 			if(abs(dx) >= abs(dy)) // Step in X direction
 			{
 				float dy_per_step = (float)dy/(float)dx;
 				int next_dx = dx + (dx>0)?1:-1;
-				cur_y = robot_y + dy_per_step*(float)next_dx;
-				cur_x = robot_x + next_dx;
+				next_y = robot_y + dy_per_step*(float)next_dx;
+				next_x = robot_x + next_dx;
 			}
 			else // Step in Y direction
 			{
 				float dx_per_step = (float)dx/(float)dy;
 				int next_dy = dy + (dy>0)?1:-1;
-				cur_x = robot_x + dx_per_step*(float)next_dy;
-				cur_y = robot_y + next_dy;
+				next_x = robot_x + dx_per_step*(float)next_dy;
+				next_y = robot_y + next_dy;
 
 			}
 
+			printf("expec: %d,%d ; next: %d,%d\n", x, y, next_x, next_y);
+
 //			int w_cnt = 0;
-//			uint32_t tmp = temp_map[cur_y*TEMP_MAP_W+cur_x].wall;
+//			uint32_t tmp = temp_map[next_y*TEMP_MAP_W+next_x].wall;
 //			while(tmp)
 //			{
 //				w_cnt++;
 //				tmp>>=1;
 //			}
 
-			if(temp_map[cur_y*TEMP_MAP_W+cur_x].wall) // There is a wall in the next spot, too
+			if(temp_map[next_y*TEMP_MAP_W+next_x].wall) // There is a wall in the next spot, too
 			{
 				temp_map[y*TEMP_MAP_W + x].wall &= ~(1UL<<l); // remove the wall where it was.
-				temp_map[cur_y*TEMP_MAP_W+cur_x].wall |= 1UL<<l; // Mark it to the next spot.
+				temp_map[next_y*TEMP_MAP_W+next_x].wall |= 1UL<<l; // Mark it to the next spot.
 			}
 		}
 	}

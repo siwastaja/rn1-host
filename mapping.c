@@ -286,8 +286,116 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		}
 	}
 
+
 	// Output 768x768x24bit raw image for debug.
-	FILE* dbg_f = fopen("dbg_image.data", "w");
+	FILE* dbg_f = fopen("dbg_image_before.data", "w");
+
+	for(int iy = 0; iy < TEMP_MAP_W; iy++)
+	{
+		for(int ix = 0; ix < TEMP_MAP_W; ix++)
+		{
+			int s_cnt = 0, w_cnt = 0;
+			uint32_t tmp = temp_map[iy*TEMP_MAP_W+ix].seen;
+			while(tmp)
+			{
+				s_cnt++;
+				tmp>>=1;
+			}
+			tmp = temp_map[iy*TEMP_MAP_W+ix].wall;
+			while(tmp)
+			{
+				w_cnt++;
+				tmp>>=1;
+			}
+
+			s_cnt*=20;
+			w_cnt*=20;
+
+			fputc(w_cnt, dbg_f); // R
+			fputc(s_cnt, dbg_f); // G
+			fputc(0, dbg_f);
+		}
+	}
+
+	fclose(dbg_f);
+
+	/*
+		Processing round - try to remove duplicate wall units within the same vectors.
+	*/
+
+	for(int l=0; l<n_lidars; l++)
+	{
+		lidar_scan_t* lid = lidar_list[l];
+
+		// Rotate the point by da and then shift by dx, dy.
+		float ang = (float)da/((float)ANG_1_DEG*360.0)*2.0*M_PI;
+
+		int robot_pre_x = lid->robot_pos.x - rotate_mid_x;
+		int robot_pre_y = lid->robot_pos.y - rotate_mid_y;
+
+		int robot_x = robot_pre_x*cos(ang) + robot_pre_y*sin(ang) /* + rotate_mid_x */ + dx ;
+		int robot_y = -1*robot_pre_x*sin(ang) + robot_pre_y*cos(ang) /* + rotate_mid_y */ + dy;
+
+		robot_x /= MAP_UNIT_W; robot_y /= MAP_UNIT_W;
+		robot_x += TEMP_MAP_MIDDLE; robot_y += TEMP_MAP_MIDDLE;
+
+		for(int p=0; p<LIDAR_SCAN_POINTS; p++)
+		{
+			if(!lid->scan[p].valid)
+				continue;
+
+			// Rotate the point by da and then shift by dx, dy.	
+			int pre_x = lid->scan[p].x - rotate_mid_x;
+			int pre_y = lid->scan[p].y - rotate_mid_y;
+
+			int x = pre_x*cos(ang) + pre_y*sin(ang) /* + rotate_mid_x */ + dx ;
+			int y = -1*pre_x*sin(ang) + pre_y*cos(ang) /* + rotate_mid_y */ + dy;
+
+			x /= MAP_UNIT_W; y /= MAP_UNIT_W;
+
+			x += TEMP_MAP_MIDDLE; y += TEMP_MAP_MIDDLE;
+
+			// Find the next unit from where we did put the wall before.
+
+			int dx = x - robot_x;
+			int dy = y - robot_y;
+
+			int cur_x, cur_y;
+			if(abs(dx) >= abs(dy)) // Step in X direction
+			{
+				float dy_per_step = (float)dy/(float)dx;
+				int next_dx = dx + (dx>0)?1:-1;
+				cur_y = robot_y + dy_per_step*(float)next_dx;
+				cur_x = robot_x + next_dx;
+			}
+			else // Step in Y direction
+			{
+				float dx_per_step = (float)dx/(float)dy;
+				int next_dy = dy + (dy>0)?1:-1;
+				cur_x = robot_x + dx_per_step*(float)next_dy;
+				cur_y = robot_y + next_dy;
+
+			}
+
+//			int w_cnt = 0;
+//			uint32_t tmp = temp_map[cur_y*TEMP_MAP_W+cur_x].wall;
+//			while(tmp)
+//			{
+//				w_cnt++;
+//				tmp>>=1;
+//			}
+
+			if(temp_map[cur_y*TEMP_MAP_W+cur_x].wall) // There is a wall in the next spot, too
+			{
+				temp_map[y*TEMP_MAP_W + x].wall &= ~(1UL<<l); // remove the wall where it was.
+				temp_map[cur_y*TEMP_MAP_W+cur_x].wall |= 1UL<<l; // Mark it to the next spot.
+			}
+		}
+	}
+
+
+	// Output 768x768x24bit raw image for debug.
+	dbg_f = fopen("dbg_image_after.data", "w");
 
 	for(int iy = 0; iy < TEMP_MAP_W; iy++)
 	{

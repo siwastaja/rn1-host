@@ -364,14 +364,14 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			if(abs(dx) >= abs(dy)) // Step in X direction
 			{
 				float dy_per_step = (float)dy/(float)dx;
-				int next_dx = dx + (dx>0)?1:-1;
+				int next_dx = dx + ((dx>0)?1:-1);
 				next_y = robot_y + dy_per_step*(float)next_dx;
 				next_x = robot_x + next_dx;
 			}
 			else // Step in Y direction
 			{
 				float dx_per_step = (float)dx/(float)dy;
-				int next_dy = dy + (dy>0)?1:-1;
+				int next_dy = dy + ((dy>0)?1:-1);
 				next_x = robot_x + dx_per_step*(float)next_dy;
 				next_y = robot_y + next_dy;
 

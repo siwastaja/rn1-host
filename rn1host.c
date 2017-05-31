@@ -153,13 +153,13 @@ int main(int argc, char** argv)
 					{
 						if(n_lidars_to_map < 5)
 						{
-							printf("INFO: Got DISTORTED significant lidar scan, but we have too few lidar images -> mapping queue reset\n");
+							printf("INFO: Got DISTORTED significant lidar scan, have too few lidars -> mapping queue reset\n");
 							map_next_with_larger_search_area();
 							n_lidars_to_map = 0;
 						}
 						else
 						{
-							printf("INFO: Got DISTORTED significant lidar scan, running mapping early, based on previous images\n");
+							printf("INFO: Got DISTORTED significant lidar scan, running mapping early on previous images\n");
 							int32_t da, dx, dy;
 							map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
 							correct_robot_pos(da, dx, dy);

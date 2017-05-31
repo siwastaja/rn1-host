@@ -42,4 +42,14 @@ typedef struct
 
 extern int32_t hwdbg[10];
 
+typedef struct
+{
+	int bat_mv;
+	int bat_percentage;
+	int charging;
+	int charged;
+} pwr_status_t;
+
+extern pwr_status_t pwr_status;
+
 #endif

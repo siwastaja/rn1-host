@@ -64,6 +64,7 @@ sonar_scan_t* get_sonar()
 	return ret;
 }
 
+pwr_status_t pwr_status;
 
 int parse_uart_msg(uint8_t* buf, int len)
 {
@@ -162,6 +163,15 @@ int parse_uart_msg(uint8_t* buf, int len)
 
 			sonar_wr++; if(sonar_wr >= SONAR_RING_BUF_LEN) sonar_wr = 0;
 
+		}
+		break;
+
+		case 0xa2:
+		{
+			pwr_status.charging = buf[1]&1;
+			pwr_status.charged = buf[1]&2;
+			pwr_status.bat_mv = I7I7_U16_lossy(buf[2], buf[3]);
+			pwr_status.bat_percentage = buf[4];
 		}
 		break;
 

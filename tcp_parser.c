@@ -123,6 +123,22 @@ void tcp_send_sonar(sonar_scan_t* p_son)
 	tcp_send(buf, size);
 }
 
+void tcp_send_battery()
+{
+	const int size = 7;
+	uint8_t buf[size];
+	buf[0] = TCP_RC_BATTERY_MID;
+	buf[1] = ((size-3)>>8)&0xff;
+	buf[2] = (size-3)&0xff;
+	buf[3] = (pwr_status.charging?1:0) | (pwr_status.charged?2:0);
+	buf[4] = (pwr_status.bat_mv>>8)&0xff;
+	buf[5] = (pwr_status.bat_mv)&0xff;
+	buf[6] = (pwr_status.bat_percentage)&0xff;
+
+	tcp_send(buf, size);
+}
+
+
 int tcp_send_msg(tcp_message_t* msg_type, void* msg)
 {
 	static uint8_t sendbuf[65536];

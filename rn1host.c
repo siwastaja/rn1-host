@@ -204,6 +204,7 @@ int main(int argc, char** argv)
 
 			// Sync all changed map pages to disk
 			save_map_pages(&world);
+			tcp_send_battery();
 		}
 
 	}

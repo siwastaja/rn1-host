@@ -385,15 +385,18 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			tmp = temp_map[y*TEMP_MAP_W+x].wall;
 			while(tmp) { w_cnt_at_cur++; tmp>>=1;}
 
-			if(w_cnt_at_next > w_cnt_at_cur) // next spot wins
+			if(w_cnt_at_cur)
 			{
-				temp_map[next_y*TEMP_MAP_W+next_x].wall |= temp_map[y*TEMP_MAP_W + x].wall; // Mark all hits to the next spot.
-				temp_map[y*TEMP_MAP_W + x].wall = 0; // remove the wall from where it was.
-			}
-			else // cur pos wins
-			{
-				temp_map[y*TEMP_MAP_W+x].wall |= temp_map[next_y*TEMP_MAP_W + next_x].wall; // Mark all those hits to the current spot
-				temp_map[next_y*TEMP_MAP_W + next_x].wall = 0; // remove the wall from the next spot
+				if(w_cnt_at_next > w_cnt_at_cur) // next spot wins
+				{
+					temp_map[next_y*TEMP_MAP_W+next_x].wall |= temp_map[y*TEMP_MAP_W + x].wall; // Mark all hits to the next spot.
+					temp_map[y*TEMP_MAP_W + x].wall = 0; // remove the wall from where it was.
+				}
+				else // cur pos wins
+				{
+					temp_map[y*TEMP_MAP_W+x].wall |= temp_map[next_y*TEMP_MAP_W + next_x].wall; // Mark all those hits to the current spot
+					temp_map[next_y*TEMP_MAP_W + next_x].wall = 0; // remove the wall from the next spot
+				}
 			}
 		}
 	}

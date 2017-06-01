@@ -796,3 +796,55 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	return 0;
 }
 
+const int robot_xs = 480;
+const int robot_ys = 524;
+const int lidar_xoffs = 120;
+const int lidar_yoffs = 0;
+
+#define ANG32_TO_RAD(x) ((x)/(360.0*(float)ANGLE_1_DEG) * 2.0 * M_PI)
+
+int can_turn(lidar_scan_t* lid, pos_t dest)
+{
+	float ang = ((uint32_t)(dest.ang - lid->pos.ang))/(360.0*ANGLE_1_DEG) * 2.0 * M_PI;
+
+	if(ang > M_PI) ang-= M_PI;
+
+	// Test in increments:
+
+	int end = ang*360.0/(2.0*M_PI);
+	for(int i = 0; i < end; i += 5)
+	{
+		float cur_ang = (float)i/360.0*2.0*M_PI;
+	}
+
+
+
+	float ang = ANG32_TO_RAD((uint32_t)lid->pos.ang);
+	float dest_ang = ANG32_TO_RAD((uint32_t)dest->pos.ang);
+
+	float ang_diff = dest_ang - ang;
+	if(ang_diff < M_PI) // ccw
+	{
+
+	}
+
+}
+
+
+int how_much_forward_before_hit(lidar_scan_t* lid, pos_t dest)
+{
+	const int side_extra_gap = 100;
+
+	
+
+
+}
+
+/*
+	Takes a straight segment towards the least mapped area, if there is a route in lidar scan.
+*/ 
+
+int auto_map_goto_next_pos(world_t* w, lidar_scan_t* lid)
+{
+	move_to(msg_cr_dest.x, msg_cr_dest.y);
+}

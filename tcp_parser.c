@@ -16,7 +16,7 @@ tcp_message_t msgmeta_cr_dest =
 {
 	&msg_cr_dest,
 	TCP_CR_DEST_MID,
-	8, "ii"
+	9, "iib"
 };
 
 

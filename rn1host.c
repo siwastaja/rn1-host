@@ -95,8 +95,8 @@ int main(int argc, char** argv)
 			int ret = handle_tcp_client();
 			if(ret == TCP_CR_DEST_MID)
 			{
-				printf("  ---> DEST params: %d, %d\n", msg_cr_dest.x, msg_cr_dest.y);
-				move_to(msg_cr_dest.x, msg_cr_dest.y);
+				printf("  ---> DEST params: X=%d Y=%d backmode=%d\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
+				move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
 			}
 		}
 

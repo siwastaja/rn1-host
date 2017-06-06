@@ -33,6 +33,7 @@ typedef struct __attribute__ ((packed))
 {
 	int32_t x;
 	int32_t y;
+	int8_t backmode;
 } tcp_cr_dest_t;
 
 extern tcp_cr_dest_t   msg_cr_dest;

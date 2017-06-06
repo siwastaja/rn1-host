@@ -195,7 +195,7 @@ void send_keepalive()
 	send_uart(buf, 3);
 }
 
-void move_to(int32_t x, int32_t y)
+void move_to(int32_t x, int32_t y, int8_t backmode)
 {
 	uint8_t buf[12];
 
@@ -210,8 +210,9 @@ void move_to(int32_t x, int32_t y)
 	buf[8] = I32_I7_2(y);
 	buf[9] = I32_I7_1(y);
 	buf[10] = I32_I7_0(y);
-	buf[11] = 0xff;
-	send_uart(buf, 12);
+	buf[11] = ((uint8_t)backmode)&0x7f;
+	buf[12] = 0xff;
+	send_uart(buf, 13);
 }
 
 void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)

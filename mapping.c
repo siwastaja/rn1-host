@@ -803,6 +803,8 @@ const int lidar_yoffs = 0;
 
 #define ANG32_TO_RAD(x) ((x)/(360.0*(float)ANGLE_1_DEG) * 2.0 * M_PI)
 
+/*
+
 int can_turn(lidar_scan_t* lid, pos_t dest)
 {
 	float ang = ((uint32_t)(dest.ang - lid->pos.ang))/(360.0*ANGLE_1_DEG) * 2.0 * M_PI;
@@ -840,11 +842,12 @@ int how_much_forward_before_hit(lidar_scan_t* lid, pos_t dest)
 
 }
 
+*/
 /*
 	Takes a straight segment towards the least mapped area, if there is a route in lidar scan.
 */ 
 
-int auto_map_goto_next_pos(world_t* w, lidar_scan_t* lid)
-{
-	move_to(msg_cr_dest.x, msg_cr_dest.y);
-}
+//int auto_map_goto_next_pos(world_t* w, lidar_scan_t* lid)
+//{
+//	move_to(msg_cr_dest.x, msg_cr_dest.y);
+//}

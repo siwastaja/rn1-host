@@ -652,11 +652,11 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 				PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_seen);
 				MINUS_SAT_0(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles);
 
-				if((int)w->pages[pagex][pagey]->units[offsx][offsy].num_seen > (2*(int)w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles + 5))
-				{
+//				if((int)w->pages[pagex][pagey]->units[offsx][offsy].num_seen > (2*(int)w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles + 5))
+//				{
 					// Wall has vanished
-					w->pages[pagex][pagey]->units[offsx][offsy].result &= ~(UNIT_WALL);
-				}
+//					w->pages[pagex][pagey]->units[offsx][offsy].result &= ~(UNIT_WALL);
+//				}
 				w->changed[pagex][pagey] = 1;
 			}
 		}

@@ -148,8 +148,11 @@ int main(int argc, char** argv)
 
 			if(prev_id != id && cur_xymove.remaining < 100)
 			{
-				printf("move_to %d  %d  %d\n", route_next->loc.x, route_next->loc.y, route_next->backmode);
-				move_to(route_next->loc.x, route_next->loc.y, route_next->backmode);
+				int x_mm, y_mm;
+				mm_from_unit_coords(route_next->loc.x, route_next->loc.y, &x_mm, &y_mm);					
+
+				printf("move_to %d  %d  %d\n", x_mm, y_mm, route_next->backmode);
+				move_to(x_mm, y_mm, route_next->backmode);
 
 				if(route_next->next)
 					route_next = route_next->next;

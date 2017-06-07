@@ -51,6 +51,14 @@ typedef struct
 	int charged;
 } pwr_status_t;
 
+typedef struct
+{
+	int status;
+	int id;
+	int remaining;
+} xymove_t;
+
 extern pwr_status_t pwr_status;
+extern xymove_t cur_xymove;
 
 #endif

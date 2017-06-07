@@ -24,6 +24,7 @@ int sonar_rd = 0;
 lidar_scan_t lidars[LIDAR_RING_BUF_LEN];
 lidar_scan_t significant_lidars[SIGNIFICANT_LIDAR_RING_BUF_LEN];
 sonar_scan_t sonars[SONAR_RING_BUF_LEN];
+xymove_t cur_xymove;
 
 int32_t hwdbg[10];
 
@@ -173,6 +174,14 @@ int parse_uart_msg(uint8_t* buf, int len)
 			pwr_status.charged = buf[1]&2;
 			pwr_status.bat_mv = I7I7_U16_lossy(buf[2], buf[3]);
 			pwr_status.bat_percentage = buf[4];
+		}
+		break;
+
+		case 0xa5:
+		{
+			cur_xymove.status = buf[1];
+			cur_xymove.id = buf[2];
+			cur_xymove.remaining = I7I7_U16_lossy(buf[3], buf[4]);
 		}
 		break;
 

@@ -761,7 +761,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 
 	fprintf(fdbg, "PASS 1\nda;dx;dy;score;match_walls;exacts;new_walls;discovered_walls\n");
 
-	int a_range = 4;
+	int a_range = 3;
 	int x_range = 240;
 	int y_range = 240;
 	int a_step = 1*ANG_1_DEG;
@@ -769,7 +769,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	if(bigger_search_area == 1)
 	{
 		printf("INFO: Using bigger search area, this will take longer\n");
-		a_range = 10;
+		a_range = 5;
 		x_range = 400;
 		y_range = 400;
 		a_step = 1*ANG_1_DEG;

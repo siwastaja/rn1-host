@@ -215,6 +215,10 @@ int main(int argc, char** argv)
 			}
 		}
 
+		if(cnt%10000 == 0)
+		{
+			printf("cur_xymove: id=%d  remain=%d\n", cur_xymove.id, cur_xymove.remaining);
+		}
 
 		cnt++;
 		if(cnt > 100000)

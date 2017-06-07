@@ -11,6 +11,8 @@
 #define ANG_0_1_DEG    1193047
 #define ANG_0_05_DEG    596523
 
+#define ANG32TORAD(x) ( ((float)((uint32_t)(x)))/683565275.576432)
+
 
 typedef struct
 {

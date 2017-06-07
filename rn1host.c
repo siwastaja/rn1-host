@@ -19,6 +19,8 @@
 #include "uart.h"
 #include "tcp_comm.h"
 #include "tcp_parser.h"
+#include "routing.h"
+#include "utlist.h"
 
 #ifndef M_PI
 #define M_PI 3.141592653589793238
@@ -97,6 +99,27 @@ int main(int argc, char** argv)
 			{
 				printf("  ---> DEST params: X=%d Y=%d backmode=%d\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
 				move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
+			}
+			else if(ret == TCP_CR_ROUTE_MID)
+			{
+				printf("  ---> ROUTE params: X=%d Y=%d dummy=%d\n", msg_cr_route.x, msg_cr_route.y, msg_cr_route.dummy);
+				route_unit_t *some_route = NULL;
+
+				int ret;
+				ret = search_route(&world, &some_route, ANG32TORAD(cur_ang), cur_x, cur_y, msg_cr_route.x, msg_cr_route.y);
+				route_unit_t *rt;
+				DL_FOREACH(some_route, rt)
+				{
+					if(rt->backmode)
+						printf(" REVERSE ");
+					else
+						printf("         ");
+
+					int x_mm, y_mm;
+					mm_from_unit_coords(rt->loc.x, rt->loc.y, &x_mm, &y_mm);					
+					printf("to %d,%d\n", x_mm, y_mm);
+				}
+				
 			}
 		}
 
@@ -213,11 +236,6 @@ int main(int argc, char** argv)
 				world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM;
 				//world.changed[idx_x][idx_y] = 1;
 			}
-		}
-
-		if(cnt%10000 == 0)
-		{
-			printf("cur_xymove: id=%d  remain=%d\n", cur_xymove.id, cur_xymove.remaining);
 		}
 
 		cnt++;

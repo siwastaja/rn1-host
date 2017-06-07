@@ -100,6 +100,11 @@ typedef struct
 } world_t;
 
 void page_coords(int mm_x, int mm_y, int* pageidx_x, int* pageidx_y, int* pageoffs_x, int* pageoffs_y);
+void unit_coords(int mm_x, int mm_y, int* unit_x, int* unit_y);
+void mm_from_unit_coords(int unit_x, int unit_y, int* mm_x, int* mm_y);
+void page_coords_from_unit_coords(int unit_x, int unit_y, int* pageidx_x, int* pageidx_y, int* pageoffs_x, int* pageoffs_y);
+
+
 
 int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy);
 void map_next_with_larger_search_area();

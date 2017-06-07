@@ -19,14 +19,21 @@ tcp_message_t msgmeta_cr_dest =
 	9, "iib"
 };
 
-
-#define NUM_CR_MSGS 1
-tcp_message_t* CR_MSGS[NUM_CR_MSGS] =
+tcp_cr_route_t msg_cr_route;
+tcp_message_t msgmeta_cr_route =
 {
-	&msgmeta_cr_dest
+	&msg_cr_route,
+	TCP_CR_ROUTE_MID,
+	9, "iib"
 };
 
 
+#define NUM_CR_MSGS 2
+tcp_message_t* CR_MSGS[NUM_CR_MSGS] =
+{
+	&msgmeta_cr_dest,
+	&msgmeta_cr_route
+};
 
 // Robot->Client messages
 tcp_message_t msgmeta_rc_pos =

@@ -38,6 +38,17 @@ typedef struct __attribute__ ((packed))
 
 extern tcp_cr_dest_t   msg_cr_dest;
 
+#define TCP_CR_ROUTE_MID    56
+typedef struct __attribute__ ((packed))
+{
+	int32_t x;
+	int32_t y;
+	int8_t dummy;
+} tcp_cr_route_t;
+
+extern tcp_cr_route_t   msg_cr_route;
+
+
 #define TCP_RC_POS_MID    130
 typedef struct __attribute__ ((packed))
 {

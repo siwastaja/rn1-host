@@ -125,7 +125,7 @@ int main(int argc, char** argv)
 				}
 				tcp_send_route(&some_route);
 
-				do_follow_route = 2;
+				if(some_route) do_follow_route = 2; else do_follow_route = 0;
 				route_next = some_route;
 			}
 		}

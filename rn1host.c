@@ -49,6 +49,10 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
+	int do_follow_route = 0;
+	route_unit_t *route_next;
+
+
 	int cnt = 0;
 	while(1)
 	{
@@ -119,7 +123,9 @@ int main(int argc, char** argv)
 					printf("to %d,%d\n", x_mm, y_mm);
 				}
 				tcp_send_route(&some_route);
-				
+
+				do_follow_route = 2;
+				route_next = some_route;
 			}
 		}
 
@@ -128,6 +134,33 @@ int main(int argc, char** argv)
 			handle_tcp_listener();
 		}
 
+
+		if(do_follow_route)
+		{
+			static int prev_id = 666;
+			int id = cur_xymove.id;
+
+			if(do_follow_route == 2)
+			{
+				do_follow_route = 1;
+				prev_id = 666;
+			}
+
+			if(prev_id != id && cur_xymove.remaining < 100)
+			{
+				printf("move_to %d  %d  %d\n", route_next->loc.x, route_next->loc.y, route_next->backmode);
+				move_to(route_next->loc.x, route_next->loc.y, route_next->backmode);
+
+				if(route_next->next)
+					route_next = route_next->next;
+				else
+					do_follow_route = 0;
+
+				prev_id = id;
+
+			}
+
+		}
 
 		lidar_scan_t* p_lid;
 

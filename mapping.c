@@ -209,7 +209,7 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 	// Write the results
 	if(n_matched_walls) *n_matched_walls = n_matches;
-	if(n_exactly_matched_walls) *n_exactly_matched_walls = 0;
+	if(n_exactly_matched_walls) *n_exactly_matched_walls = n_exacts;
 	if(n_new_walls) *n_new_walls = n_news;
 	if(n_discovered_walls) *n_discovered_walls = n_points - n_matches;
 
@@ -619,18 +619,19 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 					if((copies[copy_px][copy_py].units[ox][oy].result & UNIT_WALL))
 					{
-						if(!spot_used[copy_px][copy_py][ox][oy])
-						{
+//						if(!spot_used[copy_px][copy_py][ox][oy])
+//						{
 							avg_drift_cnt++;
 							avg_drift_x += search_order[i][0];
 							avg_drift_y += search_order[i][1];
+
 							// Existing wall here, it suffices, increase the seen count.
 							PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_seen);
 							spot_used[copy_px][copy_py][ox][oy] = 1;
 							w->changed[px][py] = 1;
 							found = 1;
 							break;
-						}
+//						}
 					}
 				}
 
@@ -661,7 +662,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		}
 	}
 
-	if(avg_drift_cnt > 300)
+	if(avg_drift_cnt > 50)
 	{
 		*after_dx = (avg_drift_x*MAP_UNIT_W)/avg_drift_cnt;
 		*after_dy = (avg_drift_y*MAP_UNIT_W)/avg_drift_cnt;

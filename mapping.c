@@ -527,7 +527,16 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	{
 		for(int o=0; o<3; o++)
 		{
-			memcpy(&copies[i][o], &w->pages[copy_pagex_start+i][copy_pagey_start+o], sizeof(map_page_t));
+			// dbg:
+//			for(int xx = 0; xx < 256; xx++)
+//			{
+//				for(int yy = 0; yy < 256; yy++)
+//				{
+//					if(w->pages[copy_pagex_start+i][copy_pagey_start+o]
+//				}
+//			}
+
+			memcpy(&copies[i][o], w->pages[copy_pagex_start+i][copy_pagey_start+o], sizeof(map_page_t));
 			memset(spot_used[i][o], 0, MAP_PAGE_W*MAP_PAGE_W);
 		}
 	}

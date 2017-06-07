@@ -155,9 +155,15 @@ int main(int argc, char** argv)
 				move_to(x_mm, y_mm, route_next->backmode);
 
 				if(route_next->next)
+				{
 					route_next = route_next->next;
+					printf("next taken\n");
+				}
 				else
+				{
 					do_follow_route = 0;
+					printf("was the last\n");
+				}
 
 				prev_id = id;
 

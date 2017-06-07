@@ -103,6 +103,7 @@ int main(int argc, char** argv)
 			{
 				printf("  ---> DEST params: X=%d Y=%d backmode=%d\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
 				move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
+				do_follow_route = 0;
 			}
 			else if(ret == TCP_CR_ROUTE_MID)
 			{

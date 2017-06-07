@@ -627,7 +627,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 							// Existing wall here, it suffices, increase the seen count.
 							PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_seen);
-							w->pages[px][py]->units[ox][oy].result |= UNIT_DBG;
+							PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_obstacles);
 
 							spot_used[copy_px][copy_py][ox][oy] = 1;
 							w->changed[px][py] = 1;
@@ -654,11 +654,15 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 				PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_seen);
 				MINUS_SAT_0(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles);
 
-//				if((int)w->pages[pagex][pagey]->units[offsx][offsy].num_seen > (2*(int)w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles + 5))
-//				{
+				if(
+				   ( s_cnt > 5 && // we are quite sure:
+				   ((int)w->pages[pagex][pagey]->units[offsx][offsy].num_seen > (2*(int)w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles + 3)))
+				   ||  // we are not so sure:
+				   (((int)w->pages[pagex][pagey]->units[offsx][offsy].num_seen > (3*(int)w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles + 5))))
+				{
 					// Wall has vanished
-//					w->pages[pagex][pagey]->units[offsx][offsy].result &= ~(UNIT_WALL);
-//				}
+					w->pages[pagex][pagey]->units[offsx][offsy].result &= ~(UNIT_WALL);
+				}
 				w->changed[pagex][pagey] = 1;
 			}
 		}

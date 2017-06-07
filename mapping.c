@@ -61,6 +61,68 @@ void shift_coords(int* px, int* py, int* ox, int* oy, int shift_x, int shift_y)
 }
 
 
+#define sq(x) ((x)*(x))
+
+/*
+	Go through every point in every lidar scan.
+	Find closest point from every other scan. If far away,
+	remove the point as being a moving object (or some kind of error).
+
+	modifies lidar scans pointed by lidar_list.
+*/
+
+static int prefilter_lidar_list(int n_lidars, lidar_scan_t** lidar_list)
+{
+	int n_removed_per_scan[32] = {0};
+	int n_removed = 0;
+
+	for(int la=0; la<n_lidars; la++)
+	{
+		lidar_scan_t* lida = lidar_list[la];
+
+		for(int pa=0; pa<LIDAR_SCAN_POINTS; pa++)
+		{
+			if(!lida->scan[pa].valid)
+				continue;
+
+			int64_t closest = INT64_MAX;
+
+			for(int lb=0; lb<n_lidars; lb++)
+			{
+				if(la == lb) continue;
+
+				lidar_scan_t* lidb = lidar_list[lb];
+
+				for(int pb=0; pb<LIDAR_SCAN_POINTS; pb++)
+				{
+					if(!lidb->scan[pb].valid)
+						continue;
+
+					int64_t dx = lidb->scan[pb].x - lida->scan[pa].x;
+					int64_t dy = lidb->scan[pb].y - lida->scan[pa].y;
+					int64_t dist = sq(dx) + sq(dy);
+
+					if(dist < closest) closest = dist;
+				}
+			}
+
+			if(closest > sq(100))
+			{
+				lida->scan[pa].valid = 0;
+				n_removed_per_scan[la]++;
+				n_removed++;
+			}
+
+
+		}
+	}
+
+	printf("INFO: prefilter_lidar_list() removed %d points: ", n_removed);
+	for(int i=0; i < n_lidars; i++)	printf("%d, ", n_removed_per_scan[i]);
+	printf("\n");
+	return n_removed;
+}
+
 /* Rotation:
 x2 = x*cos(a) + y*sin(a)
 y2 = -1*x*sin(a) + y*cos(a)
@@ -75,6 +137,7 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	int n_points = 0;
 	int n_matches = 0;
 	int n_news = 0;
+	int n_exacts = 0;
 
 	// Go through all valid points in all lidars in the lidar_list.
 	for(int l=0; l<n_lidars; l++)
@@ -103,35 +166,41 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			int y = -1*pre_x*sin(ang) + pre_y*cos(ang) + rotate_mid_y + dy;
 
 			int is_match = 0;
-			int seen_with_no_wall = 9;
-
-			page_coords(x, y, &pagex, &pagey, &offsx, &offsy);
+			int seen_with_no_wall = 0;
+			int is_exact = 0;
 
 			// Wall in any neighbouring cell is considered a match.
-			for(int ix=-30; ix<=30; ix+=30)
-			{
-				for(int iy=-30; iy<=30; iy+=30)
-				{
-					page_coords(x+ix, y+iy, &pagex, &pagey, &offsx, &offsy);
-					if(w->pages[pagex][pagey]->units[offsx][offsy].result & UNIT_WALL)
-					{
-						is_match = 1;
-					}
-					else
-					{
-						if(w->pages[pagex][pagey]->units[offsx][offsy].num_seen)
-						{
-							// Unit has been mapped with "no wall" before.
-							seen_with_no_wall--;
-						}
 
+			page_coords(x, y, &pagex, &pagey, &offsx, &offsy);
+			if(w->pages[pagex][pagey]->units[offsx][offsy].result & UNIT_WALL)
+			{
+				is_match = 1;
+				is_exact = 1;
+			}
+			else
+			{
+				for(int ix=-1*MAP_UNIT_W; ix<=MAP_UNIT_W; ix+=MAP_UNIT_W)
+				{
+					for(int iy=-1*MAP_UNIT_W; iy<=MAP_UNIT_W; iy+=MAP_UNIT_W)
+					{
+						page_coords(x+ix, y+iy, &pagex, &pagey, &offsx, &offsy);
+						if(w->pages[pagex][pagey]->units[offsx][offsy].result & UNIT_WALL)
+						{
+							is_match = 1;
+							break;
+						}
+						else if(w->pages[pagex][pagey]->units[offsx][offsy].result & UNIT_MAPPED)
+						{
+							seen_with_no_wall++;
+						}
 					}
 				}
 			}
 
 			if(is_match) n_matches++;
+			if(is_exact) n_exacts++;
 			// There is no wall, and most of the 9 units were mapped "no wall" before, so we have a new wall:
-			if(!is_match && seen_with_no_wall < 3) n_news++;
+			if(!is_match && seen_with_no_wall > 6) n_news++;
 
 			
 			
@@ -147,7 +216,7 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	// Return the score: bigger = better
 	// Exact matches have a slight effect on the result.
 	// New walls decrease the score.
-	return n_matches*5 - n_news*5;
+	return n_matches*5 - n_news*5 + n_exacts;
 }
 
 typedef struct  // Each bit represents each lidar scan (i.e., 32 lidar scans max).
@@ -163,9 +232,13 @@ typedef struct  // Each bit represents each lidar scan (i.e., 32 lidar scans max
 #define MINUS_SAT_0(x) {if((x)>0) (x)--;}
 
 static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
-	         int32_t da, int32_t dx, int32_t dy, int32_t rotate_mid_x, int32_t rotate_mid_y)
+                      int32_t da, int32_t dx, int32_t dy, int32_t rotate_mid_x, int32_t rotate_mid_y,
+                      int32_t *after_dx, int32_t *after_dy)
 {
 	int pagex, pagey, offsx, offsy;
+
+	*after_dx = 0;
+	*after_dy = 0;
 
 	/*
 		Generate temporary map, counting seen areas / wall areas.
@@ -445,6 +518,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	page_coords(mid_x_mm, mid_y_mm, &pagex, &pagey, &offsx, &offsy);
 
 	static map_page_t copies[3][3];
+	static uint8_t spot_used[3][3][MAP_PAGE_W][MAP_PAGE_W];
 
 	int copy_pagex_start = pagex-1;
 	int copy_pagey_start = pagey-1;
@@ -454,8 +528,11 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		for(int o=0; o<3; o++)
 		{
 			memcpy(&copies[i][o], &w->pages[copy_pagex_start+i][copy_pagey_start+o], sizeof(map_page_t));
+			memset(spot_used[i][o], 0, MAP_PAGE_W*MAP_PAGE_W);
 		}
 	}
+
+	int avg_drift_cnt = 0, avg_drift_x = 0, avg_drift_y = 0;
 
 	for(int iy = 3; iy < TEMP_MAP_W-3; iy++)
 	{
@@ -484,90 +561,82 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 			if(w_cnt > 3) // A wall is very clearly here.
 			{
-				int px = pagex, py = pagey, ox = offsx-1, oy = offsy-1;
-				if(ox < 0) { ox += MAP_PAGE_W; px--;} 
-				if(oy < 0) { oy += MAP_PAGE_W; py--;}
+				int px = pagex, py = pagey;
 
 				int copy_px = px - copy_pagex_start;
 				int copy_py = py - copy_pagey_start;
 
-				if(copy_px < 0 || copy_px > 2 || copy_py < 0 || copy_py > 2)
+				if(copy_px < 0 || copy_px > 2 || copy_py < 0 || copy_py > 2 || (copy_px == 0 && offsx < 3) || (copy_py == 0 && offsy < 3) ||
+				   (copy_px == 2 && offsx > MAP_PAGE_W-4) || (copy_py == 2 && offsy > MAP_PAGE_W-4))
 				{
-					printf("ERROR: invalid copy_px (%d) or copy_py (%d)\n", copy_px, copy_py);
+					printf("ERROR: invalid copy_px (%d) and/or copy_py (%d)\n", copy_px, copy_py);
 					free(temp_map);
 					return -3;
 				}
 
-				int not_found_cnt = 9;
-				for(int iy=-1; iy<=1; iy++)
-				{
-					for(int ix=-1; ix<=1; ix++)
-					{
-						copy_px = px - copy_pagex_start;
-						copy_py = py - copy_pagey_start;
+				static const int search_order[25][2] = { 
+					{ 0, 0},
+					{ 0, 1},
+					{ 0,-1},
+					{ 1, 0},
+					{-1, 0},
+					{ 1, 1},
+					{ 1,-1},
+					{-1, 1},
+					{-1,-1},
+					{ 0, 2},
+					{ 0,-2},
+					{ 1, 2},
+					{ 1,-2},
+					{-1, 2},
+					{-1,-2},
+					{ 2, 0},
+					{-2, 0},
+					{ 2, 1},
+					{ 2,-1},
+					{-2, 1},
+					{-2,-1},
+					{ 2, 2},
+					{ 2,-2},
+					{-2, 2},
+					{-2,-2}};
 
-						if(copies[copy_px][copy_py].units[ox][oy].result & UNIT_WALL)
+				int found = 0;
+				for(int i=0; i<25; i++)
+				{
+					px = pagex;
+					py = pagey;
+					int ox = offsx+search_order[i][0];
+					int oy = offsy+search_order[i][1];
+
+					if(ox >= MAP_PAGE_W) {ox-=MAP_PAGE_W; px++;}
+					else if(ox < 0) {ox+=MAP_PAGE_W; px--;}
+					if(oy >= MAP_PAGE_W) {oy-=MAP_PAGE_W; py++;}
+					else if(oy < 0) {oy+=MAP_PAGE_W; py--;}
+
+					copy_px = px - copy_pagex_start;
+					copy_py = py - copy_pagey_start;
+
+					if((copies[copy_px][copy_py].units[ox][oy].result & UNIT_WALL))
+					{
+						if(!spot_used[copy_px][copy_py][ox][oy])
 						{
+							avg_drift_cnt++;
+							avg_drift_x += search_order[i][0];
+							avg_drift_y += search_order[i][1];
 							// Existing wall here, it suffices, increase the seen count.
 							PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_seen);
+							spot_used[copy_px][copy_py][ox][oy] = 1;
 							w->changed[px][py] = 1;
+							found = 1;
+							break;
 						}
-						else
-							not_found_cnt--;
-						ox++; if(ox >= MAP_PAGE_W) {ox=0; px++;}
 					}
-					oy++; if(oy >= MAP_PAGE_W) {oy=0; py++;}
 				}
 
-				if(not_found_cnt < 3)
+				if(!found)
 				{
-					// No wall, or only one or two wall units in map already - we have a new wall.
-					w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_WALL | UNIT_MAPPED;
-					PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_seen);
-					w->changed[pagex][pagey] = 1;
-				}
-			}
-			else if(w_cnt > 1) // A wall is here, but not so clearly
-			{
-				int px = pagex, py = pagey, ox = offsx-1, oy = offsy-1;
-				if(ox < 0) { ox += MAP_PAGE_W; px--;} 
-				if(oy < 0) { oy += MAP_PAGE_W; py--;}
-
-				int copy_px = px - copy_pagex_start;
-				int copy_py = py - copy_pagey_start;
-
-				if(copy_px < 0 || copy_px > 2 || copy_py < 0 || copy_py > 2)
-				{
-					printf("ERROR: invalid copy_px (%d) or copy_py (%d)\n", copy_px, copy_py);
-					free(temp_map);
-					return -3;
-				}
-
-				int not_found_cnt = 9;
-				for(int iy=-1; iy<=1; iy++)
-				{
-					for(int ix=-1; ix<=1; ix++)
-					{
-						copy_px = px - copy_pagex_start;
-						copy_py = py - copy_pagey_start;
-
-						if(copies[copy_px][copy_py].units[ox][oy].result & UNIT_WALL)
-						{
-							// Existing wall here, it suffices, increase the seen count.
-							PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_seen);
-							PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles);
-							w->changed[px][py] = 1;
-						}
-						else
-							not_found_cnt--;
-						ox++; if(ox >= MAP_PAGE_W) {ox=0; px++;}
-					}
-					oy++; if(oy >= MAP_PAGE_W) {oy=0; py++;}
-				}
-
-				if(not_found_cnt < 1)
-				{
-					// No wall - we have a new wall.
+					// We have a new wall.
 					w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_WALL | UNIT_MAPPED;
 					PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_seen);
 					PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles);
@@ -591,6 +660,14 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			}
 		}
 	}
+
+	if(avg_drift_cnt > 300)
+	{
+		*after_dx = (avg_drift_x*MAP_UNIT_W)/avg_drift_cnt;
+		*after_dy = (avg_drift_y*MAP_UNIT_W)/avg_drift_cnt;
+	}
+
+	printf("INFO: Average adjustment during map insertion: x=%d mm, y=%d mm (%d samples)\n", *after_dx, *after_dy, avg_drift_cnt);
 
 
 	free(temp_map);
@@ -665,6 +742,9 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	}
 
 	printf("Info: Attempting to map %d lidar images\n", n_lidars);
+
+	prefilter_lidar_list(n_lidars, lidar_list);
+
 
 	int mid_x, mid_y;
 
@@ -784,11 +864,13 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	{
 		printf("Info: Map search complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best_da/(float)ANG_1_DEG, best_dx, best_dy, best_score);
 
-		do_mapping(w, n_lidars, lidar_list, best_da, best_dx, best_dy, mid_x, mid_y);
+		int32_t aft_corr_x = 0, aft_corr_y = 0;
+
+		do_mapping(w, n_lidars, lidar_list, best_da, best_dx, best_dy, mid_x, mid_y, &aft_corr_x, &aft_corr_y);
 
 		*da = best_da;
-		*dx = best_dx;
-		*dy = best_dy;
+		*dx = best_dx + aft_corr_x;
+		*dy = best_dy + aft_corr_y;
 	}
 
 	fclose(fdbg);

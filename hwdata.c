@@ -225,6 +225,12 @@ void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)
 
 	da *= -1; // I have no idea why this works backwards...
 
+	if(da == 0 && dx == 0 && dy == 0)
+	{
+		printf("INFO: No position correction needed.\n");
+		return;
+	}
+
 	printf("INFO: Correcting robot pos by %d, %d, %d\n", da>>16, dx, dy);
 
 	uint8_t buf[12];
@@ -239,6 +245,5 @@ void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)
 	buf[7] = 0xff;
 
 	send_uart(buf, 8);
-	sleep(1); // for debugging an issue...
 }
 

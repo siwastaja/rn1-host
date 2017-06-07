@@ -640,7 +640,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 				if(!found)
 				{
 					// We have a new wall.
-					w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_WALL | UNIT_MAPPED;
+		//			w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_WALL | UNIT_MAPPED;
 					PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_seen);
 					PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles);
 					w->changed[pagex][pagey] = 1;

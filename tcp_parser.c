@@ -8,6 +8,8 @@
 #include "datatypes.h"
 #include "tcp_comm.h"
 #include "tcp_parser.h"
+#include "utlist.h"
+#include "routing.h"
 
 // Client->Robot messages
 
@@ -145,6 +147,34 @@ void tcp_send_battery()
 	tcp_send(buf, size);
 }
 
+void tcp_send_route(route_unit_t **route)
+{
+	uint8_t buf[2000];
+	buf[0] = TCP_RC_ROUTEINFO_MID;
+
+	int i = 3;
+	route_unit_t *rt;
+	DL_FOREACH(*route, rt)
+	{
+		if(i > 1999-9)
+		{
+			printf("WARNING: Route too long to be sent to the client. Ignoring the rest.\n");
+			break;
+		}
+
+		int x_mm, y_mm;
+		mm_from_unit_coords(rt->loc.x, rt->loc.y, &x_mm, &y_mm);					
+		buf[i+0] = rt->backmode?1:0;
+		I32TOBUF(x_mm, buf, i+1);
+		I32TOBUF(y_mm, buf, i+5);
+		i += 9;
+	}
+
+	buf[1] = ((i-3)>>8)&0xff;
+	buf[2] = (i-3)&0xff;
+
+	tcp_send(buf, i);
+}
 
 int tcp_send_msg(tcp_message_t* msg_type, void* msg)
 {

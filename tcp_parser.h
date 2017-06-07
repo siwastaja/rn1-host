@@ -2,6 +2,7 @@
 #define TCP_PARSER_H
 
 #include "datatypes.h"
+#include "routing.h"
 
 typedef struct
 {
@@ -64,6 +65,7 @@ extern tcp_rc_pos_t    msg_rc_pos;
 #define TCP_RC_DBG_MID     132
 #define TCP_RC_SONAR_MID   133
 #define TCP_RC_BATTERY_MID 134
+#define TCP_RC_ROUTEINFO_MID 135
 
 int tcp_parser(int sock);
 
@@ -73,5 +75,6 @@ void tcp_send_lidar(lidar_scan_t* p_lid);
 void tcp_send_hwdbg(int32_t* dbg);
 void tcp_send_sonar(sonar_scan_t* p_son);
 void tcp_send_battery();
+void tcp_send_route(route_unit_t **route);
 
 #endif

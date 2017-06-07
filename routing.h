@@ -1,6 +1,8 @@
 #ifndef ROUTING_H
 #define ROUTING_H
 
+#include "mapping.h"
+
 typedef struct
 {
 	int x;

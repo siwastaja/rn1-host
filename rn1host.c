@@ -105,8 +105,7 @@ int main(int argc, char** argv)
 				printf("  ---> ROUTE params: X=%d Y=%d dummy=%d\n", msg_cr_route.x, msg_cr_route.y, msg_cr_route.dummy);
 				route_unit_t *some_route = NULL;
 
-				int ret;
-				ret = search_route(&world, &some_route, ANG32TORAD(cur_ang), cur_x, cur_y, msg_cr_route.x, msg_cr_route.y);
+				search_route(&world, &some_route, ANG32TORAD(cur_ang), cur_x, cur_y, msg_cr_route.x, msg_cr_route.y);
 				route_unit_t *rt;
 				DL_FOREACH(some_route, rt)
 				{
@@ -119,6 +118,7 @@ int main(int argc, char** argv)
 					mm_from_unit_coords(rt->loc.x, rt->loc.y, &x_mm, &y_mm);					
 					printf("to %d,%d\n", x_mm, y_mm);
 				}
+				tcp_send_route(&some_route);
 				
 			}
 		}

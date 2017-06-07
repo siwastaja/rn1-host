@@ -154,6 +154,7 @@ int main(int argc, char** argv)
 				printf("move_to %d  %d  %d\n", x_mm, y_mm, route_next->backmode);
 				move_to(x_mm, y_mm, route_next->backmode);
 
+				printf("kakka\n");
 				if(route_next->next)
 				{
 					route_next = route_next->next;

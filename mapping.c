@@ -627,6 +627,8 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 							// Existing wall here, it suffices, increase the seen count.
 							PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_seen);
+							w->pages[px][py]->units[ox][oy].result |= UNIT_DBG;
+
 							spot_used[copy_px][copy_py][ox][oy] = 1;
 							w->changed[px][py] = 1;
 							found = 1;

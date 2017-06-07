@@ -7,6 +7,7 @@
 #define UNIT_FREE	0
 #define UNIT_ITEM	(1<<0)	// Small obstacle, detected by sonars or bumping into it
 #define UNIT_WALL	(1<<1)	// Obstacle seen by the lidar.
+#define UNIT_DBG	(1<<6)
 #define UNIT_MAPPED     (1<<7)  // We have seen this area.
 
 #define CONSTRAINT_FORBIDDEN 	(1<<0)	// "Don't go here" unit

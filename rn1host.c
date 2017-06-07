@@ -210,7 +210,7 @@ int main(int argc, char** argv)
 
 				page_coords(p_son->scan[i].x, p_son->scan[i].y, &idx_x, &idx_y, &offs_x, &offs_y);
 				load_9pages(&world, idx_x, idx_y);
-				world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest |= UNIT_ITEM;
+				world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM;
 				//world.changed[idx_x][idx_y] = 1;
 			}
 		}

@@ -545,19 +545,19 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 				printf("Info: temp map -> map: start: page (%d, %d) offs (%d, %d)\n", pagex, pagey, offsx, offsy);
 
 
-			int s_cnt = 0, w_cnt = 0;
-			uint32_t tmp = temp_map[iy*TEMP_MAP_W+ix].seen;
-			while(tmp)
-			{
-				s_cnt++;
-				tmp>>=1;
-			}
-			tmp = temp_map[iy*TEMP_MAP_W+ix].wall;
-			while(tmp)
-			{
-				w_cnt++;
-				tmp>>=1;
-			}
+			int s_cnt = 0, w_cnt = 0, neigh_w_cnt = 0;
+			uint32_t tmp = temp_map[iy*TEMP_MAP_W+ix].seen; while(tmp) { s_cnt++; tmp>>=1; }
+			tmp = temp_map[iy*TEMP_MAP_W+ix].wall; while(tmp) { w_cnt++; tmp>>=1; }
+
+			tmp = temp_map[(iy)*TEMP_MAP_W+(ix+1)].wall; while(tmp) { neigh_w_cnt++; tmp>>=1; }
+			tmp = temp_map[(iy)*TEMP_MAP_W+(ix-1)].wall; while(tmp) { neigh_w_cnt++; tmp>>=1; }
+			tmp = temp_map[(iy+1)*TEMP_MAP_W+(ix+1)].wall; while(tmp) { neigh_w_cnt++; tmp>>=1; }
+			tmp = temp_map[(iy+1)*TEMP_MAP_W+(ix-1)].wall; while(tmp) { neigh_w_cnt++; tmp>>=1; }
+			tmp = temp_map[(iy+1)*TEMP_MAP_W+(ix  )].wall; while(tmp) { neigh_w_cnt++; tmp>>=1; }
+			tmp = temp_map[(iy-1)*TEMP_MAP_W+(ix+1)].wall; while(tmp) { neigh_w_cnt++; tmp>>=1; }
+			tmp = temp_map[(iy-1)*TEMP_MAP_W+(ix-1)].wall; while(tmp) { neigh_w_cnt++; tmp>>=1; }
+			tmp = temp_map[(iy-1)*TEMP_MAP_W+(ix  )].wall; while(tmp) { neigh_w_cnt++; tmp>>=1; }
+
 
 			if(w_cnt > 3) // A wall is very clearly here.
 			{
@@ -655,10 +655,10 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 				MINUS_SAT_0(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles);
 
 				if(
-				   ( s_cnt > 5 && // we are quite sure:
+				   ( s_cnt > 5 && neigh_w_cnt == 0 && // we are quite sure:
 				   ((int)w->pages[pagex][pagey]->units[offsx][offsy].num_seen > (2*(int)w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles + 3)))
-				   ||  // we are not so sure:
-				   (((int)w->pages[pagex][pagey]->units[offsx][offsy].num_seen > (3*(int)w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles + 5))))
+				   || (neigh_w_cnt < 2 &&  // there is 1 wall neighbor, so we are not so sure, but do it eventually.
+				   ((int)w->pages[pagex][pagey]->units[offsx][offsy].num_seen > (5*(int)w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles + 10))))
 				{
 					// Wall has vanished
 					w->pages[pagex][pagey]->units[offsx][offsy].result &= ~(UNIT_WALL);

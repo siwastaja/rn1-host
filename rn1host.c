@@ -212,15 +212,18 @@ int main(int argc, char** argv)
 				{
 					if(cur_xymove.remaining < 150)
 					{
-						printf("Take the next!\n");
-						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, route_pos);
+						if(route_pos < do_follow_route)
+						{
+							printf("Take the next!\n");
+							move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, route_pos);
+						}
 						route_pos++;
 					}
 				}
 
 			}
 
-			if(route_pos >= do_follow_route)
+			if(route_pos > do_follow_route)
 			{
 				printf("Done following the route.\n");
 				do_follow_route = 0;

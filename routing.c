@@ -13,7 +13,7 @@
 #define M_PI 3.141592653589793238
 #endif
 
-world_t* world;
+world_t* routing_world;
 
 typedef struct search_unit_t search_unit_t;
 struct search_unit_t
@@ -48,18 +48,18 @@ static int check_hit(int x, int y, int direction)
 			int pageidx_x, pageidx_y, pageoffs_x, pageoffs_y;
 			page_coords_from_unit_coords(x-ROBOT_SHAPE_WINDOW/2+chk_x, y-ROBOT_SHAPE_WINDOW/2+chk_y, &pageidx_x, &pageidx_y, &pageoffs_x, &pageoffs_y);
 
-			if(!world->pages[pageidx_x][pageidx_y]) // out of bounds (not allocated) - give up instantly
+			if(!routing_world->pages[pageidx_x][pageidx_y]) // out of bounds (not allocated) - give up instantly
 			{
 				return 1;
 			}
 
 			if(robot_shapes[direction][chk_x][chk_y])
 			{
-				if((world->pages[pageidx_x][pageidx_y]->units[pageoffs_x][pageoffs_y].result & UNIT_WALL))
+				if((routing_world->pages[pageidx_x][pageidx_y]->units[pageoffs_x][pageoffs_y].result & UNIT_WALL))
 					num_obstacles++;
 
 
-				if(!(world->pages[pageidx_x][pageidx_y]->units[pageoffs_x][pageoffs_y].result & UNIT_MAPPED))
+				if(!(routing_world->pages[pageidx_x][pageidx_y]->units[pageoffs_x][pageoffs_y].result & UNIT_MAPPED))
 					num_unmapped++;
 			}
 
@@ -778,7 +778,7 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 
 int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_mm, int start_y_mm, int end_x_mm, int end_y_mm)
 {
-	world = w;
+	routing_world = w;
 	normal_search_mode();
 	printf("Searching with normal limits...\n");
 	wdbg("within search_route: before anything");

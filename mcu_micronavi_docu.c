@@ -46,7 +46,7 @@ const char* const MCU_NAVI_ACTION_NAMES[] =
 /* 6*/ "very far-away, and probably non-colliding object front RIGHT, turn LEFT very slightly",
 /* 7*/ "passing/going to pass object on RIGHT, do NOT turn RIGHT",
 /* 8*/ "going to pass object farther away on RIGHT, do NOT turn RIGHT",
-/* 9*/ "arse very close to hit if turned, do NOT turn RIGHT",
+/* 9*/ "arse very close to hit if turned, do NOT turn RIGHT mode 2",
 /*10*/ "arse close to hit if turned more than slightly, do NOT turn RIGHT mode 2",
 /*11*/ "LEFT sonar sees an object, turn RIGHT",
 /*12*/ "RIGHT sonar sees an object, turn LEFT",

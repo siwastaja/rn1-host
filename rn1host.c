@@ -223,7 +223,7 @@ int main(int argc, char** argv)
 						{
 							stop_flag_cnt = 0;
 							printf("Robot stopped, retrying the same point.\n");
-							move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) & ((route_pos-1)&0b1111));
+							move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos-1)&0b1111));
 						}
 					}
 					else
@@ -240,8 +240,8 @@ int main(int argc, char** argv)
 							printf("remaining (%d) < 150\n", cur_xymove.remaining);
 							if(route_pos < do_follow_route)
 							{
-								printf("Take the next, id=%d!\n", (id_cnt<<4) & ((route_pos)&0b1111));
-								move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) & ((route_pos)&0b1111));
+								printf("Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
+								move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111));
 							}
 							route_pos++;
 						}

@@ -235,6 +235,7 @@ int main(int argc, char** argv)
 
 						if(cur_xymove.remaining < 150)
 						{
+							printf("remaining (%d) < 150\n", cur_xymove.remaining);
 							if(route_pos < do_follow_route)
 							{
 								printf("Take the next!\n");

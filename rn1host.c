@@ -196,6 +196,7 @@ int main(int argc, char** argv)
 			}
 		}
 
+		static int stop_flag_cnt = 0;
 		if(do_follow_route)
 		{
 			if(route_pos == 0)
@@ -210,14 +211,31 @@ int main(int argc, char** argv)
 
 				if(id == route_pos-1)
 				{
-					if(cur_xymove.remaining < 150)
+
+					if(cur_xymove.stop_flags)
 					{
-						if(route_pos < do_follow_route)
+						stop_flag_cnt++;
+
+						if(stop_flag_cnt > 50000) // todo: proper timing.
 						{
-							printf("Take the next!\n");
-							move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, route_pos);
+							stop_flag_cnt = 0;
+							printf("Robot stopped, retrying the same point.\n");
+							move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, route_pos-1);
 						}
-						route_pos++;
+					}
+					else
+					{
+						stop_flag_cnt = 0;
+
+						if(cur_xymove.remaining < 150)
+						{
+							if(route_pos < do_follow_route)
+							{
+								printf("Take the next!\n");
+								move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, route_pos);
+							}
+							route_pos++;
+						}
 					}
 				}
 

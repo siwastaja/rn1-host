@@ -75,6 +75,7 @@ int main(int argc, char** argv)
 	int do_follow_route = 0;
 	int route_pos = 0;
 
+	int good_time_for_lidar_mapping = 0;
 	int cnt = 0;
 	while(1)
 	{
@@ -227,6 +228,11 @@ int main(int argc, char** argv)
 					{
 						stop_flag_cnt = 0;
 
+						if(cur_xymove.remaining < 250)
+						{
+							good_time_for_lidar_mapping = 1;
+						}
+
 						if(cur_xymove.remaining < 150)
 						{
 							if(route_pos < do_follow_route)
@@ -318,8 +324,9 @@ int main(int argc, char** argv)
 						lidars_to_map[n_lidars_to_map] = p_lid;
 
 						n_lidars_to_map++;
-						if(n_lidars_to_map == 12)
+						if((good_time_for_lidar_mapping && n_lidars_to_map > 7) || n_lidars_to_map > 15)
 						{
+							if(good_time_for_lidar_mapping) good_time_for_lidar_mapping = 0;
 							int32_t da, dx, dy;
 							map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
 							correct_robot_pos(da, dx, dy);

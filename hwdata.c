@@ -208,7 +208,7 @@ void send_keepalive()
 
 void move_to(int32_t x, int32_t y, int8_t backmode, int id)
 {
-	uint8_t buf[12];
+	uint8_t buf[14];
 
 	if(id < 0 || id > 127)
 	{

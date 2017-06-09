@@ -60,9 +60,12 @@ typedef struct
 	int status;
 	int id;
 	int remaining;
+	uint32_t stop_flags;
+	uint32_t action_flags;
 } xymove_t;
 
 extern pwr_status_t pwr_status;
 extern xymove_t cur_xymove;
+
 
 #endif

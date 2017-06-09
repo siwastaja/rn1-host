@@ -22,9 +22,12 @@
 #include "routing.h"
 #include "utlist.h"
 
+#include "mcu_micronavi_docu.c"
+
 #ifndef M_PI
 #define M_PI 3.141592653589793238
 #endif
+
 
 uint32_t robot_id = 0xacdcabba; // Hopefully unique identifier for the robot.
 
@@ -151,6 +154,36 @@ int main(int argc, char** argv)
 			handle_tcp_listener();
 		}
 
+
+		if(cur_xymove.stop_flags)
+		{
+			static int stop_flag_print_prev_id = 666;
+
+			if(cur_xymove.id != stop_flag_print_prev_id)
+			{
+				printf("MCU-level micronavigation reported a stop. Stop reason flags:\n");
+				for(int i=0; i<32; i++)
+				{
+					if(cur_xymove.stop_flags&(1UL<<i))
+					{
+						printf("bit %2d: %s\n", i, MCU_NAVI_STOP_NAMES[i]);
+					}
+				}
+
+				printf("Actions taken during stop condition:\n");
+				for(int i=0; i<32; i++)
+				{
+					if(cur_xymove.action_flags&(1UL<<i))
+					{
+						printf("bit %2d: %s\n", i, MCU_NAVI_ACTION_NAMES[i]);
+					}
+				}
+
+				printf("\n");
+
+				stop_flag_print_prev_id = cur_xymove.id;
+			}
+		}
 
 		if(do_follow_route)
 		{

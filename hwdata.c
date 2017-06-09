@@ -182,6 +182,8 @@ int parse_uart_msg(uint8_t* buf, int len)
 			cur_xymove.status = buf[1];
 			cur_xymove.id = buf[2];
 			cur_xymove.remaining = I7I7_U16_lossy(buf[3], buf[4]);
+			cur_xymove.stop_flags = I7x5_I32(buf[5],buf[6],buf[7],buf[8],buf[9]);
+			cur_xymove.action_flags = I7x5_I32(buf[10],buf[11],buf[12],buf[13],buf[14]);
 		}
 		break;
 

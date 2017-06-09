@@ -113,6 +113,8 @@ static int test_robot_turn(int x, int y, float start, float end)
 	int dir_cur = (start/(2.0*M_PI) * 32.0);
 	int dir_end = (end/(2.0*M_PI) * 32.0);
 
+	if(dir_cur < 0) dir_cur = 0; else if(dir_cur > 31) dir_cur = 31;
+	if(dir_end < 0) dir_end = 0; else if(dir_end > 31) dir_end = 31;
 //	printf("test_robot_turn()  start=%.4f  end=%.4f  da=%.4f,  cw=%d\n", start, end, da, cw);
 
 	while(dir_cur != dir_end)
@@ -595,6 +597,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 					float ang = atan2(dir_dy, dir_dx);
 					if(ang < 0.0) ang += 2.0*M_PI;
 					int dir_parent = ang/(2.0*M_PI) * 32.0;
+					if(dir_parent < 0) dir_parent = 0; else if(dir_parent > 31) dir_parent = 31;
 					direction_from_cur_parent = dir_parent;
 				}
 
@@ -605,6 +608,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 					float ang = atan2(dir_dy, dir_dx);
 					if(ang < 0.0) ang += 2.0*M_PI;
 					int dir_parent = ang/(2.0*M_PI) * 32.0;
+					if(dir_parent < 0) dir_parent = 0; else if(dir_parent > 31) dir_parent = 31;
 					direction_from_neigh_parent = dir_parent;
 				}
 

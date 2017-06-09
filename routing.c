@@ -39,6 +39,12 @@ int unmapped_limit = 3;
 
 static int check_hit(int x, int y, int direction)
 {
+	printf("a\n");
+	if(direction < 0 || direction > 31)
+	{
+		printf("ERROR: check_hit() illegal direction (%d).\n", direction);
+		exit(1);
+	}
 	int num_unmapped = 0;
 	int num_obstacles = 0;
 	for(int chk_x=0; chk_x<ROBOT_SHAPE_WINDOW; chk_x++)
@@ -50,7 +56,14 @@ static int check_hit(int x, int y, int direction)
 
 			if(!routing_world->pages[pageidx_x][pageidx_y]) // out of bounds (not allocated) - give up instantly
 			{
+				printf("b\n");
 				return 1;
+			}
+
+			if(pageoffs_x < 0 || pageoffs_x > 255 || pageoffs_y < 0 || pageoffs_y > 255)
+			{
+				printf("ERROR: check_hit() illegal pageoffs (%d, %d, %d, %d)\n", pageidx_x, pageidx_y, pageoffs_x, pageoffs_y);
+				exit(1);
 			}
 
 			if(robot_shapes[direction][chk_x][chk_y])
@@ -65,6 +78,8 @@ static int check_hit(int x, int y, int direction)
 
 		}
 	}
+
+	printf("c\n");
 
 	if(num_obstacles > obstacle_limit)
 		return 1;
@@ -442,7 +457,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 
 	HASH_ADD(hh, open_set, loc,sizeof(route_xy_t), p_start);
 
-	printf("1\n");
+//	printf("1\n");
 
 	int cnt = 0;
 
@@ -456,7 +471,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 			return 3;
 		}
 
-		printf("2\n");
+//		printf("2\n");
 
 
 		// Find the lowest f score from open_set.
@@ -539,7 +554,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 		HASH_DELETE(hh, open_set, p_cur);
 		HASH_ADD(hh, closed_set, loc,sizeof(route_xy_t), p_cur);
 
-		printf("3\n");
+//		printf("3\n");
 
 		// For each neighbor
 		for(int xx=-1; xx<=1; xx++)
@@ -616,7 +631,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 						direction = direction_from_neigh_parent;
 				}
 
-				printf("4\n");
+//				printf("4\n");
 
 				// If this is the first neighbor search, test if the robot can turn:
 				if(cnt == 1)
@@ -644,12 +659,12 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 
 				}
 
-				printf("5\n");
+//				printf("5\n");
 
 
 				if(!p_neigh)
 				{
-					printf("6\n");
+//					printf("6\n");
 
 					p_neigh = (search_unit_t*) malloc(sizeof(search_unit_t));
 					memset(p_neigh, 0, sizeof(search_unit_t));

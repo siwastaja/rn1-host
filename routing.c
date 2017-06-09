@@ -668,6 +668,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 
 					if(p_cur->parent && line_of_sight(p_cur->parent->loc, p_neigh->loc)) // Theta* style near-optimum (probably shortest) path
 					{
+						printf("8\n");
 						if(new_g_from_parent < p_neigh->g)
 						{
 							p_neigh->direction = direction;
@@ -678,6 +679,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 					}
 					else if(new_g < p_neigh->g)  // A* style path shorter than before.
 					{
+						printf("9\n");
 						p_neigh->direction = direction;
 						p_neigh->parent = p_cur;
 						p_neigh->g = new_g;
@@ -685,7 +687,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 					}
 				}
 
-				printf("8\n");
+				printf("10\n");
 
 
 			}

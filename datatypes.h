@@ -13,6 +13,8 @@
 
 #define ANG32TORAD(x) ( ((float)((uint32_t)(x)))/683565275.576432)
 
+void wdbg(char* mesta);
+
 
 typedef struct
 {

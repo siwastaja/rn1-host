@@ -35,6 +35,13 @@ int32_t cur_ang;
 int32_t cur_x;
 int32_t cur_y;
 
+void wdbg(char* mesta)
+{
+	if(world.id != 0)
+		printf("T H E   B U G!  at %s\n", mesta);
+	exit(1);
+}
+
 int main(int argc, char** argv)
 {
 	if(init_uart())
@@ -110,7 +117,10 @@ int main(int argc, char** argv)
 				printf("  ---> ROUTE params: X=%d Y=%d dummy=%d\n", msg_cr_route.x, msg_cr_route.y, msg_cr_route.dummy);
 				route_unit_t *some_route = NULL;
 
+				wdbg("before search_route");
 				search_route(&world, &some_route, ANG32TORAD(cur_ang), cur_x, cur_y, msg_cr_route.x, msg_cr_route.y);
+				wdbg("after search_route");
+
 				route_unit_t *rt;
 				DL_FOREACH(some_route, rt)
 				{
@@ -123,7 +133,11 @@ int main(int argc, char** argv)
 					mm_from_unit_coords(rt->loc.x, rt->loc.y, &x_mm, &y_mm);					
 					printf("to %d,%d\n", x_mm, y_mm);
 				}
+
+				wdbg("after route iteration printing");
+
 				tcp_send_route(&some_route);
+				wdbg("after tcp_send_route");
 
 				if(some_route) do_follow_route = 2; else do_follow_route = 0;
 				route_next = some_route;
@@ -152,8 +166,11 @@ int main(int argc, char** argv)
 				int x_mm, y_mm;
 				mm_from_unit_coords(route_next->loc.x, route_next->loc.y, &x_mm, &y_mm);					
 
+				wdbg("before do_follow_route move_to");
+
 				printf("move_to %d  %d  %d\n", x_mm, y_mm, route_next->backmode);
 				move_to(x_mm, y_mm, route_next->backmode);
+
 
 				printf("kakka\n");
 				if(route_next->next)
@@ -166,6 +183,7 @@ int main(int argc, char** argv)
 					do_follow_route = 0;
 					printf("was the last\n");
 				}
+				wdbg("after do_follow_route ->next");
 
 				prev_id = id;
 
@@ -184,6 +202,9 @@ int main(int argc, char** argv)
 			}
 			else
 			{
+
+				wdbg("before doing anything with the lidars");
+
 
 				if(tcp_client_sock >= 0) tcp_send_hwdbg(hwdbg);
 
@@ -255,6 +276,9 @@ int main(int argc, char** argv)
 					}
 
 				}
+
+				wdbg("after mapping the lidars");
+
 			}
 
 			send_keepalive();			

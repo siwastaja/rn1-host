@@ -775,6 +775,7 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 				int new_y = start_y_mm + sin(new_ang)*b_s[back_idx];
 
 				int dir = (new_ang/(2.0*M_PI) * 32.0)+0.5;
+				if(dir < 0) dir = 0; else if(dir > 31) dir = 31;
 
 				int new_x_units, new_y_units;
 				unit_coords(new_x, new_y, &new_x_units, &new_y_units);

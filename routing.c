@@ -39,7 +39,6 @@ int unmapped_limit = 3;
 
 static int check_hit(int x, int y, int direction)
 {
-	printf("a\n");
 	if(direction < 0 || direction > 31)
 	{
 		printf("ERROR: check_hit() illegal direction (%d).\n", direction);
@@ -56,7 +55,6 @@ static int check_hit(int x, int y, int direction)
 
 			if(!routing_world->pages[pageidx_x][pageidx_y]) // out of bounds (not allocated) - give up instantly
 			{
-				printf("b\n");
 				return 1;
 			}
 
@@ -78,8 +76,6 @@ static int check_hit(int x, int y, int direction)
 
 		}
 	}
-
-	printf("c\n");
 
 	if(num_obstacles > obstacle_limit)
 		return 1;
@@ -152,7 +148,7 @@ static int line_of_sight(route_xy_t p1, route_xy_t p2)
 	float ang = atan2(dy, dx);
 	if(ang < 0.0) ang += 2.0*M_PI;
 	int dir = (ang/(2.0*M_PI) * 32.0)+0.5;
-
+	if(dir < 0) dir = 0; else if(dir > 31) dir = 31;
 
 //	printf("ang = %.4f  dir = %d \n", ang, dir);
 
@@ -679,11 +675,11 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 				}
 				else
 				{
-					printf("7\n");
+//					printf("7\n");
 
 					if(p_cur->parent && line_of_sight(p_cur->parent->loc, p_neigh->loc)) // Theta* style near-optimum (probably shortest) path
 					{
-						printf("8\n");
+//						printf("8\n");
 						if(new_g_from_parent < p_neigh->g)
 						{
 							p_neigh->direction = direction;
@@ -694,7 +690,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 					}
 					else if(new_g < p_neigh->g)  // A* style path shorter than before.
 					{
-						printf("9\n");
+//						printf("9\n");
 						p_neigh->direction = direction;
 						p_neigh->parent = p_cur;
 						p_neigh->g = new_g;
@@ -702,7 +698,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 					}
 				}
 
-				printf("10\n");
+//				printf("10\n");
 
 
 			}

@@ -38,8 +38,10 @@ int32_t cur_y;
 void wdbg(char* mesta)
 {
 	if(world.id != 0)
+	{
 		printf("T H E   B U G!  at %s\n", mesta);
-	exit(1);
+		exit(1);
+	}
 }
 
 int main(int argc, char** argv)

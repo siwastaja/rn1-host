@@ -286,10 +286,14 @@ static void draw_robot_shape(int a_idx, float ang)
 
 	float robot_xs, robot_ys;
 
+	float middle_xoffs = -120.0; // from o_x, o_y to the robot middle point.
+	float middle_yoffs = -0.0;
+
 	if(tight_shapes)
 	{
-		robot_xs = (524.0 - 100.0);
-		robot_ys = (480.0 - 100.0);
+		robot_xs = (524.0 - 120.0);
+		robot_ys = (480.0 - 160.0);
+		middle_xoffs = -100.0; // from o_x, o_y to the robot middle point.
 	}
 	else
 	{
@@ -297,8 +301,6 @@ static void draw_robot_shape(int a_idx, float ang)
 		robot_ys = (480.0 + 200.0);
 	}
 
-	float middle_xoffs = -120.0; // from o_x, o_y to the robot middle point.
-	float middle_yoffs = -0.0;
 
 /*
 

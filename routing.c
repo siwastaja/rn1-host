@@ -711,7 +711,12 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 
 	// If going forward doesn't work out from the beginning, try backing off slightly.
 
+	wdbg("within search2(): begin");
+
 	int ret = search(route, start_ang, start_x_mm, start_y_mm, end_x_mm, end_y_mm);
+	wdbg("within search2(): after first search()");
+
+
 	if(ret == 0)
 		return 0;
 
@@ -776,17 +781,25 @@ int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_
 	world = w;
 	normal_search_mode();
 	printf("Searching with normal limits...\n");
+	wdbg("within search_route: before anything");
+
 	if(search2(route, start_ang, start_x_mm, start_y_mm, end_x_mm, end_y_mm))
 	{
+		wdbg("within search_route: after failed search2");
 		printf("Search failed - retrying with tighter limits.\n");
 		tight_search_mode();
 		if(search2(route, start_ang, start_x_mm, start_y_mm, end_x_mm, end_y_mm))
 		{
+			wdbg("within search_route: after failed tight search2");
+
 			printf("There is no route.\n");
 			return 1;
 		}
+		wdbg("within search_route: after the tight if(search2");
+
 	}
 
+	wdbg("within search_route: after the first if(search2");
 	return 0;
 
 }

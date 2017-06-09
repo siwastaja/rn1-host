@@ -206,15 +206,13 @@ int main(int argc, char** argv)
 			{
 				printf("Start going id=%d!\n", id_cnt<<4);
 				move_to(the_route[0].x, the_route[0].y, the_route[0].backmode, (id_cnt<<4));
-				route_pos++;
 			}
 			else
 			{
 				int id = cur_xymove.id;
 
-				if(((id&0b1110000) == (id_cnt<<4)) && ((id&0b1111) == ((route_pos-1)&0b1111)))
+				if(((id&0b1110000) == (id_cnt<<4)) && ((id&0b1111) == ((route_pos)&0b1111)))
 				{
-
 					if(cur_xymove.stop_flags)
 					{
 						stop_flag_cnt++;
@@ -223,7 +221,7 @@ int main(int argc, char** argv)
 						{
 							stop_flag_cnt = 0;
 							printf("Robot stopped, retrying the same point.\n");
-							move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos-1)&0b1111));
+							move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111));
 						}
 					}
 					else
@@ -238,23 +236,23 @@ int main(int argc, char** argv)
 						if(cur_xymove.remaining < 150)
 						{
 							printf("remaining (%d) < 150\n", cur_xymove.remaining);
-							if(route_pos < do_follow_route)
+							if(route_pos < do_follow_route-1)
 							{
+								route_pos++;
 								printf("Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
 								move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111));
 							}
-							route_pos++;
+							else
+							{
+								printf("Done following the route.\n");
+								do_follow_route = 0;
+							}
 						}
 					}
 				}
 
 			}
 
-			if(route_pos > do_follow_route)
-			{
-				printf("Done following the route.\n");
-				do_follow_route = 0;
-			}
 		}
 
 		lidar_scan_t* p_lid;

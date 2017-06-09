@@ -442,6 +442,8 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 
 	HASH_ADD(hh, open_set, loc,sizeof(route_xy_t), p_start);
 
+	printf("1\n");
+
 	int cnt = 0;
 
 	while(HASH_CNT(hh, open_set) > 0)
@@ -453,6 +455,9 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 			printf("Giving up at cnt = %d\n", cnt);
 			return 3;
 		}
+
+		printf("2\n");
+
 
 		// Find the lowest f score from open_set.
 		search_unit_t* p_cur = NULL;
@@ -534,6 +539,8 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 		HASH_DELETE(hh, open_set, p_cur);
 		HASH_ADD(hh, closed_set, loc,sizeof(route_xy_t), p_cur);
 
+		printf("3\n");
+
 		// For each neighbor
 		for(int xx=-1; xx<=1; xx++)
 		{
@@ -609,6 +616,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 						direction = direction_from_neigh_parent;
 				}
 
+				printf("4\n");
 
 				// If this is the first neighbor search, test if the robot can turn:
 				if(cnt == 1)
@@ -635,6 +643,8 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 						continue;
 
 				}
+
+				printf("5\n");
 
 
 				if(!p_neigh)

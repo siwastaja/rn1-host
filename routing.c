@@ -649,6 +649,8 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 
 				if(!p_neigh)
 				{
+					printf("6\n");
+
 					p_neigh = (search_unit_t*) malloc(sizeof(search_unit_t));
 					memset(p_neigh, 0, sizeof(search_unit_t));
 					p_neigh->loc.x = neigh_loc.x; p_neigh->loc.y = neigh_loc.y;
@@ -662,6 +664,8 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 				}
 				else
 				{
+					printf("7\n");
+
 					if(p_cur->parent && line_of_sight(p_cur->parent->loc, p_neigh->loc)) // Theta* style near-optimum (probably shortest) path
 					{
 						if(new_g_from_parent < p_neigh->g)
@@ -680,6 +684,9 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 						p_neigh->f = new_g + sqrt((float)(sq(e_x-neigh_loc.x) + sq(e_y-neigh_loc.y)));
 					}
 				}
+
+				printf("8\n");
+
 
 			}
 

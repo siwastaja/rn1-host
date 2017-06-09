@@ -455,7 +455,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 		}
 
 		// Find the lowest f score from open_set.
-		search_unit_t* p_cur;
+		search_unit_t* p_cur = NULL;
 		float lowest_f = 2.0*MAX_F;
 		for(search_unit_t* p_iter = open_set; p_iter != NULL; p_iter=p_iter->hh.next)
 		{
@@ -464,6 +464,12 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 				lowest_f = p_iter->f;
 				p_cur = p_iter;
 			}
+		}
+
+		if(p_cur == NULL)
+		{
+			printf("search() error: open set empty while finding lowest f score.\n");
+			return 55;
 		}
 
 		if(p_cur->loc.x == e_x && p_cur->loc.y == e_y)

@@ -206,9 +206,15 @@ void send_keepalive()
 	send_uart(buf, 3);
 }
 
-void move_to(int32_t x, int32_t y, int8_t backmode)
+void move_to(int32_t x, int32_t y, int8_t backmode, int id)
 {
 	uint8_t buf[12];
+
+	if(id < 0 || id > 127)
+	{
+		printf("ERROR: Invalid move_to id %d\n", id);
+		id = 0;
+	}
 
 	buf[0] = 0x82;
 	buf[1] = I32_I7_4(x);
@@ -222,8 +228,9 @@ void move_to(int32_t x, int32_t y, int8_t backmode)
 	buf[9] = I32_I7_1(y);
 	buf[10] = I32_I7_0(y);
 	buf[11] = ((uint8_t)backmode)&0x7f;
-	buf[12] = 0xff;
-	send_uart(buf, 13);
+	buf[12] = ((uint8_t)id)&0x7f;
+	buf[13] = 0xff;
+	send_uart(buf, 14);
 }
 
 void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)

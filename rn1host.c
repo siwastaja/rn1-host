@@ -47,6 +47,17 @@ void wdbg(char* mesta)
 	}
 }
 
+typedef struct
+{
+	int x;
+	int y;
+	int backmode;
+} route_point_t;
+
+#define THE_ROUTE_MAX 200
+route_point_t the_route[THE_ROUTE_MAX];
+
+
 int main(int argc, char** argv)
 {
 	if(init_uart())
@@ -62,8 +73,7 @@ int main(int argc, char** argv)
 	}
 
 	int do_follow_route = 0;
-	route_unit_t *route_next;
-
+	int route_pos = 0;
 
 	int cnt = 0;
 	while(1)
@@ -114,7 +124,7 @@ int main(int argc, char** argv)
 			if(ret == TCP_CR_DEST_MID)
 			{
 				printf("  ---> DEST params: X=%d Y=%d backmode=%d\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
-				move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
+				move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode, 0);
 				do_follow_route = 0;
 			}
 			else if(ret == TCP_CR_ROUTE_MID)
@@ -122,11 +132,10 @@ int main(int argc, char** argv)
 				printf("  ---> ROUTE params: X=%d Y=%d dummy=%d\n", msg_cr_route.x, msg_cr_route.y, msg_cr_route.dummy);
 				route_unit_t *some_route = NULL;
 
-				wdbg("before search_route");
 				search_route(&world, &some_route, ANG32TORAD(cur_ang), cur_x, cur_y, msg_cr_route.x, msg_cr_route.y);
-				wdbg("after search_route");
 
 				route_unit_t *rt;
+				int idx = 0;
 				DL_FOREACH(some_route, rt)
 				{
 					if(rt->backmode)
@@ -137,15 +146,17 @@ int main(int argc, char** argv)
 					int x_mm, y_mm;
 					mm_from_unit_coords(rt->loc.x, rt->loc.y, &x_mm, &y_mm);					
 					printf("to %d,%d\n", x_mm, y_mm);
+
+					the_route[idx].x = x_mm; the_route[idx].y = y_mm; the_route[idx].backmode = rt->backmode;
+					idx++;
+					if(idx >= THE_ROUTE_MAX)
+						break;
 				}
 
-				wdbg("after route iteration printing");
-
 				tcp_send_route(&some_route);
-				wdbg("after tcp_send_route");
 
-				if(some_route) do_follow_route = 2; else do_follow_route = 0;
-				route_next = some_route;
+				route_pos = 0;
+				if(some_route) do_follow_route = idx /* route len */; else do_follow_route = 0;
 			}
 		}
 
@@ -187,43 +198,33 @@ int main(int argc, char** argv)
 
 		if(do_follow_route)
 		{
-			static int prev_id = 666;
-			int id = cur_xymove.id;
-
-			if(do_follow_route == 2)
+			if(route_pos == 0)
 			{
-				do_follow_route = 1;
-				prev_id = 666;
+				printf("Start going!\n");
+				move_to(the_route[0].x, the_route[0].y, the_route[0].backmode, 0);
+				route_pos++;
 			}
-
-			if(prev_id != id && cur_xymove.remaining < 100)
+			else
 			{
-				int x_mm, y_mm;
-				mm_from_unit_coords(route_next->loc.x, route_next->loc.y, &x_mm, &y_mm);					
+				int id = cur_xymove.id;
 
-				wdbg("before do_follow_route move_to");
-
-				printf("move_to %d  %d  %d\n", x_mm, y_mm, route_next->backmode);
-				move_to(x_mm, y_mm, route_next->backmode);
-
-
-				printf("kakka\n");
-				if(route_next->next)
+				if(id == route_pos-1)
 				{
-					route_next = route_next->next;
-					printf("next taken\n");
+					if(cur_xymove.remaining < 150)
+					{
+						printf("Take the next!\n");
+						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, route_pos);
+						route_pos++;
+					}
 				}
-				else
-				{
-					do_follow_route = 0;
-					printf("was the last\n");
-				}
-				wdbg("after do_follow_route ->next");
-
-				prev_id = id;
 
 			}
 
+			if(route_pos >= do_follow_route)
+			{
+				printf("Done following the route.\n");
+				do_follow_route = 0;
+			}
 		}
 
 		lidar_scan_t* p_lid;
@@ -237,9 +238,6 @@ int main(int argc, char** argv)
 			}
 			else
 			{
-
-				wdbg("before doing anything with the lidars");
-
 
 				if(tcp_client_sock >= 0) tcp_send_hwdbg(hwdbg);
 
@@ -311,8 +309,6 @@ int main(int argc, char** argv)
 					}
 
 				}
-
-				wdbg("after mapping the lidars");
 
 			}
 

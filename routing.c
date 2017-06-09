@@ -288,8 +288,8 @@ static void draw_robot_shape(int a_idx, float ang)
 
 	if(tight_shapes)
 	{
-		robot_xs = (524.0 + 10.0);
-		robot_ys = (480.0 + 10.0);
+		robot_xs = (524.0 - 100.0);
+		robot_ys = (480.0 - 100.0);
 	}
 	else
 	{

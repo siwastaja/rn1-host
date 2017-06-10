@@ -31,6 +31,7 @@ struct search_unit_t
 #define sq(x) ((x)*(x))
 #define MAX_F 99999999999999999.9
 
+float robot_shape_x_len;
 #define ROBOT_SHAPE_WINDOW 32
 uint8_t robot_shapes[32][ROBOT_SHAPE_WINDOW][ROBOT_SHAPE_WINDOW];
 
@@ -140,7 +141,7 @@ static int line_of_sight(route_xy_t p1, route_xy_t p2)
 	int dx = p2.x - p1.x;
 	int dy = p2.y - p1.y;
 
-	const float step = 500.0/MAP_UNIT_W;
+	float step = ((robot_shape_x_len-10.0)/MAP_UNIT_W);
 
 	float len = sqrt(sq(dx) + sq(dy));
 
@@ -280,26 +281,25 @@ static void draw_robot_shape(int a_idx, float ang)
 	float o_x = (ROBOT_SHAPE_WINDOW/2.0)*(float)MAP_UNIT_W;
 	float o_y = (ROBOT_SHAPE_WINDOW/2.0)*(float)MAP_UNIT_W;
 
-	// Robot size plus margin
-//	float robot_xs = (524.0 + 20.0);
-//	float robot_ys = (480.0 + 20.0);
-
 	float robot_xs, robot_ys;
 
-	float middle_xoffs = -120.0; // from o_x, o_y to the robot middle point.
+	float middle_xoffs; // from o_x, o_y to the robot middle point.
 	float middle_yoffs = -0.0;
 
 	if(tight_shapes)
 	{
-		robot_xs = (524.0 - 120.0);
-		robot_ys = (480.0 - 160.0);
-		middle_xoffs = -100.0; // from o_x, o_y to the robot middle point.
+		robot_xs = (524.0 - 60.0);
+		robot_ys = (480.0 - 40.0);
+		middle_xoffs = -120.0;
 	}
 	else
 	{
 		robot_xs = (524.0 + 100.0);
 		robot_ys = (480.0 + 200.0);
+		middle_xoffs = -120.0;
 	}
+
+	robot_shape_x_len = robot_xs;
 
 
 /*
@@ -343,15 +343,11 @@ static void draw_robot_shape(int a_idx, float ang)
 //	printf("ang1=%.2f ang2=%.2f ang3=%.2f ang4=%.2f\n", ang1,ang2,ang3,ang4);
 //	printf("(ang1=%.2f ang2=%.2f ang3=%.2f ang4=%.2f)\n", TODEG(ang1),TODEG(ang2),TODEG(ang3),TODEG(ang4));
 
-//	printf("adj ang = %.2f\n", ang);
-
 	// Turn the whole robot:
 	ang1 += ang;
 	ang2 += ang;
 	ang3 += ang;
 	ang4 += ang;
-
-//	printf("ang1=%.2f ang2=%.2f ang3=%.2f ang4=%.2f\n", ang1,ang2,ang3,ang4);
 
 	float x1 = cos(ang1)*a + o_x;
 	float y1 = sin(ang1)*a + o_y;
@@ -361,11 +357,6 @@ static void draw_robot_shape(int a_idx, float ang)
 	float y3 = sin(ang3)*c + o_y;
 	float x4 = cos(ang4)*d + o_x;
 	float y4 = sin(ang4)*d + o_y;
-
-//	printf("x1 = %4.0f  y1 = %4.0f\n", x1, y1);
-//	printf("x2 = %4.0f  y2 = %4.0f\n", x2, y2);
-//	printf("x3 = %4.0f  y3 = %4.0f\n", x3, y3);
-//	printf("x4 = %4.0f  y4 = %4.0f\n", x4, y4);
 
 	// "Draw" the robot in two triangles:
 
@@ -413,7 +404,7 @@ static void normal_search_mode()
 static void tight_search_mode()
 {
 	obstacle_limit = 1;
-	unmapped_limit = 4;
+	unmapped_limit = 10;
 	tight_shapes = 1;
 	gen_robot_shapes();	
 }
@@ -459,8 +450,6 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 
 	HASH_ADD(hh, open_set, loc,sizeof(route_xy_t), p_start);
 
-//	printf("1\n");
-
 	int cnt = 0;
 
 	while(HASH_CNT(hh, open_set) > 0)
@@ -472,9 +461,6 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 			printf("Giving up at cnt = %d\n", cnt);
 			return 3;
 		}
-
-//		printf("2\n");
-
 
 		// Find the lowest f score from open_set.
 		search_unit_t* p_cur = NULL;
@@ -556,8 +542,6 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 		HASH_DELETE(hh, open_set, p_cur);
 		HASH_ADD(hh, closed_set, loc,sizeof(route_xy_t), p_cur);
 
-//		printf("3\n");
-
 		// For each neighbor
 		for(int xx=-1; xx<=1; xx++)
 		{
@@ -635,8 +619,6 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 						direction = direction_from_neigh_parent;
 				}
 
-//				printf("4\n");
-
 				// If this is the first neighbor search, test if the robot can turn:
 				if(cnt == 1)
 				{
@@ -663,13 +645,8 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 
 				}
 
-//				printf("5\n");
-
-
 				if(!p_neigh)
 				{
-//					printf("6\n");
-
 					p_neigh = (search_unit_t*) malloc(sizeof(search_unit_t));
 					memset(p_neigh, 0, sizeof(search_unit_t));
 					p_neigh->loc.x = neigh_loc.x; p_neigh->loc.y = neigh_loc.y;
@@ -683,11 +660,8 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 				}
 				else
 				{
-//					printf("7\n");
-
 					if(p_cur->parent && line_of_sight(p_cur->parent->loc, p_neigh->loc)) // Theta* style near-optimum (probably shortest) path
 					{
-//						printf("8\n");
 						if(new_g_from_parent < p_neigh->g)
 						{
 							p_neigh->direction = direction;
@@ -698,17 +672,12 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 					}
 					else if(new_g < p_neigh->g)  // A* style path shorter than before.
 					{
-//						printf("9\n");
 						p_neigh->direction = direction;
 						p_neigh->parent = p_cur;
 						p_neigh->g = new_g;
 						p_neigh->f = new_g + sqrt((float)(sq(e_x-neigh_loc.x) + sq(e_y-neigh_loc.y)));
 					}
 				}
-
-//				printf("10\n");
-
-
 			}
 
 
@@ -755,11 +724,7 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 
 	// If going forward doesn't work out from the beginning, try backing off slightly.
 
-	wdbg("within search2(): begin");
-
 	int ret = search(route, start_ang, start_x_mm, start_y_mm, end_x_mm, end_y_mm);
-	wdbg("within search2(): after first search()");
-
 
 	if(ret == 0)
 		return 0;
@@ -820,31 +785,22 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 
 }
 
-
 int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_mm, int start_y_mm, int end_x_mm, int end_y_mm)
 {
 	routing_world = w;
 	normal_search_mode();
 	printf("Searching with normal limits...\n");
-	wdbg("within search_route: before anything");
 
 	if(search2(route, start_ang, start_x_mm, start_y_mm, end_x_mm, end_y_mm))
 	{
-		wdbg("within search_route: after failed search2");
 		printf("Search failed - retrying with tighter limits.\n");
 		tight_search_mode();
 		if(search2(route, start_ang, start_x_mm, start_y_mm, end_x_mm, end_y_mm))
 		{
-			wdbg("within search_route: after failed tight search2");
-
 			printf("There is no route.\n");
 			return 1;
 		}
-		wdbg("within search_route: after the tight if(search2");
-
 	}
-
-	wdbg("within search_route: after the first if(search2");
 	return 0;
 
 }

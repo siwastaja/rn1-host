@@ -265,3 +265,17 @@ void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)
 	send_uart(buf, 8);
 }
 
+void set_hw_obstacle_avoidance_margin(int mm)
+{
+	uint8_t buf[3];
+
+	int cm = mm/10;
+	if(cm < 0) cm = 0;
+	else if(cm > 100) cm = 100;
+
+	buf[0] = 0x88;
+	buf[1] = cm;
+	buf[2] = 0xff;
+
+	send_uart(buf, 3);
+}

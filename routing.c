@@ -381,6 +381,8 @@ static void gen_robot_shapes()
 	// Generate lookup tables showing the shape of robot in mapping unit matrices in different orientations.
 	// These are used in mapping to test whether the (x,y) coords result in some part of a robot hitting a wall.
 
+        memset(robot_shapes, 0, sizeof(robot_shapes));
+
 	for(int a=0; a<32; a++)
 	{
 		draw_robot_shape(a, ((float)a*2.0*M_PI)/32.0);

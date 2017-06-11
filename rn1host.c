@@ -174,17 +174,17 @@ int main(int argc, char** argv)
 			handle_tcp_listener();
 		}
 
+		static int micronavi_stop_flags_printed = 0;
 
-		if(cur_xymove.stop_flags)
+		if(cur_xymove.micronavi_stop_flags)
 		{
-			static int stop_flag_print_prev_id = 666;
-
-			if(cur_xymove.id != stop_flag_print_prev_id)
+			if(!micronavi_stop_flags_printed)
 			{
-				printf("MCU-level micronavigation reported a stop. Stop reason flags:\n");
+				micronavi_stop_flags_printed = 1;
+				printf("INFO: MCU-level micronavigation reported a stop. Stop reason flags:\n");
 				for(int i=0; i<32; i++)
 				{
-					if(cur_xymove.stop_flags&(1UL<<i))
+					if(cur_xymove.micronavi_stop_flags&(1UL<<i))
 					{
 						printf("bit %2d: %s\n", i, MCU_NAVI_STOP_NAMES[i]);
 					}
@@ -193,17 +193,30 @@ int main(int argc, char** argv)
 				printf("Actions taken during stop condition:\n");
 				for(int i=0; i<32; i++)
 				{
-					if(cur_xymove.action_flags&(1UL<<i))
+					if(cur_xymove.micronavi_action_flags&(1UL<<i))
 					{
 						printf("bit %2d: %s\n", i, MCU_NAVI_ACTION_NAMES[i]);
 					}
 				}
 
 				printf("\n");
-
-				stop_flag_print_prev_id = cur_xymove.id;
 			}
 		}
+		else
+			micronavi_stop_flags_printed = 0;
+
+		static int feedback_stop_flags_printed = 0;
+
+		if(cur_xymove.feedback_stop_flags)
+		{
+			if(!feedback_stop_flags_printed)
+			{
+				feedback_stop_flags_printed = 1;
+				printf("INFO: Feedback module reported a stop caused by acceleration sensor (collision)\n");
+			}
+		}
+		else
+			feedback_stop_flags_printed = 0;
 
 		static int stop_flag_cnt = 0;
 
@@ -219,7 +232,7 @@ int main(int argc, char** argv)
 
 			if(((id&0b1110000) == (id_cnt<<4)) && ((id&0b1111) == ((route_pos)&0b1111)))
 			{
-				if(cur_xymove.stop_flags)
+				if(cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags)
 				{
 					stop_flag_cnt++;
 

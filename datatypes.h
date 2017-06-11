@@ -60,8 +60,9 @@ typedef struct
 	int status;
 	int id;
 	int remaining;
-	uint32_t stop_flags;
-	uint32_t action_flags;
+	uint32_t micronavi_stop_flags;
+	uint32_t micronavi_action_flags;
+	uint32_t feedback_stop_flags;
 } xymove_t;
 
 extern pwr_status_t pwr_status;

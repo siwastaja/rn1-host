@@ -182,8 +182,9 @@ int parse_uart_msg(uint8_t* buf, int len)
 			cur_xymove.status = buf[1];
 			cur_xymove.id = buf[2];
 			cur_xymove.remaining = I7I7_U16_lossy(buf[3], buf[4]);
-			cur_xymove.stop_flags = I7x5_I32(buf[5],buf[6],buf[7],buf[8],buf[9]);
-			cur_xymove.action_flags = I7x5_I32(buf[10],buf[11],buf[12],buf[13],buf[14]);
+			cur_xymove.micronavi_stop_flags = I7x5_I32(buf[5],buf[6],buf[7],buf[8],buf[9]);
+			cur_xymove.micronavi_action_flags = I7x5_I32(buf[10],buf[11],buf[12],buf[13],buf[14]);
+			cur_xymove.feedback_stop_flags = buf[15];
 		}
 		break;
 
@@ -235,13 +236,16 @@ void move_to(int32_t x, int32_t y, int8_t backmode, int id)
 
 void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)
 {
+	dx<<=2;
+	dy<<=2;
+
 	if(dx < -32767 || dx > 32767 || dy < -32767 || dy > 32767)
 	{
 		printf("ERROR: out of range coords in correct_robot_pos()\n");
 		return;
 	}
 
-	da *= -1; // I have no idea why this works backwards...
+	da *= -1; // Robot angles are opposite to those of trigonometric funtions.
 
 	if(da == 0 && dx == 0 && dy == 0)
 	{
@@ -251,7 +255,7 @@ void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)
 
 	printf("INFO: Correcting robot pos by %d, %d, %d\n", da>>16, dx, dy);
 
-	uint8_t buf[12];
+	uint8_t buf[8];
 
 	buf[0] = 0x89;
 	buf[1] = I16_MS(da>>16);
@@ -265,6 +269,31 @@ void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)
 	send_uart(buf, 8);
 }
 
+void set_robot_pos(int32_t na, int32_t nx, int32_t ny)
+{
+	printf("INFO: Setting robot pos to %d, %d, %d\n", na>>16, nx, ny);
+
+	uint8_t buf[14];
+
+	buf[0] = 0x8a;
+	buf[1] = I16_MS(na>>16);
+	buf[2] = I16_LS(na>>16);
+	buf[3] = I32_I7_4(nx);
+	buf[4] = I32_I7_3(nx);
+	buf[5] = I32_I7_2(nx);
+	buf[6] = I32_I7_1(nx);
+	buf[7] = I32_I7_0(nx);
+	buf[8] = I32_I7_4(ny);
+	buf[9] = I32_I7_3(ny);
+	buf[10] = I32_I7_2(ny);
+	buf[11] = I32_I7_1(ny);
+	buf[12] = I32_I7_0(ny);
+	buf[13] = 0xff;
+
+	send_uart(buf, 14);
+}
+
+
 void set_hw_obstacle_avoidance_margin(int mm)
 {
 	uint8_t buf[3];
@@ -275,6 +304,17 @@ void set_hw_obstacle_avoidance_margin(int mm)
 
 	buf[0] = 0x88;
 	buf[1] = cm;
+	buf[2] = 0xff;
+
+	send_uart(buf, 3);
+}
+
+void do_compass_round()
+{
+	uint8_t buf[3];
+
+	buf[0] = 0x91;
+	buf[1] = 0;
 	buf[2] = 0xff;
 
 	send_uart(buf, 3);

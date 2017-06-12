@@ -28,6 +28,7 @@
 #define M_PI 3.141592653589793238
 #endif
 
+int mapping_on = 0;
 
 uint32_t robot_id = 0xacdcabba; // Hopefully unique identifier for the robot.
 
@@ -123,6 +124,20 @@ int main(int argc, char** argv)
 			{
 				set_robot_pos(0,0,0);
 			}
+			if(cmd == 'm')
+			{
+				if(mapping_on)
+				{
+					mapping_on = 0;
+					printf("Turned mapping off.\n");
+				}
+				else
+				{
+					mapping_on = 1;
+					printf("Turned mapping on.\n");
+				}
+			}
+
 		}
 
 		if(FD_ISSET(uart, &fds))
@@ -294,7 +309,7 @@ int main(int argc, char** argv)
 		static int ignore_lidars = 0;
 		if( (p_lid = get_significant_lidar()) || (p_lid = get_basic_lidar()) )
 		{
-			if(ignore_lidars)
+			if(ignore_lidars || !mapping_on)
 			{
 				if(p_lid->significant_for_mapping) printf("INFO: Ignoring significant lidar scan.\n");
 			}

@@ -35,6 +35,7 @@ extern world_t world;
 #define BUFLEN 2048
 
 int32_t cur_ang;
+int32_t cur_compass_ang;
 int32_t cur_x;
 int32_t cur_y;
 
@@ -180,6 +181,14 @@ int main(int argc, char** argv)
 		if(FD_ISSET(tcp_listener_sock, &fds))
 		{
 			handle_tcp_listener();
+		}
+
+		static int prev_compass_ang = 0;
+
+		if(cur_compass_ang != prev_compass_ang)
+		{
+			prev_compass_ang = cur_compass_ang;
+			printf("INFO: Compass ang=%.1f deg\n", ANG32TOFDEG(cur_compass_ang));
 		}
 
 		static int micronavi_stop_flags_printed = 0;

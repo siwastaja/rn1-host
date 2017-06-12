@@ -177,6 +177,13 @@ int parse_uart_msg(uint8_t* buf, int len)
 		}
 		break;
 
+		case 0xa3:
+		{
+			extern int32_t cur_compass_ang;
+			cur_compass_ang = I7I7_U16_lossy(buf[2], buf[3])<<16;
+		}
+		break;
+
 		case 0xa5:
 		{
 			cur_xymove.status = buf[1];

@@ -12,6 +12,7 @@
 #define ANG_0_05_DEG    596523
 
 #define ANG32TORAD(x) ( ((float)((uint32_t)(x)))/683565275.576432)
+#define ANG32TOFDEG(x) ( ((float)((uint32_t)(x)))/11930464.7111111)
 
 void wdbg(char* mesta);
 

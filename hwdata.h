@@ -14,6 +14,7 @@ void move_to(int32_t x, int32_t y, int8_t backmode, int id);
 
 void correct_robot_pos(int32_t da, int32_t dx, int32_t dy);
 void set_hw_obstacle_avoidance_margin(int mm);
+void set_robot_pos(int32_t na, int32_t nx, int32_t ny);
 void do_compass_round();
 
 

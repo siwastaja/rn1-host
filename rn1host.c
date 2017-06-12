@@ -114,6 +114,14 @@ int main(int argc, char** argv)
 			{
 				save_map_pages(&world);
 			}
+			if(cmd == 'c')
+			{
+				do_compass_round();
+			}
+			if(cmd == '0')
+			{
+				set_robot_pos(0,0,0);
+			}
 		}
 
 		if(FD_ISSET(uart, &fds))

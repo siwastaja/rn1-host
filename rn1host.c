@@ -137,6 +137,10 @@ int main(int argc, char** argv)
 					printf("Turned mapping on.\n");
 				}
 			}
+			if(cmd == 'l')
+			{
+				hw_find_charger();
+			}
 
 		}
 

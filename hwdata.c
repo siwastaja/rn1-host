@@ -328,3 +328,14 @@ void do_compass_round()
 
 	send_uart(buf, 3);
 }
+
+void hw_find_charger()
+{
+	uint8_t buf[3];
+
+	buf[0] = 0x87;
+	buf[1] = 0;
+	buf[2] = 0xff;
+
+	send_uart(buf, 3);
+}

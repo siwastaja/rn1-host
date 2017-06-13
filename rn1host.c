@@ -37,8 +37,8 @@ extern world_t world;
 
 int32_t cur_ang;
 int32_t cur_compass_ang;
-int32_t cur_x;
-int32_t cur_y;
+int32_t cur_x, cur_y;
+int32_t dest_x, dest_y;
 
 void wdbg(char* mesta)
 {
@@ -59,6 +59,108 @@ typedef struct
 #define THE_ROUTE_MAX 200
 route_point_t the_route[THE_ROUTE_MAX];
 
+int do_follow_route = 0;
+int route_pos = 0;
+int start_route = 0;
+int id_cnt = 0;
+int good_time_for_lidar_mapping = 0;
+
+
+void run_search(int to_x, int to_y)
+{
+	route_unit_t *some_route = NULL;
+
+	search_route(&world, &some_route, ANG32TORAD(cur_ang), cur_x, cur_y, msg_cr_route.x, msg_cr_route.y);
+
+	route_unit_t *rt;
+	int idx = 0;
+	DL_FOREACH(some_route, rt)
+	{
+		if(rt->backmode)
+			printf(" REVERSE ");
+		else
+			printf("         ");
+
+		int x_mm, y_mm;
+		mm_from_unit_coords(rt->loc.x, rt->loc.y, &x_mm, &y_mm);					
+		printf("to %d,%d\n", x_mm, y_mm);
+
+		the_route[idx].x = x_mm; the_route[idx].y = y_mm; the_route[idx].backmode = rt->backmode;
+		idx++;
+		if(idx >= THE_ROUTE_MAX)
+			break;
+	}
+
+	tcp_send_route(&some_route);
+
+	if(some_route)
+	{
+		do_follow_route = idx /* route len */;
+		start_route = 1;
+		route_pos = 0;
+		id_cnt++; if(id_cnt > 7) id_cnt = 0;
+	}
+	else do_follow_route = 0;
+
+}
+
+void route_fsm()
+{
+	static int stop_flag_cnt = 0;
+
+	if(start_route && route_pos == 0)
+	{
+		printf("Start going id=%d!\n", id_cnt<<4);
+		move_to(the_route[0].x, the_route[0].y, the_route[0].backmode, (id_cnt<<4));
+		start_route = 0;
+	}
+	if(do_follow_route)
+	{
+		int id = cur_xymove.id;
+
+		if(((id&0b1110000) == (id_cnt<<4)) && ((id&0b1111) == ((route_pos)&0b1111)))
+		{
+			if(cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags)
+			{
+				stop_flag_cnt++;
+
+				if(stop_flag_cnt > 50000) // todo: proper timing.
+				{
+					stop_flag_cnt = 0;
+					printf("Robot stopped, retrying routing.\n");
+					run_search(dest_x, dest_y);
+				}
+			}
+			else
+			{
+				stop_flag_cnt = 0;
+
+				if(cur_xymove.remaining < 250)
+				{
+					good_time_for_lidar_mapping = 1;
+				}
+
+				if(cur_xymove.remaining < 150)
+				{
+					printf("remaining (%d) < 150\n", cur_xymove.remaining);
+					if(route_pos < do_follow_route-1)
+					{
+						route_pos++;
+						printf("Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
+						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111));
+					}
+					else
+					{
+						printf("Done following the route.\n");
+						do_follow_route = 0;
+					}
+				}
+			}
+		}
+
+	}
+
+}
 
 int main(int argc, char** argv)
 {
@@ -74,13 +176,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	int do_follow_route = 0;
-	int route_pos = 0;
-
-	int good_time_for_lidar_mapping = 0;
 	int cnt = 0;
-	int id_cnt = 0;
-	int start_route = 0;
 	while(1)
 	{
 		// Calculate fd_set size (biggest fd+1)
@@ -161,39 +257,11 @@ int main(int argc, char** argv)
 			else if(ret == TCP_CR_ROUTE_MID)
 			{
 				printf("  ---> ROUTE params: X=%d Y=%d dummy=%d\n", msg_cr_route.x, msg_cr_route.y, msg_cr_route.dummy);
-				route_unit_t *some_route = NULL;
 
-				search_route(&world, &some_route, ANG32TORAD(cur_ang), cur_x, cur_y, msg_cr_route.x, msg_cr_route.y);
+				dest_x = msg_cr_route.x; dest_y = msg_cr_route.y;
 
-				route_unit_t *rt;
-				int idx = 0;
-				DL_FOREACH(some_route, rt)
-				{
-					if(rt->backmode)
-						printf(" REVERSE ");
-					else
-						printf("         ");
+				run_search(dest_x, dest_y);
 
-					int x_mm, y_mm;
-					mm_from_unit_coords(rt->loc.x, rt->loc.y, &x_mm, &y_mm);					
-					printf("to %d,%d\n", x_mm, y_mm);
-
-					the_route[idx].x = x_mm; the_route[idx].y = y_mm; the_route[idx].backmode = rt->backmode;
-					idx++;
-					if(idx >= THE_ROUTE_MAX)
-						break;
-				}
-
-				tcp_send_route(&some_route);
-
-				if(some_route)
-				{
-					do_follow_route = idx /* route len */;
-					start_route = 1;
-					route_pos = 0;
-					id_cnt++; if(id_cnt > 7) id_cnt = 0;
-				}
-				else do_follow_route = 0;
 			}
 		}
 
@@ -254,59 +322,7 @@ int main(int argc, char** argv)
 		else
 			feedback_stop_flags_printed = 0;
 
-		static int stop_flag_cnt = 0;
-
-		if(start_route && route_pos == 0)
-		{
-			printf("Start going id=%d!\n", id_cnt<<4);
-			move_to(the_route[0].x, the_route[0].y, the_route[0].backmode, (id_cnt<<4));
-			start_route = 0;
-		}
-		if(do_follow_route)
-		{
-			int id = cur_xymove.id;
-
-			if(((id&0b1110000) == (id_cnt<<4)) && ((id&0b1111) == ((route_pos)&0b1111)))
-			{
-				if(cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags)
-				{
-					stop_flag_cnt++;
-
-					if(stop_flag_cnt > 50000) // todo: proper timing.
-					{
-						stop_flag_cnt = 0;
-						printf("Robot stopped, retrying the same point.\n");
-						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111));
-					}
-				}
-				else
-				{
-					stop_flag_cnt = 0;
-
-					if(cur_xymove.remaining < 250)
-					{
-						good_time_for_lidar_mapping = 1;
-					}
-
-					if(cur_xymove.remaining < 150)
-					{
-						printf("remaining (%d) < 150\n", cur_xymove.remaining);
-						if(route_pos < do_follow_route-1)
-						{
-							route_pos++;
-							printf("Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
-							move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111));
-						}
-						else
-						{
-							printf("Done following the route.\n");
-							do_follow_route = 0;
-						}
-					}
-				}
-			}
-
-		}
+		route_fsm();
 
 		lidar_scan_t* p_lid;
 
@@ -408,18 +424,8 @@ int main(int argc, char** argv)
 		if( (p_son = get_sonar()) )
 		{
 			if(tcp_client_sock >= 0) tcp_send_sonar(p_son);
+			map_sonar(&world, p_son);
 
-			int idx_x, idx_y, offs_x, offs_y;
-
-			for(int i=0; i<3; i++)
-			{
-				if(!p_son->scan[i].valid) continue;
-
-				page_coords(p_son->scan[i].x, p_son->scan[i].y, &idx_x, &idx_y, &offs_x, &offs_y);
-				load_9pages(&world, idx_x, idx_y);
-				world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM;
-				//world.changed[idx_x][idx_y] = 1;
-			}
 		}
 
 		cnt++;

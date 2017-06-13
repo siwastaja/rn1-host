@@ -749,18 +749,18 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 				int new_x_units, new_y_units;
 				unit_coords(new_x, new_y, &new_x_units, &new_y_units);
 
-				printf("Back off ang=%.2f deg, mm = %d  -> new start = (%d, %d) --> ", TODEG(new_ang), b_s[back_idx], new_x_units, new_y_units);
+		//		printf("Back off ang=%.2f deg, mm = %d  -> new start = (%d, %d) --> ", TODEG(new_ang), b_s[back_idx], new_x_units, new_y_units);
 
 				if(check_hit(new_x_units, new_y_units, dir))
 				{
-					printf("backing off hits the wall.\n");
+		//			printf("backing off hits the wall.\n");
 				}
 				else
 				{
 					int ret = search(route, new_ang, new_x, new_y, end_x_mm, end_y_mm);
 					if(ret == 0)
 					{
-						printf("Search succeeded, stopping back-off search.\n");
+						printf("Search succeeded (back off ang=%.1fdeg, mm = %d), stopping back-off search.\n", TODEG(new_ang), b_s[back_idx]);
 
 						route_unit_t* point = malloc(sizeof(route_unit_t));
 						point->loc.x = new_x_units; point->loc.y = new_y_units;

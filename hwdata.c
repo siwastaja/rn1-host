@@ -156,11 +156,14 @@ int parse_uart_msg(uint8_t* buf, int len)
 			/*
 				Sonar-based 2D map
 			*/
+			sonars[sonar_wr].robot_pos.x = I7x5_I32(buf[2],buf[3],buf[4],buf[5],buf[6]);
+			sonars[sonar_wr].robot_pos.y = I7x5_I32(buf[7],buf[8],buf[9],buf[10],buf[11]);
+
 			for(int i = 0; i < 3; i++)
 			{
 				sonars[sonar_wr].scan[i].valid = (buf[1]&(1<<i))?1:0;
-				sonars[sonar_wr].scan[i].x = I7x5_I32(buf[2+10*i],buf[3+10*i],buf[4+10*i],buf[5+10*i],buf[6+10*i]);
-				sonars[sonar_wr].scan[i].y = I7x5_I32(buf[7+10*i],buf[8+10*i],buf[9+10*i],buf[10+10*i],buf[11+10*i]);
+				sonars[sonar_wr].scan[i].x = I7x5_I32(buf[12+10*i],buf[13+10*i],buf[14+10*i],buf[15+10*i],buf[16+10*i]);
+				sonars[sonar_wr].scan[i].y = I7x5_I32(buf[17+10*i],buf[18+10*i],buf[19+10*i],buf[20+10*i],buf[21+10*i]);
 			}
 
 			sonar_wr++; if(sonar_wr >= SONAR_RING_BUF_LEN) sonar_wr = 0;

@@ -13,6 +13,34 @@
 #include "map_memdisk.h"
 #include "mapping.h"
 
+static const int search_order[25][2] = { 
+	{ 0, 0},
+	{ 0, 1},
+	{ 0,-1},
+	{ 1, 0},
+	{-1, 0},
+	{ 1, 1},
+	{ 1,-1},
+	{-1, 1},
+	{-1,-1},
+	{ 0, 2},
+	{ 0,-2},
+	{ 1, 2},
+	{ 1,-2},
+	{-1, 2},
+	{-1,-2},
+	{ 2, 0},
+	{-2, 0},
+	{ 2, 1},
+	{ 2,-1},
+	{-2, 1},
+	{-2,-1},
+	{ 2, 2},
+	{ 2,-2},
+	{-2, 2},
+	{-2,-2}};
+
+
 world_t world;
 
 void page_coords(int mm_x, int mm_y, int* pageidx_x, int* pageidx_y, int* pageoffs_x, int* pageoffs_y)
@@ -575,9 +603,12 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			int x_mm = (rotate_mid_x/MAP_UNIT_W - TEMP_MAP_MIDDLE + ix)*MAP_UNIT_W;
 			int y_mm = (rotate_mid_y/MAP_UNIT_W - TEMP_MAP_MIDDLE + iy)*MAP_UNIT_W;
 			page_coords(x_mm, y_mm, &pagex, &pagey, &offsx, &offsy);
-			if(ix == 2 && iy == 2)
-				printf("Info: temp map -> map: start: page (%d, %d) offs (%d, %d)\n", pagex, pagey, offsx, offsy);
+//			if(ix == 2 && iy == 2)
+//				printf("Info: temp map -> map: start: page (%d, %d) offs (%d, %d)\n", pagex, pagey, offsx, offsy);
 
+//			float ang_from_middle = atan2(y_mm-rotate_mid_y, x_mm-rotete_mid_x)*(8.0/(2.0*M_PI));
+//			if(ang_from_middle < 0.0) ang_from_middle += 8.0;
+//			int ang_idx = ang_from_middle+0.5;
 
 			int s_cnt = 0, w_cnt = 0, neigh_w_cnt = 0;
 			uint32_t tmp = temp_map[iy*TEMP_MAP_W+ix].seen; while(tmp) { s_cnt++; tmp>>=1; }
@@ -608,33 +639,6 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 					return -3;
 				}
 
-				static const int search_order[25][2] = { 
-					{ 0, 0},
-					{ 0, 1},
-					{ 0,-1},
-					{ 1, 0},
-					{-1, 0},
-					{ 1, 1},
-					{ 1,-1},
-					{-1, 1},
-					{-1,-1},
-					{ 0, 2},
-					{ 0,-2},
-					{ 1, 2},
-					{ 1,-2},
-					{-1, 2},
-					{-1,-2},
-					{ 2, 0},
-					{-2, 0},
-					{ 2, 1},
-					{ 2,-1},
-					{-2, 1},
-					{-2,-1},
-					{ 2, 2},
-					{ 2,-2},
-					{-2, 2},
-					{-2,-2}};
-
 				int found = 0;
 				for(int i=0; i<25; i++)
 				{
@@ -651,7 +655,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 					copy_px = px - copy_pagex_start;
 					copy_py = py - copy_pagey_start;
 
-					if((copies[copy_px][copy_py].units[ox][oy].result & UNIT_WALL))
+					if((copies[copy_px][copy_py].units[ox][oy].num_obstacles))
 					{
 						if(!spot_used[copy_px][copy_py][ox][oy])
 						{
@@ -674,7 +678,9 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 				if(!found)
 				{
 					// We have a new wall.
-					w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_WALL | UNIT_MAPPED;
+					w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_MAPPED;
+					if(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles > 2)
+						w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_WALL;
 					PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_seen);
 					PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles);
 					w->changed[pagex][pagey] = 1;
@@ -917,6 +923,94 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	fclose(fdbg);
 
 	return 0;
+}
+
+
+void map_sonar(world_t* w, sonar_scan_t* p_son)
+{
+	int idx_x, idx_y, offs_x, offs_y;
+
+	// Erase old items, but only if all three sonars show a ping from farther away.
+	// Clear items from 500 mm to the nearest ping minus 300 mm, or 2000 mm max
+
+	if(p_son->scan[0].valid && p_son->scan[1].valid && p_son->scan[2].valid)
+	{
+		float nearest = 2000.0;
+		for(int i = 0; i < 3; i++)
+		{
+			int dx = p_son->scan[i].x - p_son->robot_pos.x;
+			int dy = p_son->scan[i].y - p_son->robot_pos.y;
+
+			float cur_len = sqrt(sq(dx) + sq(dy)) - 300.0;
+
+			if(cur_len < nearest) nearest = cur_len;
+		}
+
+		if(nearest > 400.0)
+		{
+			const float step = 3*MAP_UNIT_W;
+
+			float pos = 300.0;
+			int terminate = 0;
+
+			int dx = p_son->scan[1].x - p_son->robot_pos.x;
+			int dy = p_son->scan[1].y - p_son->robot_pos.y;
+			float ang = atan2(dy, dx);
+			if(ang < 0.0) ang += 2.0*M_PI;
+
+			printf("INFO: Clearing items start (%d, %d) ang = %.1f deg, len = %.1f\n", p_son->scan[1].x, p_son->scan[1].y, RADTODEG(ang), nearest);
+		//	printf("ang = %.4f  dir = %d \n", ang, dir);
+
+			while(1)
+			{
+				int x = (cos(ang)*pos + (float)p_son->scan[1].x);
+				int y = (sin(ang)*pos + (float)p_son->scan[1].y);
+
+				for(int ix=-2*MAP_UNIT_W; ix<=2*MAP_UNIT_W; ix+=MAP_UNIT_W)
+				{
+					for(int iy=-2*MAP_UNIT_W; iy<=2*MAP_UNIT_W; iy+=MAP_UNIT_W)
+					{	
+						page_coords(x+ix,y+iy, &idx_x, &idx_y, &offs_x, &offs_y);
+						load_9pages(&world, idx_x, idx_y);
+						world.pages[idx_x][idx_y]->units[offs_x][offs_y].result &= ~(UNIT_ITEM);
+					}
+				}
+
+				if(terminate) break;
+				pos += step;
+				if(pos > nearest)
+				{
+					pos = nearest;
+					terminate = 1;
+				}
+			}
+		}
+	}
+
+	for(int i=0; i<3; i++)
+	{
+		if(!p_son->scan[i].valid) continue;
+
+		for(int s=0; s<25; s++)
+		{
+			int x = p_son->scan[i].x+search_order[s][0]*MAP_UNIT_W;
+			int y = p_son->scan[i].y+search_order[s][1]*MAP_UNIT_W;
+			page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
+			load_9pages(&world, idx_x, idx_y);
+
+			if(world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_ITEM)
+			{
+				printf("INFO: Item already mapped\n");
+				goto ALREADY_MAPPED_ITEM;
+			}
+		}
+		page_coords(p_son->scan[i].x,p_son->scan[i].y, &idx_x, &idx_y, &offs_x, &offs_y);
+		world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM;
+		printf("INFO: Mapping an item\n");
+		//world.changed[idx_x][idx_y] = 1;
+
+		ALREADY_MAPPED_ITEM: ;
+	}
 }
 
 const int robot_xs = 480;

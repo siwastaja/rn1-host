@@ -218,7 +218,8 @@ int main(int argc, char** argv)
 			}
 			if(cmd == 'C')
 			{
-				set_robot_pos(cur_compass_ang,0,0);
+				int32_t ang = cur_compass_ang+90*ANG_1_DEG;
+				set_robot_pos(ang,0,0);
 			}
 			if(cmd == '0')
 			{

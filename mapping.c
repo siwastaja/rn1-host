@@ -200,6 +200,7 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	int n_matches = 0;
 	int n_news = 0;
 	int n_exacts = 0;
+	int n_steadys = 0;
 
 	// Go through all valid points in all lidars in the lidar_list.
 	for(int l=0; l<n_lidars; l++)
@@ -230,11 +231,18 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			int is_match = 0;
 			int seen_with_no_wall = 0;
 			int is_exact = 0;
+			int is_steady = 0; // There is a wall in the decided result field.
 
 			// Wall in any neighbouring cell is considered a match.
 
 			page_coords(x, y, &pagex, &pagey, &offsx, &offsy);
 			if(w->pages[pagex][pagey]->units[offsx][offsy].result & UNIT_WALL)
+			{
+				is_match = 1;
+				is_exact = 1;
+				is_steady = 1;
+			}
+			else if(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles)
 			{
 				is_match = 1;
 				is_exact = 1;
@@ -249,7 +257,12 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 						if(w->pages[pagex][pagey]->units[offsx][offsy].result & UNIT_WALL)
 						{
 							is_match = 1;
+							is_steady = 1;
 							break;
+						}
+						else if(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles)
+						{
+							is_match = 1;
 						}
 						else if(w->pages[pagex][pagey]->units[offsx][offsy].result & UNIT_MAPPED)
 						{
@@ -261,6 +274,7 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 			if(is_match) n_matches++;
 			if(is_exact) n_exacts++;
+			if(is_steady) n_steadys++;
 			// There is no wall, and most of the 9 units were mapped "no wall" before, so we have a new wall:
 			if(!is_match && seen_with_no_wall > 6) n_news++;
 
@@ -278,7 +292,7 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	// Return the score: bigger = better
 	// Exact matches have a slight effect on the result.
 	// New walls decrease the score.
-	return n_matches*5 - n_news*5 + n_exacts;
+	return n_matches*5 + n_steadys*3 + n_exacts*1 - n_news*5;
 }
 
 typedef struct  // Each bit represents each lidar scan (i.e., 32 lidar scans max).

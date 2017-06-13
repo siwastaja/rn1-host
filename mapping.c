@@ -681,6 +681,9 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 							PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_seen);
 							PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_obstacles);
 
+							if(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles > 2)
+								w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_WALL;
+
 							spot_used[copy_px][copy_py][ox][oy] = 1;
 							w->changed[px][py] = 1;
 							found = 1;
@@ -693,8 +696,6 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 				{
 					// We have a new wall.
 					w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_MAPPED;
-					if(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles > 2)
-						w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_WALL;
 					PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_seen);
 					PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles);
 					w->changed[pagex][pagey] = 1;
@@ -969,8 +970,9 @@ void map_sonar(world_t* w, sonar_scan_t* p_son)
 
 			int dx = p_son->scan[1].x - p_son->robot_pos.x;
 			int dy = p_son->scan[1].y - p_son->robot_pos.y;
-			float ang = atan2(dy, dx);
+			float ang = atan2(dy, dx) + M_PI;
 			if(ang < 0.0) ang += 2.0*M_PI;
+			else if(ang > 2.0*M_PI) ang -= 2.0*M_PI;
 
 			printf("INFO: Clearing items start (%d, %d) ang = %.1f deg, len = %.1f\n", p_son->scan[1].x, p_son->scan[1].y, RADTODEG(ang), nearest);
 		//	printf("ang = %.4f  dir = %d \n", ang, dir);

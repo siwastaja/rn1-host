@@ -283,7 +283,7 @@ void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)
 
 void set_robot_pos(int32_t na, int32_t nx, int32_t ny)
 {
-	printf("INFO: Setting robot pos to %d, %d, %d\n", na>>16, nx, ny);
+	printf("INFO: Setting robot pos to ang=%d, x=%d, y=%d\n", na>>16, nx, ny);
 
 	uint8_t buf[14];
 

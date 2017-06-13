@@ -218,7 +218,7 @@ int main(int argc, char** argv)
 			}
 			if(cmd == 'C')
 			{
-				set_robot_pos(0,0,cur_compass_ang);
+				set_robot_pos(cur_compass_ang,0,0);
 			}
 			if(cmd == '0')
 			{

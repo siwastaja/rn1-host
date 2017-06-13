@@ -135,7 +135,6 @@ static int test_robot_turn(int x, int y, float start, float end)
 	return 1;
 }
 
-
 static int line_of_sight(route_xy_t p1, route_xy_t p2)
 {
 	int dx = p2.x - p1.x;
@@ -802,6 +801,37 @@ int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_
 		}
 	}
 	return 0;
-
 }
+
+int32_t temp_lidar_map_mid_x, temp_lidar_map_mid_y;
+uint8_t temp_lidar_map[256][256];
+
+void clear_lidar_map(uint8_t *p_map)
+{
+	memset(p_map, 0, 256*256*sizeof(uint8_t));
+}
+
+int lidar_to_map(uint8_t *p_map, int32_t *mid_x, int32_t *mid_y, lidar_scan_t* p_lid)
+{
+	int mx = p_lid->robot_pos.x;
+	int my = p_lid->robot_pos.y;
+	*mid_x = mx; *mid_y = my;
+	for(int i = 0; i < 360; i++)
+	{
+		if(!p_lid->scan[i].valid) continue;
+		int x = (p_lid->scan[i].x - mx) / MAP_UNIT_W;
+		int y = (p_lid->scan[i].y - my) / MAP_UNIT_W;
+		x += 128; y+= 128;
+
+		if(x < 0 || y < 0 || x > 255 || y > 255)
+		{
+			printf("WARNING: lidar_to_map(), ignoring out-of-range coords (%d, %d)\n", x, y);
+			continue;
+		}
+
+		temp_lidar_map[x][y] = 1;
+	}
+	return 0;
+}
+
 

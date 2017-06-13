@@ -974,7 +974,7 @@ void map_sonar(world_t* w, sonar_scan_t* p_son)
 			if(ang < 0.0) ang += 2.0*M_PI;
 			else if(ang > 2.0*M_PI) ang -= 2.0*M_PI;
 
-			printf("INFO: Clearing items start (%d, %d) ang = %.1f deg, len = %.1f\n", p_son->scan[1].x, p_son->scan[1].y, RADTODEG(ang), nearest);
+		//	printf("INFO: Clearing items start (%d, %d) ang = %.1f deg, len = %.1f\n", p_son->scan[1].x, p_son->scan[1].y, RADTODEG(ang), nearest);
 		//	printf("ang = %.4f  dir = %d \n", ang, dir);
 
 			while(1)
@@ -1016,7 +1016,7 @@ void map_sonar(world_t* w, sonar_scan_t* p_son)
 
 			if(world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_ITEM)
 			{
-				printf("INFO: Item already mapped\n");
+//				printf("INFO: Item already mapped\n");
 				goto ALREADY_MAPPED_ITEM;
 			}
 		}
@@ -1030,7 +1030,7 @@ void map_sonar(world_t* w, sonar_scan_t* p_son)
 		{
 			page_coords(p_son->scan[i].x,p_son->scan[i].y, &idx_x, &idx_y, &offs_x, &offs_y);
 			world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM;
-			printf("INFO: Mapping an item\n");
+//			printf("INFO: Mapping an item\n");
 			//world.changed[idx_x][idx_y] = 1;
 		}
 

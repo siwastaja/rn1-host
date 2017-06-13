@@ -280,13 +280,13 @@ int main(int argc, char** argv)
 			handle_tcp_listener();
 		}
 
-		static int prev_compass_ang = 0;
+//		static int prev_compass_ang = 0;
 
-		if(cur_compass_ang != prev_compass_ang)
-		{
-			prev_compass_ang = cur_compass_ang;
-			printf("INFO: Compass ang=%.1f deg\n", ANG32TOFDEG(cur_compass_ang));
-		}
+//		if(cur_compass_ang != prev_compass_ang)
+//		{
+//			prev_compass_ang = cur_compass_ang;
+//			printf("INFO: Compass ang=%.1f deg\n", ANG32TOFDEG(cur_compass_ang));
+//		}
 
 		static int micronavi_stop_flags_printed = 0;
 

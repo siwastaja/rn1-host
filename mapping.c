@@ -982,9 +982,9 @@ void map_sonar(world_t* w, sonar_scan_t* p_son)
 				int x = (cos(ang)*pos + (float)p_son->scan[1].x);
 				int y = (sin(ang)*pos + (float)p_son->scan[1].y);
 
-				for(int ix=-2*MAP_UNIT_W; ix<=2*MAP_UNIT_W; ix+=MAP_UNIT_W)
+				for(int ix=-4*MAP_UNIT_W; ix<=4*MAP_UNIT_W; ix+=MAP_UNIT_W)
 				{
-					for(int iy=-2*MAP_UNIT_W; iy<=2*MAP_UNIT_W; iy+=MAP_UNIT_W)
+					for(int iy=-4*MAP_UNIT_W; iy<=4*MAP_UNIT_W; iy+=MAP_UNIT_W)
 					{	
 						page_coords(x+ix,y+iy, &idx_x, &idx_y, &offs_x, &offs_y);
 						load_9pages(&world, idx_x, idx_y);

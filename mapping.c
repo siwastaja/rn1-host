@@ -1004,10 +1004,19 @@ void map_sonar(world_t* w, sonar_scan_t* p_son)
 				goto ALREADY_MAPPED_ITEM;
 			}
 		}
-		page_coords(p_son->scan[i].x,p_son->scan[i].y, &idx_x, &idx_y, &offs_x, &offs_y);
-		world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM;
-		printf("INFO: Mapping an item\n");
-		//world.changed[idx_x][idx_y] = 1;
+
+		int dx = p_son->scan[i].x - p_son->robot_pos.x;
+		int dy = p_son->scan[i].y - p_son->robot_pos.y;
+
+		int sqdist = sq(dx) + sq(dy);
+
+		if(sqdist < sq(1500))
+		{
+			page_coords(p_son->scan[i].x,p_son->scan[i].y, &idx_x, &idx_y, &offs_x, &offs_y);
+			world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM;
+			printf("INFO: Mapping an item\n");
+			//world.changed[idx_x][idx_y] = 1;
+		}
 
 		ALREADY_MAPPED_ITEM: ;
 	}

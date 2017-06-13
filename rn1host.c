@@ -216,6 +216,10 @@ int main(int argc, char** argv)
 			{
 				do_compass_round();
 			}
+			if(cmd == 'C')
+			{
+				set_robot_pos(0,0,cur_compass_ang);
+			}
 			if(cmd == '0')
 			{
 				set_robot_pos(0,0,0);
@@ -424,8 +428,8 @@ int main(int argc, char** argv)
 		if( (p_son = get_sonar()) )
 		{
 			if(tcp_client_sock >= 0) tcp_send_sonar(p_son);
-			map_sonar(&world, p_son);
-
+			if(mapping_on)
+				map_sonar(&world, p_son);
 		}
 
 		cnt++;

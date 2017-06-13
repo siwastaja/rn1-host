@@ -111,7 +111,7 @@ void route_fsm()
 	if(start_route && route_pos == 0)
 	{
 		printf("Start going id=%d!\n", id_cnt<<4);
-		move_to(the_route[0].x, the_route[0].y, the_route[0].backmode, (id_cnt<<4));
+		move_to(the_route[0].x, the_route[0].y, the_route[0].backmode, (id_cnt<<4), (mapping_on==1)?1:0);
 		start_route = 0;
 	}
 	if(do_follow_route)
@@ -147,7 +147,7 @@ void route_fsm()
 					{
 						route_pos++;
 						printf("Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
-						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111));
+						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), (mapping_on==1)?1:0);
 					}
 					else
 					{
@@ -238,6 +238,11 @@ int main(int argc, char** argv)
 					printf("Turned mapping on.\n");
 				}
 			}
+			if(cmd == 'M')
+			{
+				mapping_on = 2;
+				printf("Turned mapping to fast mode.\n");
+			}
 			if(cmd == 'l')
 			{
 				hw_find_charger();
@@ -256,7 +261,7 @@ int main(int argc, char** argv)
 			if(ret == TCP_CR_DEST_MID)
 			{
 				printf("  ---> DEST params: X=%d Y=%d backmode=%d\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
-				move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode, 0);
+				move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode, 0, (mapping_on==1)?1:0);
 				do_follow_route = 0;
 			}
 			else if(ret == TCP_CR_ROUTE_MID)

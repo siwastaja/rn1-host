@@ -195,6 +195,7 @@ int charger_first_x, charger_first_y, charger_second_x, charger_second_y;
 
 void conf_charger_pos(int32_t cha_ang, int cha_x, int cha_y)  // Coordinates when the robot is *in* the charger.
 {
+	printf("INFO: Set charger pos at ang=%d, x=%d, y=%d\n", cha_ang, cha_x, cha_y);
 	charger_first_x = (float)cha_x - cos(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;
 	charger_first_y = (float)cha_y - sin(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;	
 	charger_second_x = (float)cha_x - cos(ANG32TORAD(cha_ang))*(float)CHARGER_SECOND_DIST;

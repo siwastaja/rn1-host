@@ -956,9 +956,9 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 #define STOP_REASON_OBSTACLE_LEFT 3
 
 #define ORIGIN_TO_ROBOT_FRONT 130
-#define ASSUMED_ITEM_POS_FROM_MIDDLE_START 140
+#define ASSUMED_ITEM_POS_FROM_MIDDLE_START 100
 #define ASSUMED_ITEM_STEP_SIZE (MAP_UNIT_W)
-#define ASSUMED_ITEM_NUM_STEPS 4
+#define ASSUMED_ITEM_NUM_STEPS 5
 
 void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, int stop_reason)
 {
@@ -985,6 +985,8 @@ void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, i
 		load_9pages(&world, idx_x, idx_y);
 		world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM;
 		world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_WALL;
+		PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+		PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
 		PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
 		PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
 		PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);

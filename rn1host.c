@@ -67,6 +67,7 @@ int start_route = 0;
 int id_cnt = 0;
 int good_time_for_lidar_mapping = 0;
 
+#define sq(x) ((x)*(x))
 
 int run_search(int to_x, int to_y)
 {
@@ -201,6 +202,8 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
+	daiju_mode(0);
+
 	int cnt = 0;
 	while(1)
 	{
@@ -285,6 +288,8 @@ int main(int argc, char** argv)
 			int ret = handle_tcp_client();
 			if(ret == TCP_CR_DEST_MID)
 			{
+				daiju_mode(0);
+
 				printf("  ---> DEST params: X=%d Y=%d backmode=%d\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
 				move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode, 0, (mapping_on==1)?1:0);
 				do_follow_route = 0;
@@ -295,7 +300,14 @@ int main(int argc, char** argv)
 
 				dest_x = msg_cr_route.x; dest_y = msg_cr_route.y;
 
-				run_search(dest_x, dest_y);
+				daiju_mode(0);
+
+				if(run_search(dest_x, dest_y) == 1)
+				{
+					printf("INFO: Routing fails in the start, daijuing for a while to get a better position.\n");
+					daiju_mode(1);
+					printf("INFO: (Please retry after some time.)\n");
+				}
 
 			}
 		}

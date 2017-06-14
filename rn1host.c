@@ -72,7 +72,7 @@ int run_search(int to_x, int to_y)
 
 	route_unit_t *some_route = NULL;
 
-	search_route(&world, &some_route, ANG32TORAD(cur_ang), cur_x, cur_y, msg_cr_route.x, msg_cr_route.y);
+	int ret = search_route(&world, &some_route, ANG32TORAD(cur_ang), cur_x, cur_y, msg_cr_route.x, msg_cr_route.y);
 
 	route_unit_t *rt;
 	int len = 0;
@@ -117,7 +117,7 @@ int run_search(int to_x, int to_y)
 	}
 	else do_follow_route = 0;
 
-	return do_follow_route;
+	return ret;
 
 }
 
@@ -149,9 +149,9 @@ void route_fsm()
 					stop_flag_cnt = 0;
 					printf("Robot stopped, retrying routing.\n");
 					daiju_mode(0);
-					if(!run_search(dest_x, dest_y))
+					if(run_search(dest_x, dest_y) == 1)
 					{
-						printf("Routing failed, going to daiju mode.\n");
+						printf("Routing failed in start, going to daiju mode.\n");
 						daiju_mode(1);
 					}
 				}

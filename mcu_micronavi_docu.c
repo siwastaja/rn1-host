@@ -19,7 +19,7 @@ const char* const MCU_NAVI_STOP_NAMES[] =
 /* 8*/ "\"do not turn left\" active, but angular movement is required",
 /* 9*/ "\"do not turn right\" active, but angular movement is required",
 /*10*/ "res",
-/*11*/ "res",
+/*11*/ "lost from the original track (angle to dest differs too much from the original angle)",
 /*12*/ "res",
 /*13*/ "res",
 /*14*/ "res",

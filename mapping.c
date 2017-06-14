@@ -784,7 +784,7 @@ void map_next_with_larger_search_area()
 }
 
 
-int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy)
+static int do_map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy)
 {
 	*da = 0;
 	*dx = 0;
@@ -793,15 +793,15 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	if(n_lidars > 32)
 	{
 		printf("Error: n_lidars must be <=32\n");
-		return 1;
+		return -1;
 	}
 
-	FILE* fdbg = fopen("map_verbose.csv", "w");
-	if(!fdbg)
-	{
-		printf("Error: couldn't open map_verbose.csv for write.\n");
-		return 1;
-	}
+//	FILE* fdbg = fopen("map_verbose.csv", "w");
+//	if(!fdbg)
+//	{
+//		printf("Error: couldn't open map_verbose.csv for write.\n");
+//		return 1;
+//	}
 
 	printf("Info: Attempting to map %d lidar images\n", n_lidars);
 
@@ -814,7 +814,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	// When correcting angle, image is rotated around this point.
 	lidars_avg_midpoint(n_lidars, lidar_list, &mid_x, &mid_y);
 
-	fprintf(fdbg, "PASS 1\nda;dx;dy;score;match_walls;exacts;new_walls;discovered_walls\n");
+//	fprintf(fdbg, "PASS 1\nda;dx;dy;score;match_walls;exacts;new_walls;discovered_walls\n");
 
 	int a_range = 3;
 	int x_range = 240;
@@ -851,8 +851,8 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 					ida, idx, idy, mid_x, mid_y,
 					&n_matched_walls, &n_exactly_matched_walls, &n_new_walls, &n_discovered_walls);
 
-				fprintf(fdbg, "%.2f;%d;%d;%d;%d;%d;%d;%d\n",
-					(float)ida/(float)ANG_1_DEG, idx, idy, score_now, n_matched_walls, n_exactly_matched_walls, n_new_walls, n_discovered_walls);
+//				fprintf(fdbg, "%.2f;%d;%d;%d;%d;%d;%d;%d\n",
+//					(float)ida/(float)ANG_1_DEG, idx, idy, score_now, n_matched_walls, n_exactly_matched_walls, n_new_walls, n_discovered_walls);
 
 				if(score_now > best_score)
 				{
@@ -882,13 +882,16 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 		{
 			printf("Info: best score (%d) is so low that we are clearly lost! Mapping is prevented.\n", best_score);
 			do_not_map = 1;
+			if(bigger_search_area == 2)
+				return 6;
 			bigger_search_area = 2;
+			return 5;
 		}
 	}
 	else
 	{
 		bigger_search_area = 0;
-		fprintf(fdbg, "\nPASS 2\nda;dx;dy;score;match_walls;exacts;new_walls;discovered_walls\n");
+//		fprintf(fdbg, "\nPASS 2\nda;dx;dy;score;match_walls;exacts;new_walls;discovered_walls\n");
 
 		best_score = -999999;
 		int best2_da=0, best2_dx=0, best2_dy=0;
@@ -903,8 +906,8 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 						ida, idx, idy, mid_x, mid_y,
 						&n_matched_walls, &n_exactly_matched_walls, &n_new_walls, &n_discovered_walls);
 
-					fprintf(fdbg, "%.2f;%d;%d;%d;%d;%d;%d;%d\n",
-						(float)ida/(float)ANG_1_DEG, idx, idy, score_now, n_matched_walls, n_exactly_matched_walls, n_new_walls, n_discovered_walls);
+//					fprintf(fdbg, "%.2f;%d;%d;%d;%d;%d;%d;%d\n",
+//						(float)ida/(float)ANG_1_DEG, idx, idy, score_now, n_matched_walls, n_exactly_matched_walls, n_new_walls, n_discovered_walls);
 
 					if(score_now > best_score)
 					{
@@ -935,9 +938,18 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 		*dy = best_dy + aft_corr_y;
 	}
 
-	fclose(fdbg);
+//	fclose(fdbg);
 
 	return 0;
+}
+
+int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy)
+{
+	int ret = -1;
+	if( ( ret = do_map_lidars(w, n_lidars, lidar_list, da, dx, dy) ) == 5)
+		ret = do_map_lidars(w, n_lidars, lidar_list, da, dx, dy);
+
+	return ret;
 }
 
 

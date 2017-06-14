@@ -803,7 +803,7 @@ int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_
 	{
 		printf("Search failed - retrying with tighter limits.\n");
 		tight_search_mode();
-		if(ret = search2(route, start_ang, start_x_mm, start_y_mm, end_x_mm, end_y_mm))
+		if( (ret = search2(route, start_ang, start_x_mm, start_y_mm, end_x_mm, end_y_mm)) ) 
 		{
 			printf("There is no route.\n");
 			return ret;

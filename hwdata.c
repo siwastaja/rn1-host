@@ -213,7 +213,13 @@ int parse_uart_msg(uint8_t* buf, int len)
 
 void send_keepalive()
 {
-	uint8_t buf[3] = {0x8f, 0x00, 0xff};
+	uint8_t buf[3] = {0x8f, 0x42, 0xff};
+	send_uart(buf, 3);
+}
+
+void release_motors()
+{
+	uint8_t buf[3] = {0x8f, 0, 0xff};
 	send_uart(buf, 3);
 }
 
@@ -246,6 +252,7 @@ void move_to(int32_t x, int32_t y, int8_t backmode, int id, int speedlimit)
 	buf[14] = 0xff;
 	send_uart(buf, 15);
 }
+
 
 void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)
 {

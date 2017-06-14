@@ -29,6 +29,7 @@
 #endif
 
 int mapping_on = 0;
+int motors_on = 1;
 
 uint32_t robot_id = 0xacdcabba; // Hopefully unique identifier for the robot.
 
@@ -187,8 +188,23 @@ void route_fsm()
 
 }
 
+int32_t charger_ang;
+int charger_first_x, charger_first_y, charger_second_x, charger_second_y;
+#define CHARGER_FIRST_DIST 600
+#define CHARGER_SECOND_DIST 250
+
+void conf_charger_pos(int32_t cha_ang, int cha_x, int cha_y)  // Coordinates when the robot is *in* the charger.
+{
+	charger_first_x = (float)cha_x - cos(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;
+	charger_first_y = (float)cha_y - sin(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;	
+	charger_second_x = (float)cha_x - cos(ANG32TORAD(cha_ang))*(float)CHARGER_SECOND_DIST;
+	charger_second_y = (float)cha_y - sin(ANG32TORAD(cha_ang))*(float)CHARGER_SECOND_DIST;
+}
+
+
 int main(int argc, char** argv)
 {
+	int find_charger_state = 0;
 	if(init_uart())
 	{
 		fprintf(stderr, "uart initialization failed.\n");
@@ -270,9 +286,26 @@ int main(int argc, char** argv)
 				mapping_on = 2;
 				printf("Turned mapping to fast mode.\n");
 			}
+			if(cmd == 'L')
+			{
+				conf_charger_pos(cur_ang, cur_x, cur_y);
+			}
 			if(cmd == 'l')
 			{
-				hw_find_charger();
+				find_charger_state = 1;
+			}
+			if(cmd == 'v')
+			{
+				if(motors_on)
+				{
+					motors_on = 0;
+					printf("Robot is free to move manually.\n");
+				}
+				else
+				{
+					motors_on = 1;
+					printf("Robot motors enabled again.\n");
+				}
 			}
 
 		}
@@ -287,6 +320,7 @@ int main(int argc, char** argv)
 			int ret = handle_tcp_client();
 			if(ret == TCP_CR_DEST_MID)
 			{
+				motors_on = 1;
 				daiju_mode(0);
 
 				printf("  ---> DEST params: X=%d Y=%d backmode=%d\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
@@ -299,6 +333,7 @@ int main(int argc, char** argv)
 
 				dest_x = msg_cr_route.x; dest_y = msg_cr_route.y;
 
+				motors_on = 1;
 				daiju_mode(0);
 
 				if(run_search(dest_x, dest_y) == 1)
@@ -369,6 +404,60 @@ int main(int argc, char** argv)
 		}
 		else
 			feedback_stop_flags_processed = 0;
+
+		if(find_charger_state == 1)
+		{
+			dest_x = charger_first_x; dest_y = charger_first_y;
+
+			motors_on = 1;
+			daiju_mode(0);
+			if(run_search(dest_x, dest_y) != 0)
+			{
+				printf("Finding charger (first point) failed.\n");
+				find_charger_state = 0;
+			}
+			else
+				find_charger_state++;
+		}
+		else if(find_charger_state == 2)
+		{
+			if(!do_follow_route)
+			{
+				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(200))
+				{
+					printf("We are not at the first charger point, trying again.\n");
+					find_charger_state = 1;
+				}
+				else
+				{
+					dest_x = charger_second_x; dest_y = charger_second_y;
+
+					motors_on = 1;
+					daiju_mode(0);
+					if(run_search(dest_x, dest_y) != 0)
+					{
+						printf("Finding charger (second point) failed.\n");
+						find_charger_state = 0;
+					}
+					else
+						find_charger_state++;
+				}
+			}
+		}
+		else if(find_charger_state == 3)
+		{
+			if(!do_follow_route)
+			{
+				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(120))
+				{
+					printf("We are not at the second charger point, giving up.\n");
+				}
+				else				
+					hw_find_charger();
+
+				find_charger_state = 0;
+			}
+		}
 
 		route_fsm();
 
@@ -469,7 +558,10 @@ int main(int argc, char** argv)
 
 			}
 
-			send_keepalive();			
+			if(motors_on)
+				send_keepalive();
+			else
+				release_motors();
 		}
 		else
 		{

@@ -28,7 +28,7 @@
 #define M_PI 3.141592653589793238
 #endif
 
-int mapping_on = 0;
+int mapping_on = 1;
 int motors_on = 1;
 
 uint32_t robot_id = 0xacdcabba; // Hopefully unique identifier for the robot.

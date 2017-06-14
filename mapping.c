@@ -707,16 +707,20 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 				// We don't have a wall, but we mapped this unit nevertheless.
 				w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_MAPPED;
 				PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_seen);
-				MINUS_SAT_0(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles);
 
-				if(
-				   ( s_cnt > 5 && neigh_w_cnt == 0 && // we are quite sure:
-				   ((int)w->pages[pagex][pagey]->units[offsx][offsy].num_seen > (2*(int)w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles + 3)))
-				   || (neigh_w_cnt < 2 &&  // there is 1 wall neighbor, so we are not so sure, but do it eventually.
-				   ((int)w->pages[pagex][pagey]->units[offsx][offsy].num_seen > (5*(int)w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles + 10))))
+				if(!(w->pages[pagex][pagey]->units[offsx][offsy].result & UNIT_DO_NOT_REMOVE_BY_LIDAR))
 				{
-					// Wall has vanished
-					w->pages[pagex][pagey]->units[offsx][offsy].result &= ~(UNIT_WALL);
+					MINUS_SAT_0(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles);
+
+					if(
+					   ( s_cnt > 5 && neigh_w_cnt == 0 && // we are quite sure:
+					   ((int)w->pages[pagex][pagey]->units[offsx][offsy].num_seen > (2*(int)w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles + 3)))
+					   || (neigh_w_cnt < 2 &&  // there is 1 wall neighbor, so we are not so sure, but do it eventually.
+					   ((int)w->pages[pagex][pagey]->units[offsx][offsy].num_seen > (5*(int)w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles + 10))))
+					{
+						// Wall has vanished
+						w->pages[pagex][pagey]->units[offsx][offsy].result &= ~(UNIT_WALL);
+					}
 				}
 				w->changed[pagex][pagey] = 1;
 			}
@@ -983,10 +987,8 @@ void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, i
 
 		page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
 		load_9pages(&world, idx_x, idx_y);
-		world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM;
-		world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_WALL;
-		PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
-		PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+		world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM | UNIT_WALL | UNIT_DO_NOT_REMOVE_BY_LIDAR;
+		world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest |= UNIT_ITEM | UNIT_WALL | UNIT_DO_NOT_REMOVE_BY_LIDAR;
 		PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
 		PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
 		PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);

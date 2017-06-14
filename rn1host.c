@@ -203,10 +203,10 @@ void conf_charger_pos(int32_t cha_ang, int cha_x, int cha_y)  // Coordinates whe
 	correct_robot_pos(da, dx, dy);
 
 	printf("INFO: Set charger pos at ang=%d, x=%d, y=%d\n", cha_ang, cha_x, cha_y);
-	charger_first_x = (float)cha_x - cos(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;
-	charger_first_y = (float)cha_y - sin(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;	
-	charger_second_x = (float)cha_x - cos(ANG32TORAD(cha_ang))*(float)CHARGER_SECOND_DIST;
-	charger_second_y = (float)cha_y - sin(ANG32TORAD(cha_ang))*(float)CHARGER_SECOND_DIST;
+	charger_first_x = (float)cha_x; // - cos(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;
+	charger_first_y = (float)cha_y; // - sin(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;	
+	charger_second_x = (float)cha_x; // - cos(ANG32TORAD(cha_ang))*(float)CHARGER_SECOND_DIST;
+	charger_second_y = (float)cha_y; // - sin(ANG32TORAD(cha_ang))*(float)CHARGER_SECOND_DIST;
 }
 
 
@@ -416,6 +416,8 @@ int main(int argc, char** argv)
 		if(find_charger_state == 1)
 		{
 			dest_x = charger_first_x; dest_y = charger_first_y;
+
+			printf("Searching dest_x=%d  dest_y=%d\n", dest_x, dest_y);
 
 			motors_on = 1;
 			daiju_mode(0);

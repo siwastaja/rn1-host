@@ -64,7 +64,7 @@ int good_time_for_lidar_mapping = 0;
 #define NUM_LATEST_LIDARS_FOR_ROUTING_START 5
 static lidar_scan_t* lidars_to_map_at_routing_start[NUM_LATEST_LIDARS_FOR_ROUTING_START];
 
-int run_search(int to_x, int to_y)
+int run_search()
 {
 	int32_t da, dx, dy;
 	map_lidars(&world, NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start, &da, &dx, &dy);
@@ -73,9 +73,7 @@ int run_search(int to_x, int to_y)
 
 	route_unit_t *some_route = NULL;
 
-	printf("run_search (%d, %d)\n", to_x, to_y);
-
-	int ret = search_route(&world, &some_route, ANG32TORAD(cur_ang), cur_x, cur_y, msg_cr_route.x, msg_cr_route.y);
+	int ret = search_route(&world, &some_route, ANG32TORAD(cur_ang), cur_x, cur_y, dest_x, dest_y);
 
 	route_unit_t *rt;
 	int len = 0;
@@ -155,7 +153,7 @@ void route_fsm()
 					stop_flag_cnt = 0;
 					printf("Robot stopped, retrying routing.\n");
 					daiju_mode(0);
-					if(run_search(dest_x, dest_y) == 1)
+					if(run_search() == 1)
 					{
 						printf("Routing failed in start, going to daiju mode.\n");
 						daiju_mode(1);
@@ -346,7 +344,7 @@ int main(int argc, char** argv)
 				motors_on = 1;
 				daiju_mode(0);
 
-				if(run_search(dest_x, dest_y) == 1)
+				if(run_search() == 1)
 				{
 					printf("INFO: Routing fails in the start, daijuing for a while to get a better position.\n");
 					daiju_mode(1);
@@ -423,7 +421,7 @@ int main(int argc, char** argv)
 
 			motors_on = 1;
 			daiju_mode(0);
-			if(run_search(dest_x, dest_y) != 0)
+			if(run_search() != 0)
 			{
 				printf("Finding charger (first point) failed.\n");
 				find_charger_state = 0;
@@ -446,7 +444,7 @@ int main(int argc, char** argv)
 
 					motors_on = 1;
 					daiju_mode(0);
-					if(run_search(dest_x, dest_y) != 0)
+					if(run_search() != 0)
 					{
 						printf("Finding charger (second point) failed.\n");
 						find_charger_state = 0;

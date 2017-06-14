@@ -2,8 +2,8 @@ const char* const MCU_FEEDBACK_COLLISION_NAMES[] =
 {
 /* 0 */ "Undefined",
 /* 1 */ "Acceleration sensor (jerk)",
-/* 2 */ "Wheel differential integral compared to gyro integral (wheel slip)",
-/* 3 */ "Reserved"
+/* 2 */ "Wheel differential integral compared to gyro integral (wheel slip) : obstacle LEFT",
+/* 3 */ "Wheel differential integral compared to gyro integral (wheel slip) : obstacle RIGHT"
 };
 
 const char* const MCU_NAVI_STOP_NAMES[] =

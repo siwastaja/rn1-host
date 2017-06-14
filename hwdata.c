@@ -213,7 +213,7 @@ int parse_uart_msg(uint8_t* buf, int len)
 
 void send_keepalive()
 {
-	uint8_t buf[3] = {0x8f, 0x42, 0xff};
+	uint8_t buf[3] = {0x8f, 42, 0xff};
 	send_uart(buf, 3);
 }
 

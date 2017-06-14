@@ -946,7 +946,6 @@ void map_sonar(world_t* w, sonar_scan_t* p_son)
 	int idx_x, idx_y, offs_x, offs_y;
 
 	// Erase old items, but only if all three sonars show a ping from farther away.
-	// Clear items from 500 mm to the nearest ping minus 300 mm, or 2000 mm max
 
 	if(p_son->scan[0].valid && p_son->scan[1].valid && p_son->scan[2].valid)
 	{

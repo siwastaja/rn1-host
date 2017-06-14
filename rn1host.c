@@ -54,6 +54,8 @@ typedef struct
 	int x;
 	int y;
 	int backmode;
+	int take_next_early;
+	int timeout;
 } route_point_t;
 
 #define THE_ROUTE_MAX 200
@@ -66,14 +68,14 @@ int id_cnt = 0;
 int good_time_for_lidar_mapping = 0;
 
 
-void run_search(int to_x, int to_y)
+int run_search(int to_x, int to_y)
 {
 	route_unit_t *some_route = NULL;
 
 	search_route(&world, &some_route, ANG32TORAD(cur_ang), cur_x, cur_y, msg_cr_route.x, msg_cr_route.y);
 
 	route_unit_t *rt;
-	int idx = 0;
+	int len = 0;
 	DL_FOREACH(some_route, rt)
 	{
 		if(rt->backmode)
@@ -85,34 +87,51 @@ void run_search(int to_x, int to_y)
 		mm_from_unit_coords(rt->loc.x, rt->loc.y, &x_mm, &y_mm);					
 		printf("to %d,%d\n", x_mm, y_mm);
 
-		the_route[idx].x = x_mm; the_route[idx].y = y_mm; the_route[idx].backmode = rt->backmode;
-		idx++;
-		if(idx >= THE_ROUTE_MAX)
+		the_route[len].x = x_mm; the_route[len].y = y_mm; the_route[len].backmode = rt->backmode;
+		the_route[len].take_next_early = 100;
+		len++;
+		if(len >= THE_ROUTE_MAX)
 			break;
+	}
+
+	for(int i = 0; i < len; i++)
+	{
+		if(i < len-1)
+		{
+			float dist = sqrt(sq(the_route[i].x-the_route[i+1].x) + sq(the_route[i].y-the_route[i+1].y));
+			int new_early = dist/10;
+			if(new_early < 50) new_early = 50;
+			else if(new_early > 250) new_early = 250;
+			the_route[i].take_next_early = new_early;
+		}
 	}
 
 	tcp_send_route(&some_route);
 
 	if(some_route)
 	{
-		do_follow_route = idx /* route len */;
+		do_follow_route = len;
 		start_route = 1;
 		route_pos = 0;
 		id_cnt++; if(id_cnt > 7) id_cnt = 0;
 	}
 	else do_follow_route = 0;
 
+	return do_follow_route;
+
 }
 
 void route_fsm()
 {
 	static int stop_flag_cnt = 0;
+	static int first_fail = 0;
 
 	if(start_route && route_pos == 0)
 	{
 		printf("Start going id=%d!\n", id_cnt<<4);
 		move_to(the_route[0].x, the_route[0].y, the_route[0].backmode, (id_cnt<<4), (mapping_on==1)?1:0);
 		start_route = 0;
+		first_fail = 1;
 	}
 	if(do_follow_route)
 	{
@@ -124,11 +143,17 @@ void route_fsm()
 			{
 				stop_flag_cnt++;
 
-				if(stop_flag_cnt > 50000) // todo: proper timing.
+				if(stop_flag_cnt > first_fail?50000:150000) // todo: proper timing.
 				{
+					first_fail = 0;
 					stop_flag_cnt = 0;
 					printf("Robot stopped, retrying routing.\n");
-					run_search(dest_x, dest_y);
+					daiju_mode(0);
+					if(!run_search(dest_x, dest_y))
+					{
+						printf("Routing failed, going to daiju mode.\n");
+						daiju_mode(1);
+					}
 				}
 			}
 			else
@@ -140,14 +165,14 @@ void route_fsm()
 					good_time_for_lidar_mapping = 1;
 				}
 
-				if(cur_xymove.remaining < 150)
+				if(cur_xymove.remaining < the_route[route_pos].take_next_early)
 				{
-					printf("remaining (%d) < 150\n", cur_xymove.remaining);
 					if(route_pos < do_follow_route-1)
 					{
 						route_pos++;
 						printf("Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
 						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), (mapping_on==1)?1:0);
+						first_fail = 1;
 					}
 					else
 					{

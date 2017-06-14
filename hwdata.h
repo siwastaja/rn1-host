@@ -17,6 +17,7 @@ void set_hw_obstacle_avoidance_margin(int mm);
 void set_robot_pos(int32_t na, int32_t nx, int32_t ny);
 void do_compass_round();
 void hw_find_charger();
+void daiju_mode(int on);
 
 
 #endif

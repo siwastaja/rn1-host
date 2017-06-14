@@ -441,6 +441,7 @@ int main(int argc, char** argv)
 				else
 				{
 					move_to(charger_second_x, charger_second_y, 0, 0, 0x7f);
+					find_charger_state++;
 				}
 			}
 		}

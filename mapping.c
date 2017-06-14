@@ -956,7 +956,9 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 #define STOP_REASON_OBSTACLE_LEFT 3
 
 #define ORIGIN_TO_ROBOT_FRONT 145
-#define ASSUMED_ITEM_POS_FROM_MIDDLE 180
+#define ASSUMED_ITEM_POS_FROM_MIDDLE_START 140
+#define ASSUMED_ITEM_STEP_SIZE (MAP_UNIT_W)
+#define ASSUMED_ITEM_NUM_STEPS 4
 
 void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, int stop_reason)
 {
@@ -969,17 +971,25 @@ void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, i
 	// Shift the result to the right or left:
 	int32_t angle = cur_ang + (uint32_t)( ((stop_reason==STOP_REASON_OBSTACLE_RIGHT)?90:-90) *ANG_1_DEG);
 
-	x += cos(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE;
-	y += sin(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE;
+	x += cos(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE_START;
+	y += sin(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE_START;
 
-	int idx_x, idx_y, offs_x, offs_y;
+	for(int i = 0; i < ASSUMED_ITEM_NUM_STEPS; i++)
+	{
+		x += cos(ANG32TORAD(angle))*(float)ASSUMED_ITEM_STEP_SIZE;
+		y += sin(ANG32TORAD(angle))*(float)ASSUMED_ITEM_STEP_SIZE;
 
-	page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
-	load_9pages(&world, idx_x, idx_y);
-	world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM;
-	world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_WALL;
-	PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
-	w->changed[idx_x][idx_y] = 1;
+		int idx_x, idx_y, offs_x, offs_y;
+
+		page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
+		load_9pages(&world, idx_x, idx_y);
+		world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM;
+		world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_WALL;
+		PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+		PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+		PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+		w->changed[idx_x][idx_y] = 1;
+	}
 }
 
 

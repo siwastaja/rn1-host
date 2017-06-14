@@ -724,9 +724,9 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 	{	0,	-12,	12,	-24,	24,	-36,	36,	-48,	48,	-60,	60	};
 
 
-#define SRCH_NUM_BACK 8
+#define SRCH_NUM_BACK 10
 	static const int b_s[SRCH_NUM_BACK] = 
-	{	-80,	-120,	-160,	-200,	-280,	-360,	-440,	-520	};
+	{	-320,	-400,	-280,	-240,	-200,	-480,	-160,	-120,	-80,	-560	};
 
 
 	// If going forward doesn't work out from the beginning, try backing off slightly.

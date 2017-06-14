@@ -440,23 +440,13 @@ int main(int argc, char** argv)
 				}
 				else
 				{
-					dest_x = charger_second_x; dest_y = charger_second_y;
-
-					motors_on = 1;
-					daiju_mode(0);
-					if(run_search() != 0)
-					{
-						printf("Finding charger (second point) failed.\n");
-						find_charger_state = 0;
-					}
-					else
-						find_charger_state++;
+					move_to(charger_second_x, charger_second_y, 0, 0, 0x7f);
 				}
 			}
 		}
 		else if(find_charger_state == 3)
 		{
-			if(!do_follow_route)
+			if(cur_xymove.id == 0x7f && cur_xymove.remaining < 20)
 			{
 				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(140))
 				{

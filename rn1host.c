@@ -356,19 +356,20 @@ int main(int argc, char** argv)
 		else
 			micronavi_stop_flags_printed = 0;
 
-		static int feedback_stop_flags_printed = 0;
+		static int feedback_stop_flags_processed = 0;
 
 		if(cur_xymove.feedback_stop_flags)
 		{
-			if(!feedback_stop_flags_printed)
+			if(!feedback_stop_flags_processed)
 			{
-				feedback_stop_flags_printed = 1;
+				feedback_stop_flags_processed = 1;
 				int stop_reason = cur_xymove.feedback_stop_flags&0b11;
 				printf("INFO: Collision reported: %s\n", MCU_FEEDBACK_COLLISION_NAMES[stop_reason]);
+				map_collision_obstacle(&world, cur_ang, cur_x, cur_y, stop_reason);
 			}
 		}
 		else
-			feedback_stop_flags_printed = 0;
+			feedback_stop_flags_processed = 0;
 
 		route_fsm();
 

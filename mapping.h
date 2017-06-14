@@ -109,6 +109,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 void map_next_with_larger_search_area();
 
 void map_sonar(world_t* w, sonar_scan_t* p_son);
+void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, int stop_reason);
 
 
 #endif

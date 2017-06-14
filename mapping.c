@@ -952,6 +952,36 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	return ret;
 }
 
+#define STOP_REASON_OBSTACLE_RIGHT 2
+#define STOP_REASON_OBSTACLE_LEFT 3
+
+#define ORIGIN_TO_ROBOT_FRONT 145
+#define ASSUMED_ITEM_POS_FROM_MIDDLE 180
+
+void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, int stop_reason)
+{
+	if(stop_reason != STOP_REASON_OBSTACLE_LEFT && stop_reason != STOP_REASON_OBSTACLE_RIGHT)
+		return;
+
+	float x = (float)cur_x + cos(ANG32TORAD(cur_ang))*(float)ORIGIN_TO_ROBOT_FRONT;
+	float y = (float)cur_y + sin(ANG32TORAD(cur_ang))*(float)ORIGIN_TO_ROBOT_FRONT;
+
+	// Shift the result to the right or left:
+	int32_t angle = cur_ang + (uint32_t)( ((stop_reason==STOP_REASON_OBSTACLE_RIGHT)?90:-90) *ANG_1_DEG);
+
+	x += cos(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE;
+	y += sin(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE;
+
+	int idx_x, idx_y, offs_x, offs_y;
+
+	page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
+	load_9pages(&world, idx_x, idx_y);
+	world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM;
+	world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_WALL;
+	PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+	w->changed[idx_x][idx_y] = 1;
+}
+
 
 void map_sonar(world_t* w, sonar_scan_t* p_son)
 {

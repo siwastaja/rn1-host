@@ -203,10 +203,10 @@ void conf_charger_pos(int32_t cha_ang, int cha_x, int cha_y)  // Coordinates whe
 	correct_robot_pos(da, dx, dy);
 
 	printf("INFO: Set charger pos at ang=%d, x=%d, y=%d\n", cha_ang, cha_x, cha_y);
-	charger_first_x = (float)cha_x; // - cos(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;
-	charger_first_y = (float)cha_y; // - sin(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;	
-	charger_second_x = (float)cha_x; // - cos(ANG32TORAD(cha_ang))*(float)CHARGER_SECOND_DIST;
-	charger_second_y = (float)cha_y; // - sin(ANG32TORAD(cha_ang))*(float)CHARGER_SECOND_DIST;
+	charger_first_x = (float)cha_x - cos(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;
+	charger_first_y = (float)cha_y - sin(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;	
+	charger_second_x = (float)cha_x - cos(ANG32TORAD(cha_ang))*(float)CHARGER_SECOND_DIST;
+	charger_second_y = (float)cha_y - sin(ANG32TORAD(cha_ang))*(float)CHARGER_SECOND_DIST;
 }
 
 
@@ -433,7 +433,7 @@ int main(int argc, char** argv)
 		{
 			if(!do_follow_route)
 			{
-				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(300))
+				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(200))
 				{
 					printf("We are not at the first charger point, trying again.\n");
 					find_charger_state = 1;
@@ -458,7 +458,7 @@ int main(int argc, char** argv)
 		{
 			if(!do_follow_route)
 			{
-				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(200))
+				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(140))
 				{
 					printf("We are not at the second charger point, giving up.\n");
 				}

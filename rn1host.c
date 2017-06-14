@@ -363,7 +363,8 @@ int main(int argc, char** argv)
 			if(!feedback_stop_flags_printed)
 			{
 				feedback_stop_flags_printed = 1;
-				printf("INFO: Feedback module reported a stop caused by acceleration sensor (collision)\n");
+				int stop_reason = cur_xymove.feedback_stop_flags&0b11;
+				printf("INFO: Collision reported: %s\n", MCU_FEEDBACK_COLLISION_NAMES[stop_reason]);
 			}
 		}
 		else

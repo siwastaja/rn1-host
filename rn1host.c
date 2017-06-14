@@ -73,6 +73,8 @@ int run_search(int to_x, int to_y)
 
 	route_unit_t *some_route = NULL;
 
+	printf("run_search (%d, %d)\n", to_x, to_y);
+
 	int ret = search_route(&world, &some_route, ANG32TORAD(cur_ang), cur_x, cur_y, msg_cr_route.x, msg_cr_route.y);
 
 	route_unit_t *rt;

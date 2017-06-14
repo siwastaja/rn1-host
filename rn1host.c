@@ -107,6 +107,9 @@ int run_search(int to_x, int to_y)
 		}
 	}
 
+	the_route[len-1].take_next_early = 50;
+
+
 	tcp_send_route(&some_route);
 
 	if(some_route)

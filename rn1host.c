@@ -107,7 +107,7 @@ int run_search(int to_x, int to_y)
 		}
 	}
 
-	the_route[len-1].take_next_early = 50;
+	the_route[len-1].take_next_early = 20;
 
 
 	tcp_send_route(&some_route);
@@ -431,7 +431,7 @@ int main(int argc, char** argv)
 		{
 			if(!do_follow_route)
 			{
-				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(200))
+				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(300))
 				{
 					printf("We are not at the first charger point, trying again.\n");
 					find_charger_state = 1;
@@ -456,7 +456,7 @@ int main(int argc, char** argv)
 		{
 			if(!do_follow_route)
 			{
-				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(120))
+				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(200))
 				{
 					printf("We are not at the second charger point, giving up.\n");
 				}

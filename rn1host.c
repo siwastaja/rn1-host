@@ -40,15 +40,6 @@ int32_t cur_compass_ang;
 int32_t cur_x, cur_y;
 int32_t dest_x, dest_y;
 
-void wdbg(char* mesta)
-{
-	if(world.id != 0)
-	{
-		printf("T H E   B U G!  at %s\n", mesta);
-		exit(1);
-	}
-}
-
 typedef struct
 {
 	int x;
@@ -69,8 +60,16 @@ int good_time_for_lidar_mapping = 0;
 
 #define sq(x) ((x)*(x))
 
+#define NUM_LATEST_LIDARS_FOR_ROUTING_START 5
+static lidar_scan_t* lidars_to_map_at_routing_start[NUM_LATEST_LIDARS_FOR_ROUTING_START];
+
 int run_search(int to_x, int to_y)
 {
+	int32_t da, dx, dy;
+	map_lidars(&world, NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start, &da, &dx, &dy);
+	correct_robot_pos(da, dx, dy);
+
+
 	route_unit_t *some_route = NULL;
 
 	search_route(&world, &some_route, ANG32TORAD(cur_ang), cur_x, cur_y, msg_cr_route.x, msg_cr_route.y);
@@ -409,6 +408,14 @@ int main(int argc, char** argv)
 
 				page_coords(p_lid->robot_pos.x, p_lid->robot_pos.y, &idx_x, &idx_y, &offs_x, &offs_y);
 				load_9pages(&world, idx_x, idx_y);
+
+				// Keep a pointer list of a few latest lidars; significant or insignificant will do.
+				// This list is used to do last-second mapping before routing, to get good starting position.
+				for(int i = NUM_LATEST_LIDARS_FOR_ROUTING_START-1; i >= 1; i--)
+				{
+					lidars_to_map_at_routing_start[i] = lidars_to_map_at_routing_start[i-1];
+				}
+				lidars_to_map_at_routing_start[0] = p_lid;
 				if(p_lid->significant_for_mapping)
 				{
 					lidar_send_cnt = 0;

@@ -955,7 +955,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 #define STOP_REASON_OBSTACLE_RIGHT 2
 #define STOP_REASON_OBSTACLE_LEFT 3
 
-#define ORIGIN_TO_ROBOT_FRONT 145
+#define ORIGIN_TO_ROBOT_FRONT 130
 #define ASSUMED_ITEM_POS_FROM_MIDDLE_START 140
 #define ASSUMED_ITEM_STEP_SIZE (MAP_UNIT_W)
 #define ASSUMED_ITEM_NUM_STEPS 4

@@ -1187,7 +1187,15 @@ const char* const AUTOSTATE_NAMES[] =
 	"WAIT_COMPASS_START",
 	"WAIT_COMPASS_END",
 	"SYNC_TO_COMPASS",
-	"FIND_DIR"
+	"FIND_DIR",
+	"WAIT_MOVEMENT",
+	"res",
+	"res",
+	"res",
+	"res",
+	"res",
+	"res",
+	"res"
 };
 
 typedef enum

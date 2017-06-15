@@ -1224,6 +1224,7 @@ void start_automapping_skip_compass()
 
 void autofsm()
 {
+	static int movement_id = 0;
 	extern int32_t cur_compass_ang;
 	extern int compass_round_active;
 	extern int32_t cur_x, cur_y;
@@ -1271,7 +1272,9 @@ void autofsm()
 			extern int32_t cur_ang;
 			if(minimap_find_mapping_dir(ANG32TORAD(cur_ang), &x, &y))
 			{
-				move_to(cur_x+x, cur_y+y, 2 /* auto backmode */, 0x7f, 30);
+				if(movement_id == cur_xymove.id) movement_id+=2;
+				if(movement_id > 100) movement_id = 0;
+				move_to(cur_x+x, cur_y+y, 2 /* auto backmode */, movement_id, 30);
 				cur_autostate++;
 			}
 			else
@@ -1284,7 +1287,7 @@ void autofsm()
 
 		case S_WAIT_MOVEMENT: {
 
-			if((cur_xymove.id == 0x7f && cur_xymove.remaining < 20) || cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags)
+			if((cur_xymove.id == movement_id && cur_xymove.remaining < 20) || cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags)
 			{
 				printf("INFO: Automapping: movement finished, next!\n");
 				cur_autostate = S_FIND_DIR;

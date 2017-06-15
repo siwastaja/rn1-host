@@ -28,7 +28,7 @@
 #define M_PI 3.141592653589793238
 #endif
 
-int mapping_on = 1;
+int mapping_on = 0;
 int motors_on = 1;
 
 uint32_t robot_id = 0xacdcabba; // Hopefully unique identifier for the robot.
@@ -266,7 +266,11 @@ int main(int argc, char** argv)
 			}
 			if(cmd == 'c')
 			{
-				do_compass_round();
+				start_automapping_from_compass();
+			}
+			if(cmd == 'a')
+			{
+				start_automapping_skip_compass();
 			}
 			if(cmd == '0')
 			{
@@ -311,11 +315,6 @@ int main(int argc, char** argv)
 					printf("Robot motors enabled again.\n");
 				}
 			}
-			if(cmd == 'a')
-			{
-				
-			}
-
 
 		}
 
@@ -408,7 +407,7 @@ int main(int argc, char** argv)
 				feedback_stop_flags_processed = 1;
 				int stop_reason = cur_xymove.feedback_stop_flags&0b11;
 				printf("INFO: Collision reported: %s\n", MCU_FEEDBACK_COLLISION_NAMES[stop_reason]);
-				map_collision_obstacle(&world, cur_ang, cur_x, cur_y, stop_reason);
+				if(mapping_on) map_collision_obstacle(&world, cur_ang, cur_x, cur_y, stop_reason);
 			}
 		}
 		else

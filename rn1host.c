@@ -133,7 +133,7 @@ void route_fsm()
 	if(start_route && route_pos == 0)
 	{
 		printf("Start going id=%d!\n", id_cnt<<4);
-		move_to(the_route[0].x, the_route[0].y, the_route[0].backmode, (id_cnt<<4), (mapping_on==1)?1:0);
+		move_to(the_route[0].x, the_route[0].y, the_route[0].backmode, (id_cnt<<4), (mapping_on==1)?30:50);
 		start_route = 0;
 		first_fail = 1;
 	}
@@ -175,7 +175,7 @@ void route_fsm()
 					{
 						route_pos++;
 						printf("Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
-						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), (mapping_on==1)?1:0);
+						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), (mapping_on==1)?30:50);
 						first_fail = 1;
 					}
 					else
@@ -332,7 +332,7 @@ int main(int argc, char** argv)
 				daiju_mode(0);
 
 				printf("  ---> DEST params: X=%d Y=%d backmode=%d\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
-				move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode, 0, (mapping_on==1)?1:0);
+				move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode, 0, (mapping_on==1)?30:50);
 				do_follow_route = 0;
 			}
 			else if(ret == TCP_CR_ROUTE_MID)
@@ -440,7 +440,7 @@ int main(int argc, char** argv)
 				}
 				else
 				{
-					move_to(charger_second_x, charger_second_y, 0, 0, 0x7f);
+					move_to(charger_second_x, charger_second_y, 0, 0x7f, 25);
 					find_charger_state++;
 				}
 			}

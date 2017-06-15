@@ -38,6 +38,7 @@ extern world_t world;
 
 int32_t cur_ang;
 int32_t cur_compass_ang;
+int compass_round_active;
 int32_t cur_x, cur_y;
 int32_t dest_x, dest_y;
 
@@ -61,7 +62,7 @@ int good_time_for_lidar_mapping = 0;
 
 #define sq(x) ((x)*(x))
 
-#define NUM_LATEST_LIDARS_FOR_ROUTING_START 5
+#define NUM_LATEST_LIDARS_FOR_ROUTING_START 7
 static lidar_scan_t* lidars_to_map_at_routing_start[NUM_LATEST_LIDARS_FOR_ROUTING_START];
 
 int run_search()
@@ -267,11 +268,6 @@ int main(int argc, char** argv)
 			{
 				do_compass_round();
 			}
-			if(cmd == 'C')
-			{
-				int32_t ang = cur_compass_ang-90*ANG_1_DEG;
-				set_robot_pos(ang,0,0);
-			}
 			if(cmd == '0')
 			{
 				set_robot_pos(0,0,0);
@@ -315,6 +311,11 @@ int main(int argc, char** argv)
 					printf("Robot motors enabled again.\n");
 				}
 			}
+			if(cmd == 'a')
+			{
+				
+			}
+
 
 		}
 

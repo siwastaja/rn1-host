@@ -13,6 +13,9 @@
 #define M_PI 3.141592653589793238
 #endif
 
+static void normal_search_mode();
+static void tight_search_mode();
+
 world_t* routing_world;
 
 typedef struct search_unit_t search_unit_t;
@@ -35,18 +38,11 @@ float robot_shape_x_len;
 #define ROBOT_SHAPE_WINDOW 32
 uint8_t robot_shapes[32][ROBOT_SHAPE_WINDOW][ROBOT_SHAPE_WINDOW];
 
-int obstacle_limit = 0;
 int unmapped_limit = 3;
 
 static int check_hit(int x, int y, int direction)
 {
-	if(direction < 0 || direction > 31)
-	{
-		printf("ERROR: check_hit() illegal direction (%d).\n", direction);
-		exit(1);
-	}
 	int num_unmapped = 0;
-	int num_obstacles = 0;
 	for(int chk_x=0; chk_x<ROBOT_SHAPE_WINDOW; chk_x++)
 	{
 		for(int chk_y=0; chk_y<ROBOT_SHAPE_WINDOW; chk_y++)
@@ -59,16 +55,10 @@ static int check_hit(int x, int y, int direction)
 				return 1;
 			}
 
-			if(pageoffs_x < 0 || pageoffs_x > 255 || pageoffs_y < 0 || pageoffs_y > 255)
-			{
-				printf("ERROR: check_hit() illegal pageoffs (%d, %d, %d, %d)\n", pageidx_x, pageidx_y, pageoffs_x, pageoffs_y);
-				exit(1);
-			}
-
 			if(robot_shapes[direction][chk_x][chk_y])
 			{
 				if((routing_world->pages[pageidx_x][pageidx_y]->units[pageoffs_x][pageoffs_y].result & UNIT_WALL))
-					num_obstacles++;
+					return 1;
 
 
 				if(!(routing_world->pages[pageidx_x][pageidx_y]->units[pageoffs_x][pageoffs_y].result & UNIT_MAPPED))
@@ -78,8 +68,6 @@ static int check_hit(int x, int y, int direction)
 		}
 	}
 
-	if(num_obstacles > obstacle_limit)
-		return 1;
 
 	if(num_unmapped > unmapped_limit)
 		return 2;
@@ -180,10 +168,162 @@ static int line_of_sight(route_xy_t p1, route_xy_t p2)
 	return 1;
 }
 
+
+
+#define MINIMAP_MIDDLE 384
+uint8_t minimap[768][768];
+
+static int minimap_check_hit(int x, int y, int direction)
+{
+	for(int chk_x=0; chk_x<ROBOT_SHAPE_WINDOW; chk_x++)
+	{
+		for(int chk_y=0; chk_y<ROBOT_SHAPE_WINDOW; chk_y++)
+		{
+			int xx = x-ROBOT_SHAPE_WINDOW/2+chk_x + MINIMAP_MIDDLE;
+			int yy = y-ROBOT_SHAPE_WINDOW/2+chk_y + MINIMAP_MIDDLE;
+
+			if(xx < 0 || yy < 0 || xx >= MINIMAP_SIZE || yy >= MINIMAP_SIZE)
+			{
+				printf("ERROR: invalid minimap coords %d, %d\n", xx, yy);
+				exit(1);
+			}
+
+			if(robot_shapes[direction][chk_x][chk_y])
+			{
+				if(minimap[xx][yy])
+					return 1;
+			}
+
+		}
+	}
+
+	return 0;
+}
+
+static int minimap_test_robot_turn(int x, int y, float start, float end)
+{
+	int cw = 0;
+
+	while(start >= 2.0*M_PI) start -= 2.0*M_PI;
+	while(start < 0.0) start += 2.0*M_PI;
+
+	while(end >= 2.0*M_PI) end -= 2.0*M_PI;
+	while(end < 0.0) end += 2.0*M_PI;
+
+	// Calc for CCW (positive angle):
+	float da = end - start;
+	while(da >= 2.0*M_PI) da -= 2.0*M_PI;
+	while(da < 0.0) da += 2.0*M_PI;
+
+	if(da > M_PI)
+	{
+		// CCW wasn't fine, turn CW
+		cw = 1;
+		da = start - end;
+		while(da >= 2.0*M_PI) da -= 2.0*M_PI;
+		while(da < 0.0) da += 2.0*M_PI;
+	}
+
+	int dir_cur = (start/(2.0*M_PI) * 32.0);
+	int dir_end = (end/(2.0*M_PI) * 32.0);
+
+	if(dir_cur < 0) dir_cur = 0; else if(dir_cur > 31) dir_cur = 31;
+	if(dir_end < 0) dir_end = 0; else if(dir_end > 31) dir_end = 31;
+
+	while(dir_cur != dir_end)
+	{
+		if(minimap_check_hit(x, y, dir_cur))
+			return 0;
+
+		if(cw) dir_cur--; else dir_cur++;
+
+		if(dir_cur < 0) dir_cur = 31;
+		else if(dir_cur > 31) dir_cur = 0;
+	}
+
+	return 1;
+}
+
+static int minimap_line_of_sight(route_xy_t p1, route_xy_t p2)
+{
+	int dx = p2.x - p1.x;
+	int dy = p2.y - p1.y;
+
+	float step = ((robot_shape_x_len-10.0)/MAP_UNIT_W);
+
+	float len = sqrt(sq(dx) + sq(dy));
+
+	float pos = 0.0;
+	int terminate = 0;
+
+	float ang = atan2(dy, dx);
+	if(ang < 0.0) ang += 2.0*M_PI;
+	int dir = (ang/(2.0*M_PI) * 32.0)+0.5;
+	if(dir < 0) dir = 0; else if(dir > 31) dir = 31;
+
+	while(1)
+	{
+		int x = (cos(ang)*pos + (float)p1.x)+0.5;
+		int y = (sin(ang)*pos + (float)p1.y)+0.5;
+
+		if(minimap_check_hit(x, y, dir))
+		{
+			return 0;
+		}
+		if(terminate) break;
+		pos += step;
+		if(pos > len)
+		{
+			pos = len;
+			terminate = 1;
+		}
+	}
+
+	return 1;
+}
+
+
+int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y)
+{
+	normal_search_mode();
+
+	const float fwd_len = 750.0;
+	for(float ang_to = 0; ang_to < DEGTORAD(359.9); ang_to += DEGTORAD(5.0))
+	{
+		route_xy_t start = {0, 0};
+		route_xy_t end = {(int)(cos(ang_to)*fwd_len/(float)MAP_UNIT_W),
+		                  (int)(sin(ang_to)*fwd_len/(float)MAP_UNIT_W)};
+
+		if(minimap_test_robot_turn(0, 0, ang_now, ang_to))
+		{
+			if(minimap_line_of_sight(start, end))
+			{
+				int dest_x = cos(ang_to)*fwd_len;
+				int dest_y = sin(ang_to)*fwd_len;
+
+				printf("Can go to (%d, %d)\n", dest_x, dest_y);
+				*x = dest_x; *y = dest_y;
+				return 1;
+			}
+			else
+			{
+				printf("INFO: minimap_find_mapping_dir: robot cannot go %.1f mm to %.1f deg\n", fwd_len, ang_to);
+			}
+
+		}
+		else
+		{
+			printf("INFO: minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
+		}
+	}
+
+	return 0;
+}
+
+
+
 #define SHAPE_PIXEL(shape, x, y) { robot_shapes[shape][(x)][(y)] = 1;}
-
 int limits_x[ROBOT_SHAPE_WINDOW][2];
-
 #define ABS(x) ((x >= 0) ? x : -x)
 static void triangle_scanline(int x1, int y1, int x2, int y2)
 {
@@ -394,7 +534,6 @@ static void gen_robot_shapes()
 
 static void normal_search_mode()
 {
-	obstacle_limit = 0;
 	unmapped_limit = 3;
 	tight_shapes = 0;
 	gen_robot_shapes();	
@@ -402,7 +541,6 @@ static void normal_search_mode()
 
 static void tight_search_mode()
 {
-	obstacle_limit = 1;
 	unmapped_limit = 10;
 	tight_shapes = 1;
 	gen_robot_shapes();	

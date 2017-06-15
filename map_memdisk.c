@@ -39,7 +39,7 @@ int read_map_page(world_t* w, int pagex, int pagey)
 	char fname[1024];
 	sprintf(fname, "%08x_%u_%u_%u.map", robot_id, w->id, pagex, pagey);
 
-	printf("Info: Attempting to read map page %s\n", fname);
+	//printf("Info: Attempting to read map page %s\n", fname);
 
 	w->changed[pagex][pagey] = 0;
 
@@ -76,7 +76,7 @@ int load_map_page(world_t* w, int pagex, int pagey)
 	int ret = read_map_page(w, pagex, pagey);
 	if(ret == 2)
 	{
-		printf("Info: map page file didn't exist, initializing empty map page\n");
+//		printf("Info: map page file didn't exist, initializing empty map page\n");
 		memset(w->pages[pagex][pagey], 0, sizeof(map_page_t));
 	}
 	else if(ret)

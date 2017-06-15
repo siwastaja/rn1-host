@@ -21,6 +21,7 @@ int significant_lidar_rd = 0;
 int sonar_wr = 0;
 int sonar_rd = 0;
 
+lidar_scan_t* latest_lidar;
 lidar_scan_t lidars[LIDAR_RING_BUF_LEN];
 lidar_scan_t significant_lidars[SIGNIFICANT_LIDAR_RING_BUF_LEN];
 sonar_scan_t sonars[SONAR_RING_BUF_LEN];
@@ -116,8 +117,8 @@ int parse_uart_msg(uint8_t* buf, int len)
 				}
 			}
 
-
 			lidar_scan_t* lid = is_significant?&significant_lidars[significant_lidar_wr]:&lidars[lidar_wr];
+			latest_lidar = lid;
 			lid->is_invalid = (buf[1]&2)?1:0;
 			lid->significant_for_mapping = is_significant;
 			lid->robot_pos.ang = (I7I7_U16_lossy(buf[2], buf[3]))<<16;
@@ -183,6 +184,8 @@ int parse_uart_msg(uint8_t* buf, int len)
 		case 0xa3:
 		{
 			extern int32_t cur_compass_ang;
+			extern int compass_round_active;
+			compass_round_active = buf[1];
 			cur_compass_ang = I7I7_U16_lossy(buf[2], buf[3])<<16;
 		}
 		break;

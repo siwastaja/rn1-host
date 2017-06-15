@@ -12,6 +12,8 @@
 #include "datatypes.h"
 #include "map_memdisk.h"
 #include "mapping.h"
+#include "hwdata.h"
+#include "routing.h"
 
 static const int search_order[25][2] = { 
 	{ 0, 0},
@@ -956,6 +958,34 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	return ret;
 }
 
+#define MINIMAP_SIZE 768
+#define MINIMAP_MIDDLE 384
+extern uint8_t minimap[MINIMAP_SIZE][MINIMAP_SIZE];
+
+int map_lidar_to_minimap(lidar_scan_t *p_lid)
+{
+	printf("Info: mapping lidar to minimap\n");
+	memset(minimap, 0, MINIMAP_SIZE*MINIMAP_SIZE*sizeof(uint8_t));
+	for(int p=0; p<LIDAR_SCAN_POINTS; p++)
+	{
+		if(!p_lid->scan[p].valid)
+			continue;
+
+		int x = (p_lid->scan[p].x - p_lid->robot_pos.x) / MAP_UNIT_W + MINIMAP_MIDDLE;
+		int y = (p_lid->scan[p].y - p_lid->robot_pos.y) / MAP_UNIT_W + MINIMAP_MIDDLE;
+
+		if(x < 0 || x >= MINIMAP_SIZE || y < 0 || y >= MINIMAP_SIZE)
+		{
+			printf("WARN: ignoring out of range coordinates (map_lidar_to_minimap(), %d,%d)\n", x, y);
+			continue;
+		}
+
+		minimap[x][y] = 1;
+	}
+
+	return 0;
+}
+
 #define STOP_REASON_OBSTACLE_RIGHT 2
 #define STOP_REASON_OBSTACLE_LEFT 3
 
@@ -1148,3 +1178,117 @@ int how_much_forward_before_hit(lidar_scan_t* lid, pos_t dest)
 //{
 //	move_to(msg_cr_dest.x, msg_cr_dest.y);
 //}
+
+const char* const AUTOSTATE_NAMES[] =
+{
+	"IDLE",
+	"START",
+	"COMPASS",
+	"WAIT_COMPASS_START",
+	"WAIT_COMPASS_END",
+	"SYNC_TO_COMPASS",
+	"FIND_DIR"
+};
+
+typedef enum
+{
+	S_IDLE   		= 0,
+	S_START 		= 1,
+	S_COMPASS		= 2,
+	S_WAIT_COMPASS_START	= 3,
+	S_WAIT_COMPASS_END	= 4,
+	S_SYNC_TO_COMPASS	= 5,
+	S_FIND_DIR		= 6,
+	S_WAIT_MOVEMENT  	= 7
+} autostate_t;
+
+autostate_t cur_autostate;
+
+void start_automapping_from_compass()
+{
+	cur_autostate = S_START;
+}
+
+void start_automapping_skip_compass()
+{
+	cur_autostate = S_FIND_DIR;
+}
+
+void autofsm()
+{
+	extern int32_t cur_compass_ang;
+	extern int compass_round_active;
+	extern int32_t cur_x, cur_y;
+	extern int mapping_on;
+
+	int prev_autostate = cur_autostate;
+
+	switch(cur_autostate)
+	{
+		case S_IDLE: {
+
+		} break;
+
+		case S_START: {
+			mapping_on = 0;
+		} break;
+
+		case S_COMPASS: {
+			do_compass_round();
+			cur_autostate++;
+		} break;
+
+		case S_WAIT_COMPASS_START: {
+			if(compass_round_active)
+				cur_autostate++;
+		} break;
+
+		case S_WAIT_COMPASS_END: {
+			if(!compass_round_active)
+				cur_autostate++;
+		} break;
+
+		case S_SYNC_TO_COMPASS: {
+			int32_t ang = cur_compass_ang-90*ANG_1_DEG;
+			set_robot_pos(ang,cur_x,cur_y);		
+			cur_autostate++;
+//			printf("Info: turned mapping on.\n");
+//			mapping_on = 0;
+		} break;
+
+		case S_FIND_DIR: {
+			map_lidar_to_minimap(latest_lidar);
+			int32_t x, y;
+			extern int32_t cur_ang;
+			if(minimap_find_mapping_dir(ANG32TORAD(cur_ang), &x, &y))
+			{
+				move_to(cur_x+x, cur_y+y, 2 /* auto backmode */, 0x7f, 30);
+				cur_autostate++;
+			}
+			else
+			{
+				printf("INFO: Automapping: direction to go to not found; giving up.\n");
+				cur_autostate = S_IDLE;
+			}
+
+		} break;
+
+		case S_WAIT_MOVEMENT: {
+
+			if((cur_xymove.id == 0x7f && cur_xymove.remaining < 20) || cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags)
+			{
+				printf("INFO: Automapping: movement finished, next!\n");
+				cur_autostate = S_FIND_DIR;
+			}
+
+		} break;
+	}
+
+	if(cur_autostate != prev_autostate)
+	{
+		printf("INFO: autostate change %s --> %s\n", AUTOSTATE_NAMES[prev_autostate], AUTOSTATE_NAMES[cur_autostate]);
+	}
+}
+
+
+

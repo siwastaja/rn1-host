@@ -14,6 +14,7 @@
 #define ANG32TORAD(x) ( ((float)((uint32_t)(x)))/683565275.576432)
 #define ANG32TOFDEG(x) ( ((float)((uint32_t)(x)))/11930464.7111111)
 #define RADTODEG(x) ((x)*(360.0/(2.0*M_PI)))
+#define DEGTORAD(x) ((x)*((2.0*M_PI)/360.0))
 
 void wdbg(char* mesta);
 

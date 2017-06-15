@@ -1289,6 +1289,7 @@ void autofsm()
 
 			if((cur_xymove.id == movement_id && cur_xymove.remaining < 20) || cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags)
 			{
+				movement_id++; if(movement_id > 100) movement_id = 0;
 				printf("INFO: Automapping: movement finished, next!\n");
 				cur_autostate = S_FIND_DIR;
 			}

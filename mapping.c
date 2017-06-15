@@ -1222,6 +1222,12 @@ void start_automapping_skip_compass()
 	cur_autostate = S_FIND_DIR;
 }
 
+void stop_automapping()
+{
+	map_significance_mode = MAP_SIGNIFICANT_IMGS;
+	cur_autostate = S_IDLE;
+}
+
 void autofsm()
 {
 	static int movement_id = 0;
@@ -1270,6 +1276,8 @@ void autofsm()
 		} break;
 
 		case S_FIND_DIR: {
+			map_significance_mode = MAP_SIGNIFICANT_IMGS | MAP_SEMISIGNIFICANT_IMGS;
+			mapping_on = 1;
 			map_lidar_to_minimap(latest_lidar);
 			int32_t x, y;
 			int need_to_back = 0;

@@ -29,6 +29,9 @@
 #endif
 
 int mapping_on = 0;
+
+int map_significance_mode = MAP_SIGNIFICANT_IMGS | MAP_SEMISIGNIFICANT_IMGS;
+
 int motors_on = 1;
 
 uint32_t robot_id = 0xacdcabba; // Hopefully unique identifier for the robot.
@@ -274,6 +277,11 @@ int main(int argc, char** argv)
 				printf("Starting automapping, skipping compass round.\n");
 				start_automapping_skip_compass();
 			}
+			if(cmd == 'w')
+			{
+				printf("Stopping automapping.\n");
+				stop_automapping();
+			}
 			if(cmd == '0')
 			{
 				set_robot_pos(0,0,0);
@@ -509,7 +517,7 @@ int main(int argc, char** argv)
 					lidars_to_map_at_routing_start[i] = lidars_to_map_at_routing_start[i-1];
 				}
 				lidars_to_map_at_routing_start[0] = p_lid;
-				if(p_lid->significant_for_mapping)
+				if(p_lid->significant_for_mapping & map_significance_mode)
 				{
 					lidar_send_cnt = 0;
 					if(tcp_client_sock >= 0) tcp_send_lidar(p_lid);
@@ -541,7 +549,7 @@ int main(int argc, char** argv)
 						}
 						else
 						{
-							printf("INFO: Got significant lidar scan, adding to the mapping queue.\n");
+							printf("INFO: Got significant(%d) lidar scan, adding to the mapping queue.\n", p_lid->significant_for_mapping);
 							lidars_to_map[n_lidars_to_map] = p_lid;
 
 							n_lidars_to_map++;

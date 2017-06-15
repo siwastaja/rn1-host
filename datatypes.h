@@ -72,5 +72,9 @@ typedef struct
 extern pwr_status_t pwr_status;
 extern xymove_t cur_xymove;
 
+#define MAP_SIGNIFICANT_IMGS     1
+#define MAP_SEMISIGNIFICANT_IMGS 2
+extern int map_significance_mode;
+
 
 #endif

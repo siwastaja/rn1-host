@@ -283,7 +283,7 @@ static int minimap_line_of_sight(route_xy_t p1, route_xy_t p2)
 }
 
 
-int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desired_x, int32_t desired_y)
+int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desired_x, int32_t desired_y, int* back)
 {
 	normal_search_mode();
 
@@ -292,6 +292,7 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 
 	int num_cango_places = 0;
 	route_xy_t cango_places[100];
+	int backs[100];
 
 	for(int tries=0; tries < 2; tries++)
 	{
@@ -313,6 +314,7 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 
 						printf("Can go to (%d, %d)\n", dest_x, dest_y);
 						cango_places[num_cango_places].x = dest_x; cango_places[num_cango_places].y = dest_y;
+						if(fwd_len < 0.0) backs[num_cango_places] = 1; else backs[num_cango_places] = 0;
 						num_cango_places++;
 						if(num_cango_places > 99)
 							goto PLACE_LIST_FULL;
@@ -360,7 +362,8 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 	}
 
 	printf("INFO: (%d, %d) is nearest the desired (%d, %d)\n", cango_places[nearest_i].x, cango_places[nearest_i].y, desired_x, desired_y);
-	*x = cango_places[nearest_i].x ; *y = cango_places[nearest_i].y;
+	*x = cango_places[nearest_i].x ; *y = cango_places[nearest_i].y; *back = backs[nearest_i];
+
 	return 1;
 
 

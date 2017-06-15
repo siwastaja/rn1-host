@@ -1272,12 +1272,13 @@ void autofsm()
 		case S_FIND_DIR: {
 			map_lidar_to_minimap(latest_lidar);
 			int32_t x, y;
+			int need_to_back = 0;
 			extern int32_t cur_ang;
-			if(minimap_find_mapping_dir(ANG32TORAD(cur_ang), &x, &y, some_desired_x, some_desired_y))
+			if(minimap_find_mapping_dir(ANG32TORAD(cur_ang), &x, &y, some_desired_x, some_desired_y, &need_to_back))
 			{
 				if(movement_id == cur_xymove.id) movement_id+=2;
 				if(movement_id > 100) movement_id = 0;
-				move_to(cur_x+x, cur_y+y, 2 /* auto backmode */, movement_id, 30);
+				move_to(cur_x+x, cur_y+y, need_to_back, movement_id, 30);
 				cur_autostate++;
 			}
 			else

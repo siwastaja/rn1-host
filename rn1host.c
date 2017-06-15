@@ -461,6 +461,7 @@ int main(int argc, char** argv)
 		}
 
 		route_fsm();
+		autofsm();
 
 		lidar_scan_t* p_lid;
 

@@ -114,6 +114,7 @@ void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, i
 
 void start_automapping_from_compass();
 void start_automapping_skip_compass();
+void autofsm();
 
 
 #endif

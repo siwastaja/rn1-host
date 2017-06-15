@@ -1231,6 +1231,7 @@ void autofsm()
 
 		case S_START: {
 			mapping_on = 0;
+			cur_autostate++;
 		} break;
 
 		case S_COMPASS: {
@@ -1282,6 +1283,8 @@ void autofsm()
 			}
 
 		} break;
+
+		default: break;
 	}
 
 	if(cur_autostate != prev_autostate)

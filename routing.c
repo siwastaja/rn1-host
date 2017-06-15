@@ -287,34 +287,45 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y)
 {
 	normal_search_mode();
 
-	const float fwd_len = 750.0;
-	for(float ang_to = 0; ang_to < DEGTORAD(359.9); ang_to += DEGTORAD(5.0))
+	#define NUM_FWDS 6
+	const float fwds[NUM_FWDS] = {750.0, -500.0, 400.0, -300.0, 200.0, -150.0};
+
+	for(int tries=0; tries < 2; tries++)
 	{
-		route_xy_t start = {0, 0};
-		route_xy_t end = {(int)(cos(ang_to)*fwd_len/(float)MAP_UNIT_W),
-		                  (int)(sin(ang_to)*fwd_len/(float)MAP_UNIT_W)};
-
-		if(minimap_test_robot_turn(0, 0, ang_now, ang_to))
+		for(int f=0; f < NUM_FWDS; f++)
 		{
-			if(minimap_line_of_sight(start, end))
+			for(float ang_to = 0; ang_to < DEGTORAD(359.9); ang_to += DEGTORAD(5.0))
 			{
-				int dest_x = cos(ang_to)*fwd_len;
-				int dest_y = sin(ang_to)*fwd_len;
+				float fwd_len = fwds[f];
+				route_xy_t start = {0, 0};
+				route_xy_t end = {(int)(cos(ang_to)*fwd_len/(float)MAP_UNIT_W),
+						  (int)(sin(ang_to)*fwd_len/(float)MAP_UNIT_W)};
 
-				printf("Can go to (%d, %d)\n", dest_x, dest_y);
-				*x = dest_x; *y = dest_y;
-				return 1;
-			}
-			else
-			{
-				printf("INFO: minimap_find_mapping_dir: robot cannot go %.1f mm to %.1f deg\n", fwd_len, ang_to);
-			}
+				if(minimap_test_robot_turn(0, 0, ang_now, ang_to))
+				{
+					if(minimap_line_of_sight(start, end))
+					{
+						int dest_x = cos(ang_to)*fwd_len;
+						int dest_y = sin(ang_to)*fwd_len;
 
+						printf("Can go to (%d, %d)\n", dest_x, dest_y);
+						*x = dest_x; *y = dest_y;
+						return 1;
+					}
+					else
+					{
+						printf("INFO: minimap_find_mapping_dir: robot cannot go %.1f mm to %.1f deg\n", fwd_len, RADTODEG(ang_to));
+					}
+
+				}
+				else
+				{
+					printf("INFO: minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
+				}
+			}
 		}
-		else
-		{
-			printf("INFO: minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
-		}
+		printf("INFO: minimap_find_mapping_dir goes to tight search mode.\n");
+		tight_search_mode();
 	}
 
 	return 0;

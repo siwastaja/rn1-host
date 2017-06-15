@@ -1232,6 +1232,9 @@ void autofsm()
 
 	int prev_autostate = cur_autostate;
 
+	static int some_desired_x = 1000;
+	static int some_desired_y = 1000;
+
 	switch(cur_autostate)
 	{
 		case S_IDLE: {
@@ -1270,7 +1273,7 @@ void autofsm()
 			map_lidar_to_minimap(latest_lidar);
 			int32_t x, y;
 			extern int32_t cur_ang;
-			if(minimap_find_mapping_dir(ANG32TORAD(cur_ang), &x, &y))
+			if(minimap_find_mapping_dir(ANG32TORAD(cur_ang), &x, &y, some_desired_x, some_desired_y))
 			{
 				if(movement_id == cur_xymove.id) movement_id+=2;
 				if(movement_id > 100) movement_id = 0;
@@ -1287,10 +1290,17 @@ void autofsm()
 
 		case S_WAIT_MOVEMENT: {
 
-			if((cur_xymove.id == movement_id && cur_xymove.remaining < 20) || cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags)
+			if(cur_xymove.id == movement_id && cur_xymove.remaining < 20)
 			{
 				movement_id++; if(movement_id > 100) movement_id = 0;
 				printf("INFO: Automapping: movement finished, next!\n");
+				cur_autostate = S_FIND_DIR;
+			}
+			else if(cur_xymove.id == movement_id && (cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags))
+			{
+				movement_id++; if(movement_id > 100) movement_id = 0;
+				printf("INFO: Automapping: movement stopped, next different way\n");
+				some_desired_x *= -1; some_desired_y *= -1;
 				cur_autostate = S_FIND_DIR;
 			}
 

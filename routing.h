@@ -26,6 +26,6 @@ int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_
 #define MINIMAP_MIDDLE 384
 extern uint8_t minimap[MINIMAP_SIZE][MINIMAP_SIZE];
 
-int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y);
+int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desired_x, int32_t desired_y);
 
 #endif

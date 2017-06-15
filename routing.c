@@ -283,12 +283,15 @@ static int minimap_line_of_sight(route_xy_t p1, route_xy_t p2)
 }
 
 
-int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y)
+int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desired_x, int32_t desired_y)
 {
 	normal_search_mode();
 
 	#define NUM_FWDS 6
 	const float fwds[NUM_FWDS] = {750.0, -500.0, 400.0, -300.0, 200.0, -150.0};
+
+	int num_cango_places = 0;
+	route_xy_t cango_places[100];
 
 	for(int tries=0; tries < 2; tries++)
 	{
@@ -309,26 +312,58 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y)
 						int dest_y = sin(ang_to)*fwd_len;
 
 						printf("Can go to (%d, %d)\n", dest_x, dest_y);
-						*x = dest_x; *y = dest_y;
-						return 1;
+						cango_places[num_cango_places].x = dest_x; cango_places[num_cango_places].y = dest_y;
+						num_cango_places++;
+						if(num_cango_places > 99)
+							goto PLACE_LIST_FULL;
 					}
 					else
 					{
-						printf("INFO: minimap_find_mapping_dir: robot cannot go %.1f mm to %.1f deg\n", fwd_len, RADTODEG(ang_to));
+//						printf("INFO: minimap_find_mapping_dir: robot cannot go %.1f mm to %.1f deg\n", fwd_len, RADTODEG(ang_to));
 					}
 
 				}
 				else
 				{
-					printf("INFO: minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
+//					printf("INFO: minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
 				}
 			}
 		}
-		printf("INFO: minimap_find_mapping_dir goes to tight search mode.\n");
-		tight_search_mode();
+
+		if(num_cango_places < 8)
+		{
+			printf("INFO: minimap_find_mapping_dir goes to tight search mode to find more possibilities (%d so far).\n", num_cango_places);
+			tight_search_mode();
+		}
+		else
+			goto PLACE_LIST_DONE;
 	}
 
-	return 0;
+	PLACE_LIST_DONE: ;
+	PLACE_LIST_FULL: ;
+
+	if(num_cango_places == 0)
+	{
+		return 0;
+	}
+
+	int64_t nearest = INT64_MAX;
+	int nearest_i = 0;
+	for(int i=0; i < num_cango_places; i++)
+	{	
+		int64_t dist_sq = sq(cango_places[i].x - desired_x) + sq(cango_places[i].y - desired_y);
+		if(dist_sq < nearest)
+		{
+			nearest = dist_sq;
+			nearest_i = i;
+		}
+	}
+
+	printf("INFO: (%d, %d) is nearest the desired (%d, %d)\n", cango_places[nearest_i].x, cango_places[nearest_i].y, desired_x, desired_y);
+	*x = cango_places[nearest_i].x ; *y = cango_places[nearest_i].y;
+	return 1;
+
+
 }
 
 

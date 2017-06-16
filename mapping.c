@@ -434,7 +434,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		}
 	}
 
-
+/*
 	// Output 768x768x24bit raw image for debug.
 	FILE* dbg_f = fopen("dbg_image_before.data", "w");
 
@@ -466,6 +466,8 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	}
 
 	fclose(dbg_f);
+
+*/
 
 	/*
 		Processing round - try to remove duplicate wall units within the same vectors.
@@ -545,7 +547,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			}
 		}
 	}
-
+/*
 
 	// Output 768x768x24bit raw image for debug.
 	dbg_f = fopen("dbg_image_after.data", "w");
@@ -578,7 +580,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	}
 
 	fclose(dbg_f);
-
+*/
 	// Load relevant 9 pages in memory
 	page_coords(rotate_mid_x, rotate_mid_y, &pagex, &pagey, &offsx, &offsy);
 	load_9pages(&world, pagex, pagey);

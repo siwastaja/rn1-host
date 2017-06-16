@@ -973,6 +973,12 @@ extern uint8_t minimap[MINIMAP_SIZE][MINIMAP_SIZE];
 
 int map_lidar_to_minimap(lidar_scan_t *p_lid)
 {
+	if(!p_lid)
+	{
+		printf("ERROR: invalid p_lid\n");
+		return -1;
+	}
+
 	printf("Info: mapping lidar to minimap\n");
 	memset(minimap, 0, MINIMAP_SIZE*MINIMAP_SIZE*sizeof(uint8_t));
 	for(int p=0; p<LIDAR_SCAN_POINTS; p++)

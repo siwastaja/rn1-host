@@ -4,6 +4,7 @@
 #include <string.h>
 #include <errno.h>
 #include <math.h>
+#include <unistd.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323
@@ -1304,6 +1305,7 @@ void autofsm()
 			extern int32_t cur_ang;
 			if(minimap_find_mapping_dir(ANG32TORAD(cur_ang), &dx, &dy, some_desired_x, some_desired_y, &need_to_back))
 			{
+				printf("Found direction\n");
 				daiju_mode(0);
 				daijued = 0;
 				if(movement_id == cur_xymove.id) movement_id+=2;
@@ -1315,8 +1317,9 @@ void autofsm()
 			{
 				if(!daijued)
 				{
-					printf("INFO: Automapping: direction to go to not found; daijuing for a while.\n");
+					printf("INFO: Automapping: can't go anywhere; daijuing for a while.\n");
 					daiju_mode(1);
+					sleep(1);
 					daijued = 1;
 				}
 			}

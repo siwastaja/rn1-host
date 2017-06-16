@@ -322,11 +322,11 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 						int dest_x = cos(ang_to)*fwd_len;
 						int dest_y = sin(ang_to)*fwd_len;
 
-						printf("Minimap: can go to (%d, %d), checking actual map...\n", dest_x, dest_y);
+						printf("Minimap: can go to (%d, %d), check actual map...", dest_x, dest_y);
 						if(check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), 
 							MM_TO_UNIT(dest_x+cur_x), MM_TO_UNIT(dest_y+cur_y)))
 						{
-							printf("... Agreed.\n");
+							printf(" Agreed.\n");
 							cango_places[num_cango_places].x = dest_x; cango_places[num_cango_places].y = dest_y;
 							if(fwd_len < 0.0) backs[num_cango_places] = 1; else backs[num_cango_places] = 0;
 							num_cango_places++;
@@ -335,7 +335,7 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 						}
 						else
 						{
-							printf("... Disagreed.\n");
+							printf(" Disagreed.\n");
 						}
 
 					}
@@ -1065,13 +1065,13 @@ int check_direct_route(int32_t start_ang, int start_x, int start_y, int end_x, i
 
 	if(test_robot_turn(start_x, start_y, ANG32TORAD(start_ang), end_ang))
 	{
-		printf("INFO: check_direct_route(): robot can turn...\n");
+//		printf("INFO: check_direct_route(): robot can turn...\n");
 		route_xy_t start = {start_x, start_y};
 		route_xy_t end = {end_x, end_y};
 //		printf(" start = (%d, %d)  end = (%d, %d)\n", start_x, start_y, end_x, end_y);
 		if(line_of_sight(start, end))
 		{
-			printf("INFO: check_direct_route(): there is line of sight\n");
+//			printf("INFO: check_direct_route(): there is line of sight\n");
 			return 1;
 		}
 	}

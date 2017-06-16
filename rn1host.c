@@ -179,6 +179,7 @@ void route_fsm()
 					{
 						route_pos++;
 
+						printf("INFO: joo1\n");
 						// Check if we can skip some points:
 						while(the_route[route_pos].backmode == 0 && route_pos < do_follow_route-1)
 						{
@@ -189,7 +190,10 @@ void route_fsm()
 								route_pos++;
 							}
 							else
+							{
+								printf("INFO: joo2\n");
 								break;
+							}
 						}
 						printf("Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
 						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), (mapping_on==1)?30:50);

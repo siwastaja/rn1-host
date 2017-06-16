@@ -1039,7 +1039,10 @@ int check_direct_route(int32_t start_ang, int start_x, int start_y, int end_x, i
 	float end_ang = atan2(dy, dx);
 	if(end_ang < 0.0) end_ang += 2.0*M_PI;
 
-	if(test_robot_turn(start_x, start_y, start_ang, end_ang))
+
+	printf("INFO: check_direct_route()\n");
+
+	if(test_robot_turn(start_x, start_y, ANG32TORAD(start_ang), end_ang))
 	{
 		printf("INFO: check_direct_route(): robot can turn...\n");
 		route_xy_t start = {start_x, start_y};

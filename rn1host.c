@@ -24,10 +24,6 @@
 
 #include "mcu_micronavi_docu.c"
 
-#ifndef M_PI
-#define M_PI 3.141592653589793238
-#endif
-
 int mapping_on = 0;
 
 int map_significance_mode = MAP_SIGNIFICANT_IMGS;

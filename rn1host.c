@@ -285,11 +285,13 @@ int main(int argc, char** argv)
 			if(cmd == 'c')
 			{
 				printf("Starting automapping from compass round.\n");
+				routing_set_world(&world);
 				start_automapping_from_compass();
 			}
 			if(cmd == 'a')
 			{
 				printf("Starting automapping, skipping compass round.\n");
+				routing_set_world(&world);
 				start_automapping_skip_compass();
 			}
 			if(cmd == 'w')

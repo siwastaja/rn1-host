@@ -51,7 +51,7 @@ static int check_hit(int x, int y, int direction)
 			int pageidx_x, pageidx_y, pageoffs_x, pageoffs_y;
 			page_coords_from_unit_coords(x-ROBOT_SHAPE_WINDOW/2+chk_x, y-ROBOT_SHAPE_WINDOW/2+chk_y, &pageidx_x, &pageidx_y, &pageoffs_x, &pageoffs_y);
 
-			printf("%d %d  %d %d\n", pageidx_x, pageidx_y, pageoffs_x, pageoffs_y);
+//			printf("%d %d  %d %d\n", pageidx_x, pageidx_y, pageoffs_x, pageoffs_y);
 			if(pageidx_x < 0 || pageidx_x >= MAP_W || pageidx_y < 0 || pageidx_y >= MAP_W)
 			{
 				printf("check_hit(): out-of-range pageidx (%d, %d)\n", pageidx_x, pageidx_y);
@@ -1048,6 +1048,10 @@ int lidar_to_map(uint8_t *p_map, int32_t *mid_x, int32_t *mid_y, lidar_scan_t* p
 	return 0;
 }
 
+void routing_set_world(world_t *w)
+{
+	routing_world = w;
+}
 
 int check_direct_route(int32_t start_ang, int start_x, int start_y, int end_x, int end_y)
 {

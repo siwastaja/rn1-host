@@ -303,6 +303,7 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 	int num_cango_places = 0;
 	route_xy_t cango_places[100];
 	int backs[100];
+	int disagrees = 0;
 
 	for(int tries=0; tries < 2; tries++)
 	{
@@ -322,11 +323,11 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 						int dest_x = cos(ang_to)*fwd_len;
 						int dest_y = sin(ang_to)*fwd_len;
 
-						printf("Minimap: can go to (%d, %d), check actual map...", dest_x, dest_y);
+//						printf("Minimap: can go to (%d, %d), check actual map...", dest_x, dest_y);
 						if(check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), 
 							MM_TO_UNIT(dest_x+cur_x), MM_TO_UNIT(dest_y+cur_y)))
 						{
-							printf(" Agreed.\n");
+//							printf(" Agreed.\n");
 							cango_places[num_cango_places].x = dest_x; cango_places[num_cango_places].y = dest_y;
 							if(fwd_len < 0.0) backs[num_cango_places] = 1; else backs[num_cango_places] = 0;
 							num_cango_places++;
@@ -335,7 +336,8 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 						}
 						else
 						{
-							printf(" Disagreed.\n");
+							disagrees++;
+//							printf(" Disagreed.\n");
 						}
 
 					}
@@ -381,7 +383,8 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 		}
 	}
 
-	printf("INFO: (%d, %d) is nearest the desired (%d, %d)\n", cango_places[nearest_i].x, cango_places[nearest_i].y, desired_x, desired_y);
+	printf("INFO: (%d, %d) is nearest the desired (%d, %d) (%d found from lidar only; %d agreed with map)\n",
+		cango_places[nearest_i].x, cango_places[nearest_i].y, desired_x, desired_y, num_cango_places, num_cango_places+disagrees);
 	*x = cango_places[nearest_i].x ; *y = cango_places[nearest_i].y; *back = backs[nearest_i];
 
 	return 1;

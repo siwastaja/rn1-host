@@ -1090,8 +1090,8 @@ void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, i
 			for(int o = 0; o < 2; o++)
 			{
 				int dist_to_outline = robot_outline[idx] + 30 + o*40;
-				float x = (float)cur_x + cos(ANG32TORAD(cur_ang) + vect_ang_rad)*(float)dist_to_outline;
-				float y = (float)cur_y + sin(ANG32TORAD(cur_ang) + vect_ang_rad)*(float)dist_to_outline;
+				float x = (float)cur_x + cos( ANG32TORAD(cur_ang) + vect_ang_rad+((float)i*2.0*M_PI/32.0) )*(float)dist_to_outline;
+				float y = (float)cur_y + sin( ANG32TORAD(cur_ang) + vect_ang_rad+((float)i*2.0*M_PI/32.0) )*(float)dist_to_outline;
 
 				page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
 				load_9pages(&world, idx_x, idx_y);

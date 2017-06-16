@@ -42,7 +42,7 @@ int unmapped_limit = 3;
 
 static int check_hit(int x, int y, int direction)
 {
-	printf("check_hit(%d, %d, %d)\n", x, y, direction);
+//	printf("check_hit(%d, %d, %d)\n", x, y, direction);
 	int num_unmapped = 0;
 	for(int chk_x=0; chk_x<ROBOT_SHAPE_WINDOW; chk_x++)
 	{
@@ -52,11 +52,11 @@ static int check_hit(int x, int y, int direction)
 			page_coords_from_unit_coords(x-ROBOT_SHAPE_WINDOW/2+chk_x, y-ROBOT_SHAPE_WINDOW/2+chk_y, &pageidx_x, &pageidx_y, &pageoffs_x, &pageoffs_y);
 
 //			printf("%d %d  %d %d\n", pageidx_x, pageidx_y, pageoffs_x, pageoffs_y);
-			if(pageidx_x < 0 || pageidx_x >= MAP_W || pageidx_y < 0 || pageidx_y >= MAP_W)
-			{
-				printf("check_hit(): out-of-range pageidx (%d, %d)\n", pageidx_x, pageidx_y);
-				exit(1);
-			}
+//			if(pageidx_x < 0 || pageidx_x >= MAP_W || pageidx_y < 0 || pageidx_y >= MAP_W)
+//			{
+//				printf("check_hit(): out-of-range pageidx (%d, %d)\n", pageidx_x, pageidx_y);
+//				exit(1);
+//			}
 
 			if(!routing_world->pages[pageidx_x][pageidx_y]) // out of bounds (not allocated) - give up instantly
 			{
@@ -322,7 +322,7 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 						int dest_x = cos(ang_to)*fwd_len;
 						int dest_y = sin(ang_to)*fwd_len;
 
-						printf("Minimap: can go to (%d, %d), checking actual map...", dest_x, dest_y); fflush(stdout);
+						printf("Minimap: can go to (%d, %d), checking actual map...", dest_x, dest_y); //fflush(stdout);
 						if(check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), 
 							MM_TO_UNIT(dest_x*MAP_UNIT_W+cur_x), MM_TO_UNIT(dest_y*MAP_UNIT_W+cur_y)))
 						{

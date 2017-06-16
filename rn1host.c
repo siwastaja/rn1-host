@@ -30,7 +30,7 @@
 
 int mapping_on = 0;
 
-int map_significance_mode = MAP_SIGNIFICANT_IMGS | MAP_SEMISIGNIFICANT_IMGS;
+int map_significance_mode = MAP_SIGNIFICANT_IMGS;
 
 int motors_on = 1;
 

@@ -13,6 +13,9 @@
 
 #define CONSTRAINT_FORBIDDEN 	(1<<0)	// "Don't go here" unit
 
+#define PLUS_SAT_255(x) {if((x)<255) (x)++;}
+#define MINUS_SAT_0(x) {if((x)>0) (x)--;}
+
 
 /*
 Map unit is a 40mm*40mm area. Memory usage is carefully considered, because the world is a 2D map of the map units.

@@ -527,6 +527,23 @@ int main(int argc, char** argv)
 				page_coords(p_lid->robot_pos.x, p_lid->robot_pos.y, &idx_x, &idx_y, &offs_x, &offs_y);
 				load_9pages(&world, idx_x, idx_y);
 
+				if(mapping_on)
+				{
+					// Clear any walls and items within the robot:
+
+					for(int xx = -120; xx <= 120; xx++)
+					{
+						for(int yy = -120; yy <= 120; yy++)
+						{
+							page_coords(p_lid->robot_pos.x + xx, p_lid->robot_pos.y + yy, &idx_x, &idx_y, &offs_x, &offs_y);
+							world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = UNIT_MAPPED;
+							MINUS_SAT_0(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+						}
+					}
+
+				}
+
+
 				// Keep a pointer list of a few latest lidars; significant or insignificant will do.
 				// This list is used to do last-second mapping before routing, to get good starting position.
 				for(int i = NUM_LATEST_LIDARS_FOR_ROUTING_START-1; i >= 1; i--)

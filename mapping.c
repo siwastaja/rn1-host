@@ -306,9 +306,6 @@ typedef struct  // Each bit represents each lidar scan (i.e., 32 lidar scans max
 #define TEMP_MAP_W (3*MAP_PAGE_W)
 #define TEMP_MAP_MIDDLE (TEMP_MAP_W/2)
 
-#define PLUS_SAT_255(x) {if((x)<255) (x)++;}
-#define MINUS_SAT_0(x) {if((x)>0) (x)--;}
-
 static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
                       int32_t da, int32_t dx, int32_t dy, int32_t rotate_mid_x, int32_t rotate_mid_y,
                       int32_t *after_dx, int32_t *after_dy)

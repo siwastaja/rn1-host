@@ -1002,6 +1002,7 @@ int map_lidar_to_minimap(lidar_scan_t *p_lid)
 	return 0;
 }
 
+#define STOP_REASON_JERK 1
 #define STOP_REASON_OBSTACLE_RIGHT 2
 #define STOP_REASON_OBSTACLE_LEFT 3
 
@@ -1010,36 +1011,104 @@ int map_lidar_to_minimap(lidar_scan_t *p_lid)
 #define ASSUMED_ITEM_STEP_SIZE (MAP_UNIT_W)
 #define ASSUMED_ITEM_NUM_STEPS 5
 
-void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, int stop_reason)
+const int robot_outline[32] =
 {
-	if(stop_reason != STOP_REASON_OBSTACLE_LEFT && stop_reason != STOP_REASON_OBSTACLE_RIGHT)
-		return;
+100,
+(100+170)/2,
+170,
+(170+200)/2,
+200,
+(200+220)/2,
+220,
+(220+200)/2,
+200,
+(200+250)/2,
+250,
+(250+300)/2,
+300,
+(300+390)/2,
+390,
+(390+350)/2,
+350,
+(350+390)/2,
+390,
+(390+300)/2,
+300,
+(300+250)/2,
+250,
+(250+200)/2,
+200,
+(200+220)/2,
+220,
+(220+200)/2,
+200,
+(200+170)/2,
+170,
+(170+100)/2
+};
 
-	float x = (float)cur_x + cos(ANG32TORAD(cur_ang))*(float)ORIGIN_TO_ROBOT_FRONT;
-	float y = (float)cur_y + sin(ANG32TORAD(cur_ang))*(float)ORIGIN_TO_ROBOT_FRONT;
 
-	// Shift the result to the right or left:
-	int32_t angle = cur_ang + (uint32_t)( ((stop_reason==STOP_REASON_OBSTACLE_RIGHT)?90:-90) *ANG_1_DEG);
-
-	x += cos(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE_START;
-	y += sin(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE_START;
-
-	for(int i = 0; i < ASSUMED_ITEM_NUM_STEPS; i++)
+void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, int stop_reason, int vect_valid, float vect_ang_rad)
+{
+	int idx_x, idx_y, offs_x, offs_y;
+	if(stop_reason == STOP_REASON_OBSTACLE_LEFT || stop_reason == STOP_REASON_OBSTACLE_RIGHT)
 	{
-		x += cos(ANG32TORAD(angle))*(float)ASSUMED_ITEM_STEP_SIZE;
-		y += sin(ANG32TORAD(angle))*(float)ASSUMED_ITEM_STEP_SIZE;
+		printf("Mapping obstacle due to wheel slip.\n");
+		float x = (float)cur_x + cos(ANG32TORAD(cur_ang))*(float)ORIGIN_TO_ROBOT_FRONT;
+		float y = (float)cur_y + sin(ANG32TORAD(cur_ang))*(float)ORIGIN_TO_ROBOT_FRONT;
 
-		int idx_x, idx_y, offs_x, offs_y;
+		// Shift the result to the right or left:
+		int32_t angle = cur_ang + (uint32_t)( ((stop_reason==STOP_REASON_OBSTACLE_RIGHT)?90:-90) *ANG_1_DEG);
 
-		page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
-		load_9pages(&world, idx_x, idx_y);
-		world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM | UNIT_WALL | UNIT_DO_NOT_REMOVE_BY_LIDAR;
-		world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest |= UNIT_ITEM | UNIT_WALL | UNIT_DO_NOT_REMOVE_BY_LIDAR;
-		PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
-		PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
-		PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
-		w->changed[idx_x][idx_y] = 1;
+		x += cos(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE_START;
+		y += sin(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE_START;
+
+		for(int i = 0; i < ASSUMED_ITEM_NUM_STEPS; i++)
+		{
+			x += cos(ANG32TORAD(angle))*(float)ASSUMED_ITEM_STEP_SIZE;
+			y += sin(ANG32TORAD(angle))*(float)ASSUMED_ITEM_STEP_SIZE;
+
+			page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
+			load_9pages(&world, idx_x, idx_y);
+			world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM | UNIT_WALL | UNIT_DO_NOT_REMOVE_BY_LIDAR;
+			world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest |= UNIT_ITEM | UNIT_WALL | UNIT_DO_NOT_REMOVE_BY_LIDAR;
+			PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+			PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+			PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+			w->changed[idx_x][idx_y] = 1;
+		}
 	}
+	else if(stop_reason == STOP_REASON_JERK)
+	{
+		printf("Mapping obstacle due to acceleration (ang = %.0f).\n", RADTODEG(vect_ang_rad));
+		for(int i=-2; i<=2; i++)
+		{
+			int idx = 32.0*vect_ang_rad/(2.0*M_PI);
+			idx += i;
+			while(idx < 0) idx+=32;
+			while(idx > 31) idx-=32;
+			for(int o = 0; o < 2; o++)
+			{
+				int dist_to_outline = robot_outline[idx] + 30 + o*40;
+				float x = (float)cur_x + cos(ANG32TORAD(cur_ang) + vect_ang_rad)*(float)dist_to_outline;
+				float y = (float)cur_y + sin(ANG32TORAD(cur_ang) + vect_ang_rad)*(float)dist_to_outline;
+
+				page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
+				load_9pages(&world, idx_x, idx_y);
+				world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM | UNIT_WALL | UNIT_DO_NOT_REMOVE_BY_LIDAR;
+				world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest |= UNIT_ITEM | UNIT_WALL | UNIT_DO_NOT_REMOVE_BY_LIDAR;
+				PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+				PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+				w->changed[idx_x][idx_y] = 1;
+			}
+		}
+	}
+	else
+	{
+		printf("WARN: Unrecognized stop reason %d\n", stop_reason);
+	}
+	
+
 }
 
 

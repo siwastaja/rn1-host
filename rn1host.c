@@ -428,9 +428,10 @@ int main(int argc, char** argv)
 			if(!feedback_stop_flags_processed)
 			{
 				feedback_stop_flags_processed = 1;
-				int stop_reason = cur_xymove.feedback_stop_flags&0b11;
+				int stop_reason = cur_xymove.feedback_stop_flags;
 				printf("INFO: Collision reported: %s\n", MCU_FEEDBACK_COLLISION_NAMES[stop_reason]);
-				if(mapping_on) map_collision_obstacle(&world, cur_ang, cur_x, cur_y, stop_reason);
+				if(mapping_on) map_collision_obstacle(&world, cur_ang, cur_x, cur_y, stop_reason, cur_xymove.stop_xcel_vector_valid,
+					cur_xymove.stop_xcel_vector_ang_rad);
 			}
 		}
 		else

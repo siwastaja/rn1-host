@@ -356,7 +356,7 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 
 		if(num_cango_places < 5)
 		{
-			printf("INFO: minimap_find_mapping_dir goes to tight search mode to find more possibilities (%d so far).\n", num_cango_places);
+//			printf("INFO: minimap_find_mapping_dir goes to tight search mode to find more possibilities (%d so far).\n", num_cango_places);
 			tight_search_mode();
 		}
 		else
@@ -383,8 +383,8 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 		}
 	}
 
-	printf("INFO: (%d, %d) is nearest the desired (%d, %d) (%d found from lidar only; %d agreed with map)\n",
-		cango_places[nearest_i].x, cango_places[nearest_i].y, desired_x, desired_y, num_cango_places, num_cango_places+disagrees);
+//	printf("INFO: (%d, %d) is nearest the desired (%d, %d) (%d found from lidar only; %d agreed with map)\n",
+//		cango_places[nearest_i].x, cango_places[nearest_i].y, desired_x, desired_y, num_cango_places, num_cango_places+disagrees);
 	*x = cango_places[nearest_i].x ; *y = cango_places[nearest_i].y; *back = backs[nearest_i];
 
 	return 1;

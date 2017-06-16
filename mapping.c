@@ -1227,13 +1227,17 @@ typedef enum
 
 autostate_t cur_autostate;
 
+int daijued = 0;
+
 void start_automapping_from_compass()
 {
+	daijued = 0;
 	cur_autostate = S_START;
 }
 
 void start_automapping_skip_compass()
 {
+	daijued = 0;
 	cur_autostate = S_FIND_DIR;
 }
 
@@ -1263,6 +1267,7 @@ void autofsm()
 		} break;
 
 		case S_START: {
+			daiju_mode(0);
 			mapping_on = 0;
 			cur_autostate++;
 		} break;
@@ -1299,6 +1304,8 @@ void autofsm()
 			extern int32_t cur_ang;
 			if(minimap_find_mapping_dir(ANG32TORAD(cur_ang), &dx, &dy, some_desired_x, some_desired_y, &need_to_back))
 			{
+				daiju_mode(0);
+				daijued = 0;
 				if(movement_id == cur_xymove.id) movement_id+=2;
 				if(movement_id > 100) movement_id = 0;
 				move_to(cur_x+dx, cur_y+dy, need_to_back, movement_id, 30);
@@ -1306,8 +1313,12 @@ void autofsm()
 			}
 			else
 			{
-				printf("INFO: Automapping: direction to go to not found; giving up.\n");
-				cur_autostate = S_IDLE;
+				if(!daijued)
+				{
+					printf("INFO: Automapping: direction to go to not found; daijuing for a while.\n");
+					daiju_mode(1);
+					daijued = 1;
+				}
 			}
 
 		} break;

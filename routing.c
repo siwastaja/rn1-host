@@ -50,6 +50,12 @@ static int check_hit(int x, int y, int direction)
 			int pageidx_x, pageidx_y, pageoffs_x, pageoffs_y;
 			page_coords_from_unit_coords(x-ROBOT_SHAPE_WINDOW/2+chk_x, y-ROBOT_SHAPE_WINDOW/2+chk_y, &pageidx_x, &pageidx_y, &pageoffs_x, &pageoffs_y);
 
+			if(pageidx_x < 0 || pageidx_x >= MAP_W || pageidx_y < 0 || pageidx_y >= MAP_W)
+			{
+				printf("check_hit(): out-of-range pageidx (%d, %d)\n", pageidx_x, pageidx_y);
+				exit(1);
+			}
+
 			if(!routing_world->pages[pageidx_x][pageidx_y]) // out of bounds (not allocated) - give up instantly
 			{
 				return 1;

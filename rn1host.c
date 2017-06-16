@@ -178,6 +178,19 @@ void route_fsm()
 					if(route_pos < do_follow_route-1)
 					{
 						route_pos++;
+
+						// Check if we can skip some points:
+						while(the_route[route_pos].backmode == 0 && route_pos < do_follow_route-1)
+						{
+							if(check_direct_route(cur_ang, cur_x, cur_y, the_route[route_pos+1].x, the_route[route_pos+1].y))
+							{
+								printf("INFO: skipping point (%d, %d), going directly to (%d, %d)\n", the_route[route_pos].x,
+								       the_route[route_pos].y, the_route[route_pos+1].x, the_route[route_pos+1].y);
+								route_pos++;
+							}
+							else
+								break;
+						}
 						printf("Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
 						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), (mapping_on==1)?30:50);
 						first_fail = 1;

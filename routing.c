@@ -1031,3 +1031,24 @@ int lidar_to_map(uint8_t *p_map, int32_t *mid_x, int32_t *mid_y, lidar_scan_t* p
 }
 
 
+int check_direct_route(int32_t start_ang, int start_x, int start_y, int end_x, int end_y)
+{
+	int dx = end_x - start_x;
+	int dy = end_y - start_y;
+
+	float end_ang = atan2(dy, dx);
+	if(end_ang < 0.0) end_ang += 2.0*M_PI;
+
+	if(test_robot_turn(start_x, start_y, start_ang, end_ang))
+	{
+		printf("INFO: check_direct_route(): robot can turn...\n");
+		route_xy_t start = {start_x, start_y};
+		route_xy_t end = {end_x, end_y};
+		if(line_of_sight(start, end))
+		{
+			printf("INFO: check_direct_route(): there is line of sight\n");
+			return 1;
+		}
+	}
+	return 0;
+}

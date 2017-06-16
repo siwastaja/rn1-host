@@ -1057,12 +1057,12 @@ void map_sonar(world_t* w, sonar_scan_t* p_son)
 			int dx = p_son->scan[i].x - p_son->robot_pos.x;
 			int dy = p_son->scan[i].y - p_son->robot_pos.y;
 
-			float cur_len = sqrt(sq(dx) + sq(dy)) - 300.0;
+			float cur_len = sqrt(sq(dx) + sq(dy));
 
 			if(cur_len < nearest) nearest = cur_len;
 		}
 
-		if(nearest > 400.0)
+		if(nearest > 500.0)
 		{
 			const float step = 3*MAP_UNIT_W;
 
@@ -1083,9 +1083,9 @@ void map_sonar(world_t* w, sonar_scan_t* p_son)
 				int x = (cos(ang)*pos + (float)p_son->scan[1].x);
 				int y = (sin(ang)*pos + (float)p_son->scan[1].y);
 
-				for(int ix=-4*MAP_UNIT_W; ix<=4*MAP_UNIT_W; ix+=MAP_UNIT_W)
+				for(int ix=-5*MAP_UNIT_W; ix<=5*MAP_UNIT_W; ix+=MAP_UNIT_W)
 				{
-					for(int iy=-4*MAP_UNIT_W; iy<=4*MAP_UNIT_W; iy+=MAP_UNIT_W)
+					for(int iy=-5*MAP_UNIT_W; iy<=5*MAP_UNIT_W; iy+=MAP_UNIT_W)
 					{	
 						page_coords(x+ix,y+iy, &idx_x, &idx_y, &offs_x, &offs_y);
 						load_9pages(&world, idx_x, idx_y);
@@ -1095,7 +1095,7 @@ void map_sonar(world_t* w, sonar_scan_t* p_son)
 
 				if(terminate) break;
 				pos += step;
-				if(pos > nearest)
+				if(pos > nearest-150)
 				{
 					pos = nearest;
 					terminate = 1;
@@ -1143,57 +1143,6 @@ const int robot_xs = 480;
 const int robot_ys = 524;
 const int lidar_xoffs = 120;
 const int lidar_yoffs = 0;
-
-#define ANG32_TO_RAD(x) ((x)/(360.0*(float)ANGLE_1_DEG) * 2.0 * M_PI)
-
-/*
-
-int can_turn(lidar_scan_t* lid, pos_t dest)
-{
-	float ang = ((uint32_t)(dest.ang - lid->pos.ang))/(360.0*ANGLE_1_DEG) * 2.0 * M_PI;
-
-	if(ang > M_PI) ang-= M_PI;
-
-	// Test in increments:
-
-	int end = ang*360.0/(2.0*M_PI);
-	for(int i = 0; i < end; i += 5)
-	{
-		float cur_ang = (float)i/360.0*2.0*M_PI;
-	}
-
-
-
-	float ang = ANG32_TO_RAD((uint32_t)lid->pos.ang);
-	float dest_ang = ANG32_TO_RAD((uint32_t)dest->pos.ang);
-
-	float ang_diff = dest_ang - ang;
-	if(ang_diff < M_PI) // ccw
-	{
-
-	}
-
-}
-
-
-int how_much_forward_before_hit(lidar_scan_t* lid, pos_t dest)
-{
-	const int side_extra_gap = 100;
-
-	
-
-
-}
-
-*/
-/*
-	Takes a straight segment towards the least mapped area, if there is a route in lidar scan.
-*/ 
-
-//int auto_map_goto_next_pos(world_t* w, lidar_scan_t* lid)
-//{
-//	move_to(msg_cr_dest.x, msg_cr_dest.y);
-//}
 
 const char* const AUTOSTATE_NAMES[] =
 {

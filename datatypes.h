@@ -1,6 +1,12 @@
 #ifndef DATATYPES_H
 #define DATATYPES_H
 
+#include "math.h"
+#ifndef M_PI
+#define M_PI 3.141592653589793238
+#endif
+
+
 #include <stdint.h>
 
 #define ANG_2_5_DEG   29826162
@@ -67,6 +73,8 @@ typedef struct
 	uint32_t micronavi_stop_flags;
 	uint32_t micronavi_action_flags;
 	uint32_t feedback_stop_flags;
+	int stop_xcel_vector_valid;
+	float stop_xcel_vector_ang_rad;
 } xymove_t;
 
 extern pwr_status_t pwr_status;

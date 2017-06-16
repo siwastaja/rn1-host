@@ -1,6 +1,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <math.h>
 #include <unistd.h> // for sleep
 
 #include "datatypes.h"
@@ -198,6 +199,15 @@ int parse_uart_msg(uint8_t* buf, int len)
 			cur_xymove.micronavi_stop_flags = I7x5_I32(buf[5],buf[6],buf[7],buf[8],buf[9]);
 			cur_xymove.micronavi_action_flags = I7x5_I32(buf[10],buf[11],buf[12],buf[13],buf[14]);
 			cur_xymove.feedback_stop_flags = buf[15];
+			cur_xymove.stop_xcel_vector_valid = (cur_xymove.feedback_stop_flags == 1);
+			if(cur_xymove.stop_xcel_vector_valid)
+			{
+				int x = I7I7_U16_lossy(buf[16], buf[17]);
+				int y = I7I7_U16_lossy(buf[18], buf[19]);
+				float ang = atan2(y, x);
+				printf("Stop vector: x=%d, y=%d, ang=%.1f deg\n", x, y, RADTODEG(ang));
+				cur_xymove.stop_xcel_vector_ang_rad = ang;
+			}
 		}
 		break;
 

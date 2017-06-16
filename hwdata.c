@@ -204,7 +204,8 @@ int parse_uart_msg(uint8_t* buf, int len)
 			{
 				int x = I7I7_U16_lossy(buf[16], buf[17]);
 				int y = I7I7_U16_lossy(buf[18], buf[19]);
-				float ang = atan2(y, x) + M_PI/2.0;
+				float ang = atan2(y, x) - M_PI/2.0;
+				if(ang < 0.0) ang += 2.0*M_PI;
 				if(ang < 0.0) ang += 2.0*M_PI;
 				printf("Stop vector (reason %d): x=%d, y=%d, ang=%.1f deg\n", cur_xymove.feedback_stop_flags, x, y, RADTODEG(ang));
 				cur_xymove.stop_xcel_vector_ang_rad = ang;

@@ -104,11 +104,11 @@ static int test_robot_turn(int x, int y, float start, float end)
 
 	if(dir_cur < 0) dir_cur = 0; else if(dir_cur > 31) dir_cur = 31;
 	if(dir_end < 0) dir_end = 0; else if(dir_end > 31) dir_end = 31;
-//	printf("test_robot_turn()  start=%.4f  end=%.4f  da=%.4f,  cw=%d\n", start, end, da, cw);
+	printf("test_robot_turn()  start=%.4f  end=%.4f  da=%.4f,  cw=%d\n", start, end, da, cw);
 
 	while(dir_cur != dir_end)
 	{
-//		printf("test_robot_turn(): dir_cur = %d, dir_end=%d\n", dir_cur, dir_end);
+		printf("test_robot_turn(): dir_cur = %d, dir_end=%d\n", dir_cur, dir_end);
 
 		if(check_hit(x, y, dir_cur))
 			return 0;
@@ -1048,7 +1048,7 @@ int check_direct_route(int32_t start_ang, int start_x, int start_y, int end_x, i
 	float end_ang = atan2(dy, dx);
 	if(end_ang < 0.0) end_ang += 2.0*M_PI;
 
-	printf("check_direct_route(%d, %d, %d, %d, %d)\n", start_ang, start_x, start_y, end_x, end_y);
+//	printf("check_direct_route(%d, %d, %d, %d, %d)\n", start_ang, start_x, start_y, end_x, end_y);
 
 	if(test_robot_turn(start_x, start_y, ANG32TORAD(start_ang), end_ang))
 	{

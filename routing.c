@@ -483,7 +483,7 @@ static void draw_robot_shape(int a_idx, float ang)
 	else
 	{
 		robot_xs = (524.0 + 140.0);
-		robot_ys = (480.0 + 280.0);
+		robot_ys = (480.0 + 200.0);
 		middle_xoffs = -120.0;
 	}
 
@@ -1039,8 +1039,6 @@ int check_direct_route(int32_t start_ang, int start_x, int start_y, int end_x, i
 	float end_ang = atan2(dy, dx);
 	if(end_ang < 0.0) end_ang += 2.0*M_PI;
 
-
-	printf("INFO: check_direct_route()\n");
 
 	if(test_robot_turn(start_x, start_y, ANG32TORAD(start_ang), end_ang))
 	{

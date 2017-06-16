@@ -181,9 +181,9 @@ static int prefilter_lidar_list(int n_lidars, lidar_scan_t** lidar_list)
 		}
 	}
 
-	printf("INFO: prefilter_lidar_list() removed %d points: ", n_removed);
-	for(int i=0; i < n_lidars; i++)	printf("%d, ", n_removed_per_scan[i]);
-	printf("\n");
+//	printf("INFO: prefilter_lidar_list() removed %d points: ", n_removed);
+//	for(int i=0; i < n_lidars; i++)	printf("%d, ", n_removed_per_scan[i]);
+//	printf("\n");
 	return n_removed;
 }
 

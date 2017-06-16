@@ -819,23 +819,23 @@ static int do_map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, in
 
 //	fprintf(fdbg, "PASS 1\nda;dx;dy;score;match_walls;exacts;new_walls;discovered_walls\n");
 
-	int a_range = 3;
-	int x_range = 240;
-	int y_range = 240;
+	int a_range = 2;
+	int x_range = 160;
+	int y_range = 160;
 	int a_step = 1*ANG_1_DEG;
 
 	if(bigger_search_area == 1)
 	{
 		printf("INFO: Using bigger search area, this will take longer\n");
-		a_range = 5;
-		x_range = 400;
-		y_range = 400;
+		a_range = 4;
+		x_range = 320;
+		y_range = 320;
 		a_step = 1*ANG_1_DEG;
 	}
-	else if(bigger_search_area == 2)
+	else if(bigger_search_area > 1)
 	{
 		printf("INFO: Using MUCH bigger search area, this will take quite long\n");
-		a_range = 20;
+		a_range = 18;
 		x_range = 560;
 		y_range = 560;
 		a_step = 2*ANG_1_DEG;
@@ -874,7 +874,7 @@ static int do_map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, in
 	int best_dy = 0;
 
 	int do_not_map = 0;
-	if(best_score < 3000)
+	if(best_score < 4000)
 	{
 		if(best_matched == 0) // zero matched walls
 		{
@@ -885,14 +885,24 @@ static int do_map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, in
 		{
 			printf("Info: best score (%d) is so low that we are clearly lost! Mapping is prevented.\n", best_score);
 			do_not_map = 1;
-			if(bigger_search_area == 2)
+			if(bigger_search_area > 1)
 				return 6;
-			bigger_search_area = 2;
+			bigger_search_area++;
 			return 5;
 		}
 	}
 	else
 	{
+
+		if(best1_da == -1*a_range*ANG_1_DEG || best1_da == a_range*ANG_1_DEG || best1_dx == -1*x_range || 
+		   best1_dx == 1*x_range || best1_dy == -1*y_range || best1_dy == 1*y_range)
+		{
+			printf("INFO: Best score was the edge case: must increase search range.\n");
+			do_not_map = 1;
+			bigger_search_area++;
+			return 5;
+		}
+
 		bigger_search_area = 0;
 //		fprintf(fdbg, "\nPASS 2\nda;dx;dy;score;match_walls;exacts;new_walls;discovered_walls\n");
 
@@ -900,9 +910,9 @@ static int do_map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, in
 		int best2_da=0, best2_dx=0, best2_dy=0;
 		for(int ida=best1_da-2*ANG_0_5_DEG; ida<=best1_da+2*ANG_0_5_DEG; ida+=ANG_0_5_DEG)
 		{
-			for(int idx=best1_dx-60; idx<=best1_dx+60; idx+=20)
+			for(int idx=best1_dx-80; idx<=best1_dx+80; idx+=40)
 			{
-				for(int idy=best1_dy-60; idy<=best1_dy+60; idy+=20)
+				for(int idy=best1_dy-80; idy<=best1_dy+80; idy+=40)
 				{
 					int n_matched_walls=0, n_exactly_matched_walls=0, n_new_walls=0, n_discovered_walls=0;
 					int score_now = score(w, n_lidars, lidar_list, 

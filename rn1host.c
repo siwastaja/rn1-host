@@ -182,7 +182,7 @@ void route_fsm()
 						// Check if we can skip some points:
 						while(the_route[route_pos].backmode == 0 && route_pos < do_follow_route-1)
 						{
-							if(check_direct_route(cur_ang, cur_x, cur_y, the_route[route_pos+1].x, the_route[route_pos+1].y))
+							if(check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), the_route[route_pos+1].x, the_route[route_pos+1].y))
 							{
 								printf("INFO: skipping point (%d, %d), going directly to (%d, %d)\n", the_route[route_pos].x,
 								       the_route[route_pos].y, the_route[route_pos+1].x, the_route[route_pos+1].y);

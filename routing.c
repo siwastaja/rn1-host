@@ -104,11 +104,11 @@ static int test_robot_turn(int x, int y, float start, float end)
 
 	if(dir_cur < 0) dir_cur = 0; else if(dir_cur > 31) dir_cur = 31;
 	if(dir_end < 0) dir_end = 0; else if(dir_end > 31) dir_end = 31;
-	printf("test_robot_turn()  start=%.4f  end=%.4f  da=%.4f,  cw=%d\n", start, end, da, cw);
+//	printf("test_robot_turn()  start=%.4f  end=%.4f  da=%.4f,  cw=%d\n", start, end, da, cw);
 
 	while(dir_cur != dir_end)
 	{
-		printf("test_robot_turn(): dir_cur = %d, dir_end=%d\n", dir_cur, dir_end);
+//		printf("test_robot_turn(): dir_cur = %d, dir_end=%d\n", dir_cur, dir_end);
 
 		if(check_hit(x, y, dir_cur))
 			return 0;
@@ -315,7 +315,8 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 						int dest_y = sin(ang_to)*fwd_len;
 
 						printf("Minimap: can go to (%d, %d), checking actual map...", dest_x, dest_y);
-						if(check_direct_route(cur_ang, cur_x, cur_y, dest_x+cur_x, dest_y+cur_y))
+						if(check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), 
+							MM_TO_UNIT(dest_x*MAP_UNIT_W+cur_x), MM_TO_UNIT(dest_y*MAP_UNIT_W+cur_y)))
 						{
 							printf("Agreed.\n");
 							cango_places[num_cango_places].x = dest_x; cango_places[num_cango_places].y = dest_y;

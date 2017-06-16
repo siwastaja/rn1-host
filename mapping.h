@@ -17,6 +17,8 @@
 #define MINUS_SAT_0(x) {if((x)>0) (x)--;}
 
 
+#define MM_TO_UNIT(x) ((x)/MAP_UNIT_W + MAP_MIDDLE_UNIT)
+
 /*
 Map unit is a 40mm*40mm area. Memory usage is carefully considered, because the world is a 2D map of the map units.
 40mm*40mm was selected as a good compromise between accuracy (i.e., considering that the 500mm wide robot can maneuver through

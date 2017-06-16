@@ -307,14 +307,18 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 				route_xy_t end = {(int)(cos(ang_to)*fwd_len/(float)MAP_UNIT_W),
 						  (int)(sin(ang_to)*fwd_len/(float)MAP_UNIT_W)};
 
+				printf("Hommel 2\n");
+
 				if(minimap_test_robot_turn(0, 0, ang_now, ang_to))
 				{
+					printf("Hommel 3\n");
+
 					if(minimap_line_of_sight(start, end))
 					{
 						int dest_x = cos(ang_to)*fwd_len;
 						int dest_y = sin(ang_to)*fwd_len;
 
-						printf("Minimap: can go to (%d, %d), checking actual map...", dest_x, dest_y);
+						printf("Minimap: can go to (%d, %d), checking actual map...", dest_x, dest_y); fflush(stdout);
 						if(check_direct_route(cur_ang, cur_x, cur_y, dest_x+cur_x, dest_y+cur_y))
 						{
 							printf("Agreed.\n");

@@ -285,6 +285,8 @@ static int minimap_line_of_sight(route_xy_t p1, route_xy_t p2)
 
 int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desired_x, int32_t desired_y, int* back)
 {
+	extern int32_t cur_ang;
+	extern int cur_x, cur_y;
 	normal_search_mode();
 
 	#define NUM_FWDS 6
@@ -312,12 +314,21 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 						int dest_x = cos(ang_to)*fwd_len;
 						int dest_y = sin(ang_to)*fwd_len;
 
-						printf("Can go to (%d, %d)\n", dest_x, dest_y);
-						cango_places[num_cango_places].x = dest_x; cango_places[num_cango_places].y = dest_y;
-						if(fwd_len < 0.0) backs[num_cango_places] = 1; else backs[num_cango_places] = 0;
-						num_cango_places++;
-						if(num_cango_places > 99)
-							goto PLACE_LIST_FULL;
+						printf("Minimap: can go to (%d, %d), checking actual map...", dest_x, dest_y);
+						if(check_direct_route(cur_ang, cur_x, cur_y, dest_x+cur_x, dest_y+cur_y))
+						{
+							printf("Agreed.\n");
+							cango_places[num_cango_places].x = dest_x; cango_places[num_cango_places].y = dest_y;
+							if(fwd_len < 0.0) backs[num_cango_places] = 1; else backs[num_cango_places] = 0;
+							num_cango_places++;
+							if(num_cango_places > 99)
+								goto PLACE_LIST_FULL;
+						}
+						else
+						{
+							printf("Disagreed.\n");
+						}
+
 					}
 					else
 					{
@@ -332,7 +343,7 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 			}
 		}
 
-		if(num_cango_places < 8)
+		if(num_cango_places < 5)
 		{
 			printf("INFO: minimap_find_mapping_dir goes to tight search mode to find more possibilities (%d so far).\n", num_cango_places);
 			tight_search_mode();
@@ -365,8 +376,6 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 	*x = cango_places[nearest_i].x ; *y = cango_places[nearest_i].y; *back = backs[nearest_i];
 
 	return 1;
-
-
 }
 
 

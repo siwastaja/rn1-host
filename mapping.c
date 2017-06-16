@@ -822,8 +822,8 @@ static int do_map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, in
 //	fprintf(fdbg, "PASS 1\nda;dx;dy;score;match_walls;exacts;new_walls;discovered_walls\n");
 
 	int a_range = 2;
-	int x_range = 160;
-	int y_range = 160;
+	int x_range = 240;
+	int y_range = 240;
 	int a_step = 1*ANG_1_DEG;
 
 	if(bigger_search_area == 1)
@@ -1288,14 +1288,14 @@ void autofsm()
 			map_significance_mode = MAP_SIGNIFICANT_IMGS | MAP_SEMISIGNIFICANT_IMGS;
 			mapping_on = 1;
 			map_lidar_to_minimap(latest_lidar);
-			int32_t x, y;
+			int32_t dx, dy;
 			int need_to_back = 0;
 			extern int32_t cur_ang;
-			if(minimap_find_mapping_dir(ANG32TORAD(cur_ang), &x, &y, some_desired_x, some_desired_y, &need_to_back))
+			if(minimap_find_mapping_dir(ANG32TORAD(cur_ang), &dx, &dy, some_desired_x, some_desired_y, &need_to_back))
 			{
 				if(movement_id == cur_xymove.id) movement_id+=2;
 				if(movement_id > 100) movement_id = 0;
-				move_to(cur_x+x, cur_y+y, need_to_back, movement_id, 30);
+				move_to(cur_x+dx, cur_y+dy, need_to_back, movement_id, 30);
 				cur_autostate++;
 			}
 			else

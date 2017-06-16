@@ -320,7 +320,7 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 						int dest_x = cos(ang_to)*fwd_len;
 						int dest_y = sin(ang_to)*fwd_len;
 
-						printf("Minimap: can go to (%d, %d), checking actual map...", dest_x, dest_y);
+						printf("Minimap: can go to (%d, %d), checking actual map...", dest_x, dest_y); fflush(stdout);
 						if(check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), 
 							MM_TO_UNIT(dest_x*MAP_UNIT_W+cur_x), MM_TO_UNIT(dest_y*MAP_UNIT_W+cur_y)))
 						{

@@ -1205,7 +1205,7 @@ const char* const AUTOSTATE_NAMES[] =
 	"SYNC_TO_COMPASS",
 	"FIND_DIR",
 	"WAIT_MOVEMENT",
-	"res",
+	"DAIJUING",
 	"res",
 	"res",
 	"res",
@@ -1223,22 +1223,19 @@ typedef enum
 	S_WAIT_COMPASS_END	= 4,
 	S_SYNC_TO_COMPASS	= 5,
 	S_FIND_DIR		= 6,
-	S_WAIT_MOVEMENT  	= 7
+	S_WAIT_MOVEMENT  	= 7,
+	S_DAIJUING		= 8
 } autostate_t;
 
 autostate_t cur_autostate;
 
-int daijued = 0;
-
 void start_automapping_from_compass()
 {
-	daijued = 0;
 	cur_autostate = S_START;
 }
 
 void start_automapping_skip_compass()
 {
-	daijued = 0;
 	cur_autostate = S_FIND_DIR;
 }
 
@@ -1260,6 +1257,7 @@ void autofsm()
 
 	static int some_desired_x = 1000;
 	static int some_desired_y = 1000;
+	static int daijuing_cnt = 0;
 
 	switch(cur_autostate)
 	{
@@ -1306,8 +1304,6 @@ void autofsm()
 			if(minimap_find_mapping_dir(ANG32TORAD(cur_ang), &dx, &dy, some_desired_x, some_desired_y, &need_to_back))
 			{
 				printf("Found direction\n");
-				daiju_mode(0);
-				daijued = 0;
 				if(movement_id == cur_xymove.id) movement_id+=2;
 				if(movement_id > 100) movement_id = 0;
 				move_to(cur_x+dx, cur_y+dy, need_to_back, movement_id, 30);
@@ -1315,13 +1311,10 @@ void autofsm()
 			}
 			else
 			{
-				if(!daijued)
-				{
-					printf("INFO: Automapping: can't go anywhere; daijuing for a while.\n");
-					daiju_mode(1);
-					sleep(1);
-					daijued = 1;
-				}
+				printf("INFO: Automapping: can't go anywhere; daijuing for a while.\n");
+				daiju_mode(1);
+				cur_autostate = S_DAIJUING;
+				daijuing_cnt = 0;
 			}
 
 		} break;
@@ -1342,6 +1335,14 @@ void autofsm()
 				cur_autostate = S_FIND_DIR;
 			}
 
+		} break;
+
+		case S_DAIJUING: {
+			if(++daijuing_cnt > 50000)
+			{
+				cur_autostate = S_FIND_DIR;
+				daiju_mode(0);
+			}
 		} break;
 
 		default: break;

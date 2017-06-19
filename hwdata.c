@@ -122,6 +122,7 @@ int parse_uart_msg(uint8_t* buf, int len)
 			latest_lidar = lid;
 			lid->is_invalid = (buf[1]&4)?1:0;
 			lid->significant_for_mapping = is_significant;
+			printf("DBG: NEW LIDAR %d  %d\n", lid->significant_for_mapping, lid->is_invalid);
 			lid->robot_pos.ang = (I7I7_U16_lossy(buf[2], buf[3]))<<16;
 			int mid_x = lid->robot_pos.x = I7x5_I32(buf[4],buf[5],buf[6],buf[7],buf[8]);
 			int mid_y = lid->robot_pos.y = I7x5_I32(buf[9],buf[10],buf[11],buf[12],buf[13]);

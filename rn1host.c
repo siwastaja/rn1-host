@@ -542,21 +542,23 @@ int main(int argc, char** argv)
 				{
 					turn_and_go(charger_ang, charger_fwd, 23);
 					find_charger_state++;
-					sleep(2);
 				}
 			}
 		}
-		else if(find_charger_state == 4)
+		else if(find_charger_state == 800000)
 		{
 			turn_and_go(charger_ang, 0, 23);
 			find_charger_state++;
-			sleep(1);
 		}
-		else if(find_charger_state == 5)
+		else if(find_charger_state == 1200000)
 		{
 			printf("INFO: Requesting charger mount.\n");
 			hw_find_charger();
 			find_charger_state = 0;
+		}
+		else
+		{
+			find_charger_state++;
 		}
 
 		route_fsm();

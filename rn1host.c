@@ -222,6 +222,24 @@ void conf_charger_pos(int32_t cha_ang, int cha_x, int cha_y)  // Coordinates whe
 	charger_first_y = (float)cha_y - sin(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;	
 	charger_second_x = (float)cha_x - cos(ANG32TORAD(cha_ang))*(float)CHARGER_SECOND_DIST;
 	charger_second_y = (float)cha_y - sin(ANG32TORAD(cha_ang))*(float)CHARGER_SECOND_DIST;
+
+	FILE* f_cha = fopen("charger_pos.txt", "w");
+	if(f_cha)
+	{
+		fprintf(f_cha, "%d %d %d %d\n", charger_first_x, charger_first_y, charger_second_x, charger_second_y);
+		fclose(f_cha);
+	}
+}
+
+void read_charger_pos()
+{
+	FILE* f_cha = fopen("charger_pos.txt", "r");
+	if(f_cha)
+	{
+		fscanf(f_cha, "%d %d %d %d", &charger_first_x, &charger_first_y, &charger_second_x, &charger_second_y);
+		fclose(f_cha);
+		printf("Info: charger position retrieved from file: %d, %d --> %d, %d\n", charger_first_x, charger_first_y, charger_second_x, charger_second_y);
+	}
 }
 
 
@@ -323,6 +341,7 @@ int main(int argc, char** argv)
 			}
 			if(cmd == 'l')
 			{
+				read_charger_pos();
 				find_charger_state = 1;
 			}
 			if(cmd == 'v')

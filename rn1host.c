@@ -556,7 +556,7 @@ int main(int argc, char** argv)
 			hw_find_charger();
 			find_charger_state = 0;
 		}
-		else
+		else if(find_charger_state != 0)
 		{
 			find_charger_state++;
 		}

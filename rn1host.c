@@ -548,8 +548,15 @@ int main(int argc, char** argv)
 		}
 		else if(find_charger_state == 4)
 		{
-//			printf("INFO: Requesting charger mount.\n");
-//			hw_find_charger();
+			turn_and_go(charger_ang, 0, 23);
+			find_charger_state++;
+			sleep(1);
+			find_charger_state = 0;
+		}
+		else if(find_charger_state == 5)
+		{
+			printf("INFO: Requesting charger mount.\n");
+			hw_find_charger();
 			find_charger_state = 0;
 		}
 

@@ -208,7 +208,7 @@ void route_fsm()
 
 int32_t charger_ang;
 int charger_first_x, charger_first_y, charger_second_x, charger_second_y;
-#define CHARGER_FIRST_DIST 600
+#define CHARGER_FIRST_DIST 900
 #define CHARGER_SECOND_DIST 250
 
 void conf_charger_pos(int32_t cha_ang, int cha_x, int cha_y)  // Coordinates when the robot is *in* the charger.

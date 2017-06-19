@@ -70,19 +70,19 @@ int load_map_page(world_t* w, int pagex, int pagey)
 	else
 	{
 //		printf("Info: Allocating mem for page %d,%d\n", pagex, pagey);
-		w->pages[pagex][pagey] = malloc(sizeof(map_page_t));
+		w->pages[pagex][pagey] = calloc(1, sizeof(map_page_t));
 	}
 
 	int ret = read_map_page(w, pagex, pagey);
 	if(ret == 2)
 	{
 //		printf("Info: map page file didn't exist, initializing empty map page\n");
-		memset(w->pages[pagex][pagey], 0, sizeof(map_page_t));
+//		memset(w->pages[pagex][pagey], 0, sizeof(map_page_t));
 	}
 	else if(ret)
 	{
 		printf("Error: Reading map page file failed. Initializing empty map page\n");
-		memset(w->pages[pagex][pagey], 0, sizeof(map_page_t));
+//		memset(w->pages[pagex][pagey], 0, sizeof(map_page_t));
 		return 1;
 	}
 	return 0;

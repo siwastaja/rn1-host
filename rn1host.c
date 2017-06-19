@@ -572,7 +572,7 @@ int main(int argc, char** argv)
 								map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
 								correct_robot_pos(da, dx, dy);
 								// Get and ignore all lidar images:
-								ignore_lidars = 50000;
+								ignore_lidars = 20000;
 								n_lidars_to_map = 0;
 								map_next_with_larger_search_area();
 
@@ -591,7 +591,7 @@ int main(int argc, char** argv)
 								map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
 								correct_robot_pos(da, dx, dy);
 								// Get and ignore all lidar images:
-								ignore_lidars = 50000;
+								ignore_lidars = 20000;
 								n_lidars_to_map = 0;
 							}
 						}

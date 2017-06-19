@@ -298,14 +298,136 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	return n_matches*5 + n_steadys*3 + n_exacts*1 - n_news*5;
 }
 
+#define TEMP_MAP_W (3*MAP_PAGE_W)
+#define TEMP_MAP_MIDDLE (TEMP_MAP_W/2)
+
+static int gen_scoremap(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
+{
+	int px, py, ox, oy;
+	
+	for(int xx = 0; xx < TEMP_MAP_W; xx++)
+	{
+		for(int yy = 0; yy < TEMP_MAP_W; yy++)
+		{
+			page_coords(mid_x + (xx-TEMP_MAP_MIDDLE)*MAP_UNIT_W, mid_y + (yy-TEMP_MAP_MIDDLE)*MAP_UNIT_W, &px, &py, &ox, &oy);
+			load_9pages(w, px, py);
+//			int score = 2*w->pages[px][py]->units[ox][oy].num_obstacles - w->pages[px][py]->units[ox][oy].num_seen;
+		}
+	}
+
+	return 0;
+}
+
+/*
+	score_quick uses 3*MAP_PAGE_W*3*MAP_PAGE_W*quick_score_map_t, with middlepoint at rotate_mid_x, rotate_mix_y.
+*/
+/*
+static int score_quick(int8_t *scoremap, int n_lidars, lidar_scan_t** lidar_list, 
+	         int32_t da, int32_t dx, int32_t dy, int32_t rotate_mid_x, int32_t rotate_mid_y,
+	         int* n_matched_walls, int* n_exactly_matched_walls, int* n_new_walls, int* n_discovered_walls)
+{
+	int pagex, pagey, offsx, offsy;
+
+	int n_points = 0;
+	int n_matches = 0;
+	int n_news = 0;
+	int n_exacts = 0;
+	int n_steadys = 0;
+
+	// Go through all valid points in all lidars in the lidar_list.
+	for(int l=0; l<n_lidars; l++)
+	{
+		lidar_scan_t* lid = lidar_list[l];
+
+		for(int p=0; p<LIDAR_SCAN_POINTS; p++)
+		{
+			if(!lid->scan[p].valid)
+				continue;
+
+			n_points++;
+
+			// Rotate the point by da and then shift by dx, dy.
+			float ang = (float)da/((float)ANG_1_DEG*360.0)*2.0*M_PI;
+	
+			int pre_x = lid->scan[p].x - rotate_mid_x;
+			int pre_y = lid->scan[p].y - rotate_mid_y;
+
+			int x = pre_x*cos(ang) + pre_y*sin(ang) + dx;
+			int y = -1*pre_x*sin(ang) + pre_y*cos(ang) + dy;
+
+			x /= MAP_UNIT_W; y /= MAP_UNIT_W;
+			x += TEMP_MAP_MIDDLE; y += TEMP_MAP_MIDDLE;
+
+			if(x < 1 || x >= 767 || y < 1 || y >= 767)
+			{
+				printf("Error: illegal indexes in score_quick: (%d, %d)\n", x, y);
+				return -9999;
+			}
+
+			// Wall in any neighbouring cell is considered a match.
+
+			if(map[x][y].num_obstacles > 0)
+			{
+				if(map[x][y].num_obstacles > 3)
+					n_steadys++;
+				else
+					n_matches++;
+				n_exacts++;
+			}
+			else
+			{
+				if(
+					map[x-1][y-1].num_obstacles > 3 ||
+					map[x-1][y+0].num_obstacles > 3 ||
+					map[x-1][y+1].num_obstacles > 3 ||
+					map[x+1][y-1].num_obstacles > 3 ||
+					map[x+1][y+0].num_obstacles > 3 ||
+					map[x+1][y+1].num_obstacles > 3 ||
+					map[x+0][y-1].num_obstacles > 3 ||
+					map[x+0][y+1].num_obstacles > 3)
+				{
+					n_steadys++;
+				}
+				else if(
+					map[x-1][y-1].num_obstacles > 0 ||
+					map[x-1][y+0].num_obstacles > 0 ||
+					map[x-1][y+1].num_obstacles > 0 ||
+					map[x+1][y-1].num_obstacles > 0 ||
+					map[x+1][y+0].num_obstacles > 0 ||
+					map[x+1][y+1].num_obstacles > 0 ||
+					map[x+0][y-1].num_obstacles > 0 ||
+					map[x+0][y+1].num_obstacles > 0)
+				{
+					n_matches++;
+				}
+				else
+				{
+					n_news++;
+				}
+
+			}			
+			
+		}
+	}
+
+	// Write the results
+	if(n_matched_walls) *n_matched_walls = n_matches;
+	if(n_exactly_matched_walls) *n_exactly_matched_walls = n_exacts;
+	if(n_new_walls) *n_new_walls = n_news;
+	if(n_discovered_walls) *n_discovered_walls = n_points - n_matches;
+
+	// Return the score: bigger = better
+	// Exact matches have a slight effect on the result.
+	// New walls decrease the score.
+	return n_matches*5 + n_steadys*8 + n_exacts*1 - n_news*5;
+}
+*/
+
 typedef struct  // Each bit represents each lidar scan (i.e., 32 lidar scans max).
 {
 	uint32_t seen;
 	uint32_t wall;
 } temp_map_img_t;
-
-#define TEMP_MAP_W (3*MAP_PAGE_W)
-#define TEMP_MAP_MIDDLE (TEMP_MAP_W/2)
 
 static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
                       int32_t da, int32_t dx, int32_t dy, int32_t rotate_mid_x, int32_t rotate_mid_y,
@@ -789,6 +911,11 @@ void map_next_with_larger_search_area()
 		bigger_search_area = 1;
 }
 
+void map_next_with_extra_large_search_area()
+{
+	bigger_search_area = 2;
+}
+
 
 static int do_map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy)
 {
@@ -823,16 +950,16 @@ static int do_map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, in
 //	fprintf(fdbg, "PASS 1\nda;dx;dy;score;match_walls;exacts;new_walls;discovered_walls\n");
 
 	int a_range = 2;
-	int x_range = 240;
-	int y_range = 240;
+	int x_range = 320;
+	int y_range = 320;
 	int a_step = 1*ANG_1_DEG;
 
 	if(bigger_search_area == 1)
 	{
 		printf("INFO: Using bigger search area, this will take longer\n");
 		a_range = 4;
-		x_range = 320;
-		y_range = 320;
+		x_range = 400;
+		y_range = 400;
 		a_step = 1*ANG_1_DEG;
 	}
 	else if(bigger_search_area > 1)
@@ -963,7 +1090,10 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 {
 	int ret = -1;
 	if( ( ret = do_map_lidars(w, n_lidars, lidar_list, da, dx, dy) ) == 5)
-		ret = do_map_lidars(w, n_lidars, lidar_list, da, dx, dy);
+	{
+		if( ( ret = do_map_lidars(w, n_lidars, lidar_list, da, dx, dy) ) == 5)
+			ret = do_map_lidars(w, n_lidars, lidar_list, da, dx, dy);
+	}
 
 	return ret;
 }

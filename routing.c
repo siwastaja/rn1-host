@@ -38,7 +38,7 @@ float robot_shape_x_len;
 #define ROBOT_SHAPE_WINDOW 32
 uint8_t robot_shapes[32][ROBOT_SHAPE_WINDOW][ROBOT_SHAPE_WINDOW];
 
-int unmapped_limit = 3;
+//int unmapped_limit = 3;
 
 static int check_hit(int x, int y, int direction)
 {
@@ -70,15 +70,15 @@ static int check_hit(int x, int y, int direction)
 
 
 				if(!(routing_world->pages[pageidx_x][pageidx_y]->units[pageoffs_x][pageoffs_y].result & UNIT_MAPPED))
-					num_unmapped++;
+					return 2; //num_unmapped++;
 			}
 
 		}
 	}
 
 
-	if(num_unmapped > unmapped_limit)
-		return 2;
+//	if(num_unmapped > unmapped_limit)
+//		return 2;
 
 	return 0;
 }
@@ -604,14 +604,14 @@ static void gen_robot_shapes()
 
 static void normal_search_mode()
 {
-	unmapped_limit = 3;
+//	unmapped_limit = 3;
 	tight_shapes = 0;
 	gen_robot_shapes();	
 }
 
 static void tight_search_mode()
 {
-	unmapped_limit = 10;
+//	unmapped_limit = 10;
 	tight_shapes = 1;
 	gen_robot_shapes();	
 }

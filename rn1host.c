@@ -233,11 +233,14 @@ void save_robot_pos()
 
 void retrieve_robot_pos()
 {
+	int32_t ang;
+	int x; int y;
 	FILE* f_cha = fopen("robot_pos.txt", "r");
 	if(f_cha)
 	{
-		fscanf(f_cha, "%d %d %d", &cur_ang, &cur_x, &cur_y);
+		fscanf(f_cha, "%d %d %d", &ang, &x, &y);
 		fclose(f_cha);
+		set_robot_pos(ang, x, y);
 	}
 }
 

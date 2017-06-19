@@ -344,6 +344,10 @@ int main(int argc, char** argv)
 				mapping_on = 2;
 				printf("Turned mapping to fast mode.\n");
 			}
+			if(cmd == 'K')
+			{
+				conf_charger_pos_pre();
+			}
 			if(cmd == 'L')
 			{
 				conf_charger_pos();

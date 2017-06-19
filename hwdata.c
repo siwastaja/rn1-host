@@ -268,6 +268,22 @@ void move_to(int32_t x, int32_t y, int8_t backmode, int id, int speedlimit)
 	send_uart(buf, 15);
 }
 
+void turn_and_go(int32_t ang_abs, int fwd_rel, int speedlimit)
+{
+	uint8_t buf[7];
+
+	printf("INFO: Turn & go %d, %d\n", ang_abs, fwd_rel);
+
+	buf[0] = 0x83;
+	buf[1] = I16_MS(ang_abs>>16);
+	buf[2] = I16_LS(ang_abs>>16);
+	buf[3] = I16_MS(fwd_rel);
+	buf[4] = I16_MS(fwd_rel);
+	buf[5] = speedlimit&0x7f;
+	buf[6] = 0xff;
+	send_uart(buf, 7);
+}
+
 
 void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)
 {

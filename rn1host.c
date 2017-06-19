@@ -207,26 +207,35 @@ void route_fsm()
 }
 
 int32_t charger_ang;
+int charger_fwd;
 int charger_first_x, charger_first_y, charger_second_x, charger_second_y;
-#define CHARGER_FIRST_DIST 900
-#define CHARGER_SECOND_DIST 250
+#define CHARGER_FIRST_DIST 1000
+#define CHARGER_SECOND_DIST 500
+#define CHARGER_THIRD_DIST  250
 
-void conf_charger_pos(int32_t cha_ang, int cha_x, int cha_y)  // Coordinates when the robot is *in* the charger.
+void conf_charger_pos_pre()  // call when the robot is *in* the charger.
 {
 	int32_t da, dx, dy;
 	map_lidars(&world, NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start, &da, &dx, &dy);
 	correct_robot_pos(da, dx, dy);
+}
+
+void conf_charger_pos()  // call when the robot is *in* the charger.
+{
+	int32_t cha_ang = cur_ang; int cha_x = cur_x; int cha_y = cur_y;
 
 	printf("INFO: Set charger pos at ang=%d, x=%d, y=%d\n", cha_ang, cha_x, cha_y);
 	charger_first_x = (float)cha_x - cos(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;
 	charger_first_y = (float)cha_y - sin(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;	
 	charger_second_x = (float)cha_x - cos(ANG32TORAD(cha_ang))*(float)CHARGER_SECOND_DIST;
 	charger_second_y = (float)cha_y - sin(ANG32TORAD(cha_ang))*(float)CHARGER_SECOND_DIST;
+	charger_fwd = CHARGER_SECOND_DIST-CHARGER_THIRD_DIST;
+	charger_ang = cha_ang;
 
 	FILE* f_cha = fopen("charger_pos.txt", "w");
 	if(f_cha)
 	{
-		fprintf(f_cha, "%d %d %d %d\n", charger_first_x, charger_first_y, charger_second_x, charger_second_y);
+		fprintf(f_cha, "%d %d %d %d %d %d\n", charger_first_x, charger_first_y, charger_second_x, charger_second_y, charger_ang, charger_fwd);
 		fclose(f_cha);
 	}
 }
@@ -236,9 +245,9 @@ void read_charger_pos()
 	FILE* f_cha = fopen("charger_pos.txt", "r");
 	if(f_cha)
 	{
-		fscanf(f_cha, "%d %d %d %d", &charger_first_x, &charger_first_y, &charger_second_x, &charger_second_y);
+		fscanf(f_cha, "%d %d %d %d %d %d", &charger_first_x, &charger_first_y, &charger_second_x, &charger_second_y, &charger_ang, &charger_fwd);
 		fclose(f_cha);
-		printf("Info: charger position retrieved from file: %d, %d --> %d, %d\n", charger_first_x, charger_first_y, charger_second_x, charger_second_y);
+		printf("Info: charger position retrieved from file: %d, %d --> %d, %d, ang=%d, fwd=%d\n", charger_first_x, charger_first_y, charger_second_x, charger_second_y, charger_ang, charger_fwd);
 	}
 }
 
@@ -337,7 +346,7 @@ int main(int argc, char** argv)
 			}
 			if(cmd == 'L')
 			{
-				conf_charger_pos(cur_ang, cur_x, cur_y);
+				conf_charger_pos();
 			}
 			if(cmd == 'l')
 			{
@@ -495,12 +504,21 @@ int main(int argc, char** argv)
 				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(140))
 				{
 					printf("We are not at the second charger point, giving up.\n");
+					find_charger_state = 0;
 				}
-				else				
-					hw_find_charger();
-
-				find_charger_state = 0;
+				else
+				{
+					turn_and_go(charger_ang, charger_fwd, 23);
+					find_charger_state++;
+					sleep(2);
+				}
 			}
+		}
+		else if(find_charger_state == 4)
+		{
+			printf("INFO: Requesting charger mount.\n");
+			hw_find_charger();
+			find_charger_state = 0;
 		}
 
 		route_fsm();

@@ -23,6 +23,7 @@ void set_robot_pos(int32_t na, int32_t nx, int32_t ny);
 void do_compass_round();
 void hw_find_charger();
 void daiju_mode(int on);
+void turn_and_go(int32_t ang_abs, int fwd_rel, int speedlimit);
 
 
 #endif

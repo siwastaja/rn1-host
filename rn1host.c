@@ -220,6 +220,27 @@ void conf_charger_pos_pre()  // call when the robot is *in* the charger.
 	correct_robot_pos(da, dx, dy);
 }
 
+
+void save_robot_pos()
+{
+	FILE* f_cha = fopen("robot_pos.txt", "w");
+	if(f_cha)
+	{
+		fprintf(f_cha, "%d %d %d\n", cur_ang, cur_x, cur_y);
+		fclose(f_cha);
+	}
+}
+
+void retrieve_robot_pos()
+{
+	FILE* f_cha = fopen("robot_pos.txt", "r");
+	if(f_cha)
+	{
+		fscanf(f_cha, "%d %d %d", &cur_ang, &cur_x, &cur_y);
+		fclose(f_cha);
+	}
+}
+
 void conf_charger_pos()  // call when the robot is *in* the charger.
 {
 	int32_t cha_ang = cur_ang; int cha_x = cur_x; int cha_y = cur_y;
@@ -301,9 +322,13 @@ int main(int argc, char** argv)
 			int cmd = fgetc(stdin);
 			if(cmd == 'q')
 				break;
+			if(cmd == 'S')
+			{
+				save_robot_pos();
+			}
 			if(cmd == 's')
 			{
-				save_map_pages(&world);
+				retrieve_robot_pos();
 			}
 			if(cmd == 'c')
 			{
@@ -520,8 +545,8 @@ int main(int argc, char** argv)
 		}
 		else if(find_charger_state == 4)
 		{
-			printf("INFO: Requesting charger mount.\n");
-			hw_find_charger();
+//			printf("INFO: Requesting charger mount.\n");
+//			hw_find_charger();
 			find_charger_state = 0;
 		}
 

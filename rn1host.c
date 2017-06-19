@@ -545,12 +545,12 @@ int main(int argc, char** argv)
 				}
 			}
 		}
-		else if(find_charger_state == 800000)
+		else if(find_charger_state == 80000)
 		{
 			turn_and_go(charger_ang, 0, 23);
 			find_charger_state++;
 		}
-		else if(find_charger_state == 1200000)
+		else if(find_charger_state == 120000)
 		{
 			printf("INFO: Requesting charger mount.\n");
 			hw_find_charger();

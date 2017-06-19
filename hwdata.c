@@ -278,7 +278,7 @@ void turn_and_go(int32_t ang_abs, int fwd_rel, int speedlimit)
 	buf[1] = I16_MS(ang_abs>>16);
 	buf[2] = I16_LS(ang_abs>>16);
 	buf[3] = I16_MS(fwd_rel);
-	buf[4] = I16_MS(fwd_rel);
+	buf[4] = I16_LS(fwd_rel);
 	buf[5] = speedlimit&0x7f;
 	buf[6] = 0xff;
 	send_uart(buf, 7);

@@ -211,7 +211,7 @@ int charger_fwd;
 int charger_first_x, charger_first_y, charger_second_x, charger_second_y;
 #define CHARGER_FIRST_DIST 1000
 #define CHARGER_SECOND_DIST 500
-#define CHARGER_THIRD_DIST  250
+#define CHARGER_THIRD_DIST  180
 
 void conf_charger_pos_pre()  // call when the robot is *in* the charger.
 {
@@ -550,7 +550,7 @@ int main(int argc, char** argv)
 			turn_and_go(charger_ang, 0, 23);
 			find_charger_state++;
 		}
-		else if(find_charger_state == 120000)
+		else if(find_charger_state == 100000)
 		{
 			printf("INFO: Requesting charger mount.\n");
 			hw_find_charger();

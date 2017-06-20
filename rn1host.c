@@ -533,10 +533,10 @@ int main(int argc, char** argv)
 		{
 			if(cur_xymove.id == 0x7f && cur_xymove.remaining < 20)
 			{
-				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(190))
+				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(170))
 				{
-					printf("We are not at the second charger point, giving up.\n");
-					find_charger_state = 0;
+					printf("We are not at the second charger point, trying again.\n");
+					find_charger_state = 1;
 				}
 				else
 				{

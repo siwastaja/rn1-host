@@ -1182,13 +1182,13 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 
 	int a_range = 4;
-	int x_range = 400;
-	int y_range = 400;
+	int x_range = 320;
+	int y_range = 320;
 	int a_step = 1*ANG_1_DEG;
 
 	int best_score = -999999;
 	int32_t best1_da=0, best1_dx=0, best1_dy=0;
-/*	for(int ida=-1*a_range*ANG_1_DEG; ida<=a_range*ANG_1_DEG; ida+=a_step)
+	for(int ida=-1*a_range*ANG_1_DEG; ida<=a_range*ANG_1_DEG; ida+=a_step)
 	{
 		for(int idx=-1*x_range; idx<=x_range; idx+=40)
 		{
@@ -1213,8 +1213,9 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			}
 		}
 	}
-*/
 
+
+/*
 	for(int ida=-1*a_range*ANG_1_DEG; ida<=a_range*ANG_1_DEG; ida+=a_step)
 	{
 		int32_t idx = 0, idy = 0;
@@ -1228,7 +1229,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			best1_dy = idy;
 		}
 	}
-
+*/
 
 	int best_da = best1_da;
 	int best_dx = best1_dx;
@@ -1257,7 +1258,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 //			ret = do_map_lidars(w, n_lidars, lidar_list, da, dx, dy);
 //	}
 
-	ret = do_map_lidars_new_quick(w, n_lidars, lidar_list, da, dx, dy);
+	ret = do_map_lidars(w, n_lidars, lidar_list, da, dx, dy);
 	return ret;
 }
 

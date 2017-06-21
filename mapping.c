@@ -310,15 +310,19 @@ static int gen_scoremap(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
 
 			int score = 4*w->pages[px][py]->units[ox][oy].num_obstacles - 2*w->pages[px][py]->units[ox][oy].num_seen;
 
-			for(int ix=-1; ix<=1; ix++)
+			for(int ix=-2; ix<=2; ix++)
 			{
-				for(int iy=-1; iy<=1; iy++)
+				for(int iy=-2; iy<=2; iy++)
 				{
 					int npx = px, npy = py, nox = ox + ix, noy = oy + iy;
 					if(nox < 0) { nox += MAP_PAGE_W; npx--; } else if(nox >= MAP_PAGE_W) { nox -= MAP_PAGE_W; npx++;}
 					if(noy < 0) { noy += MAP_PAGE_W; npy--; } else if(noy >= MAP_PAGE_W) { noy -= MAP_PAGE_W; npy++;}
 
-					int neigh_score = 3*w->pages[npx][npy]->units[nox][noy].num_obstacles - 2*w->pages[npx][npy]->units[nox][noy].num_seen;
+					int neigh_score;
+					if(ix == -2 || ix == 2 || iy == -2 || iy == 2)
+						neigh_score = 2*w->pages[npx][npy]->units[nox][noy].num_obstacles - 2*w->pages[npx][npy]->units[nox][noy].num_seen;
+					else
+						neigh_score = 3*w->pages[npx][npy]->units[nox][noy].num_obstacles - 2*w->pages[npx][npy]->units[nox][noy].num_seen;
 					if(neigh_score > score) score = neigh_score;
 				}
 			}
@@ -329,7 +333,7 @@ static int gen_scoremap(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
 		}
 	}
 
-/*
+
 	// Output 768x768x24bit raw image for debug.
 	FILE* dbg_f = fopen("dbg_scoremap.data", "w");
 
@@ -351,7 +355,7 @@ static int gen_scoremap(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
 	}
 
 	fclose(dbg_f);
-*/
+
 	printf(" OK.\n");
 
 
@@ -1182,45 +1186,19 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 
 	int a_range = 4;
-	int x_range = 320;
-	int y_range = 320;
+	int xy_range = 400;
+	int xy_step = 40;
+	int n_xy_steps = 2*(xy_range/xy_step) + 1;
 	int a_step = 1*ANG_1_DEG;
 
 	int best_score = -999999;
-	int32_t best1_da=0, best1_dx=0, best1_dy=0;
-
-/*	for(int ida=-1*a_range*ANG_1_DEG; ida<=a_range*ANG_1_DEG; ida+=a_step)
-	{
-		for(int idx=-1*x_range; idx<=x_range; idx+=40)
-		{
-			for(int idy=-1*y_range; idy<=y_range; idy+=40)
-			{
-				int score_now = score_quick(scoremap, n_lidars, lidar_list, 
-					ida, idx, idy, mid_x, mid_y);
-
-//				int score_now = score(w, n_lidars, lidar_list, 
-//					ida, idx, idy, mid_x, mid_y, 0,0,0,0);
-
-//				fprintf(fdbg, "%.2f;%d;%d;%d;%d;%d;%d;%d\n",
-//					(float)ida/(float)ANG_1_DEG, idx, idy, score_now, n_matched_walls, n_exactly_matched_walls, n_new_walls, n_discovered_walls);
-
-				if(score_now > best_score)
-				{
-					best_score = score_now;
-					best1_da = ida;
-					best1_dx = idx;
-					best1_dy = idy;
-				}
-			}
-		}
-	}
-*/
+	int best1_da=0, best1_dx=0, best1_dy=0;
 
 	for(int ida=-1*a_range*ANG_1_DEG; ida<=a_range*ANG_1_DEG; ida+=a_step)
 	{
 		int32_t idx = 0, idy = 0;
 		int score_now = score_quick_search_xy(scoremap, n_lidars, lidar_list, mid_x, mid_y,
-			ida, -400, 40, 21, -400, 40, 21, &idx, &idy);
+			ida, -1*xy_range, xy_step, n_xy_steps, -1*xy_range, xy_step, n_xy_steps, &idx, &idy);
 		if(score_now > best_score)
 		{
 			best_score = score_now;
@@ -1230,9 +1208,26 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		}
 	}
 
-	int best_da = best1_da;
-	int best_dx = best1_dx;
-	int best_dy = best1_dy;
+	best_score = -999999;
+	int best2_da=0, best2_dx=0, best2_dy=0;
+
+	for(int ida=best1_da-2*ANG_0_5_DEG; ida<=best1_da+2*ANG_0_5_DEG; ida+=ANG_0_5_DEG)
+	{
+		int32_t idx = 0, idy = 0;
+		int score_now = score_quick_search_xy(scoremap, n_lidars, lidar_list, mid_x, mid_y,
+			ida, best1_dx-40, 20, 5, best1_dy-40, 20, 5, &idx, &idy);
+		if(score_now > best_score)
+		{
+			best_score = score_now;
+			best2_da = ida;
+			best2_dx = idx;
+			best2_dy = idy;
+		}
+	}
+
+	int best_da = best2_da;
+	int best_dx = best2_dx;
+	int best_dy = best2_dy;
 
 	printf("Info: Map search complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best_da/(float)ANG_1_DEG, best_dx, best_dy, best_score);
 	int32_t aft_corr_x = 0, aft_corr_y = 0;

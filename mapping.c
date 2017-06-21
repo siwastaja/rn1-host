@@ -412,14 +412,14 @@ static int32_t score_quick_search_xy(int8_t *scoremap, int n_lidars, lidar_scan_
 {
 	int n_points = 0;
 
-	printf("score_quick_search_xy: dx: %d, %d, %d   dy: %d, %d, %d\n", dx_start, dx_step, num_dx, dy_start, dy_step, num_dy);
+//	printf("score_quick_search_xy: dx: %d, %d, %d   dy: %d, %d, %d\n", dx_start, dx_step, num_dx, dy_start, dy_step, num_dy);
 	if(num_dx > 32 || num_dy > 32 || num_dx < 1 || num_dy < 1)
 	{
 		printf("ERROR: score_quick_search_xy(): Invalid num_dx or num_dy\n.");
 		exit(1);
 	}
 
-	int score[32][32] = {{0}}; for(int i=0; i<32;i++) { for(int o=0; o<32;o++) { if(score[i][o] != 0) printf("Error horror\n"); } }
+	int score[32][32] = {{0}};
 
 	float ang = (float)da/((float)ANG_1_DEG*360.0)*2.0*M_PI;
 
@@ -465,13 +465,13 @@ static int32_t score_quick_search_xy(int8_t *scoremap, int n_lidars, lidar_scan_
 		}
 	}
 
-	printf("scores: ");
+//	printf("scores: ");
 	int best_score = -999999, best_ix = 0, best_iy = 0;
 	for(int ix = 0; ix < num_dx; ix++)
 	{
 		for(int iy = 0; iy < num_dy; iy++)
 		{
-			printf(" (%2d,%2d): %6d ", ix, iy, score[ix][iy]);
+//			printf(" (%2d,%2d): %6d ", ix, iy, score[ix][iy]);
 			if(score[ix][iy] > best_score)
 			{
 				best_score = score[ix][iy];
@@ -481,7 +481,7 @@ static int32_t score_quick_search_xy(int8_t *scoremap, int n_lidars, lidar_scan_
 		}
 	}
 
-	printf("\n");
+//	printf("\n");
 	*best_dx = dx_start+dx_step*best_ix;
 	*best_dy = dy_start+dy_step*best_iy;
 
@@ -1237,7 +1237,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	printf("Info: Map search complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best_da/(float)ANG_1_DEG, best_dx, best_dy, best_score);
 	int32_t aft_corr_x = 0, aft_corr_y = 0;
 
-	//do_mapping(w, n_lidars, lidar_list, best_da, best_dx, best_dy, mid_x, mid_y, &aft_corr_x, &aft_corr_y);
+	do_mapping(w, n_lidars, lidar_list, best_da, best_dx, best_dy, mid_x, mid_y, &aft_corr_x, &aft_corr_y);
 
 	*da = best_da;
 	*dx = best_dx + aft_corr_x;

@@ -22,9 +22,6 @@
 #define RADTODEG(x) ((x)*(360.0/(2.0*M_PI)))
 #define DEGTORAD(x) ((x)*((2.0*M_PI)/360.0))
 
-void wdbg(char* mesta);
-
-
 typedef struct
 {
 	int32_t ang; // int32_t range --> -180..+180 deg; let it overflow freely. 1 unit = 83.81903171539 ndeg
@@ -45,6 +42,7 @@ typedef struct
 {
 	int significant_for_mapping;
 	int is_invalid; // May be distorted due to excessive robot acceleration (collision, drop, etc.)
+	int id; // id can be updated with the correct position message; this way we know when the scan has recent coordinate update done or not.
 	pos_t robot_pos;
 	point_t scan[LIDAR_SCAN_POINTS];
 } lidar_scan_t;

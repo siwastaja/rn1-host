@@ -400,7 +400,7 @@ static int gen_scoremap_for_small_steps(world_t *w, int8_t *scoremap, int mid_x,
 		}
 	}
 
-
+/*
 	// Output 768x768x24bit raw image for debug.
 	FILE* dbg_f = fopen("dbg_scoremap.data", "w");
 
@@ -422,7 +422,7 @@ static int gen_scoremap_for_small_steps(world_t *w, int8_t *scoremap, int mid_x,
 	}
 
 	fclose(dbg_f);
-
+*/
 	printf(" OK.\n");
 
 

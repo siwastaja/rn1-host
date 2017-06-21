@@ -25,8 +25,11 @@
 #include "mcu_micronavi_docu.c"
 
 int mapping_on = 0;
+int pos_corr_id = 42;
+#define INCR_POS_CORR_ID() {pos_corr_id++; if(pos_corr_id > 99) pos_corr_id = 0;}
 
-int map_significance_mode = MAP_SIGNIFICANT_IMGS;
+
+int map_significance_mode = MAP_SEMISIGNIFICANT_IMGS | MAP_SIGNIFICANT_IMGS;
 
 int motors_on = 1;
 
@@ -68,8 +71,8 @@ int run_search()
 {
 	int32_t da, dx, dy;
 	map_lidars(&world, NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start, &da, &dx, &dy);
-	correct_robot_pos(da, dx, dy);
-
+	INCR_POS_CORR_ID();
+	correct_robot_pos(da, dx, dy, pos_corr_id);
 
 	route_unit_t *some_route = NULL;
 
@@ -217,7 +220,8 @@ void conf_charger_pos_pre()  // call when the robot is *in* the charger.
 {
 	int32_t da, dx, dy;
 	map_lidars(&world, NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start, &da, &dx, &dy);
-	correct_robot_pos(da, dx, dy);
+	INCR_POS_CORR_ID();
+	correct_robot_pos(da, dx, dy, pos_corr_id);
 }
 
 
@@ -292,6 +296,7 @@ int main(int argc, char** argv)
 	}
 
 	daiju_mode(0);
+	correct_robot_pos(0,0,0, pos_corr_id);
 
 	int cnt = 0;
 	while(1)
@@ -566,16 +571,14 @@ int main(int argc, char** argv)
 
 		lidar_scan_t* p_lid;
 
-		static int ignore_lidars = 0;
 		if( (p_lid = get_significant_lidar()) || (p_lid = get_basic_lidar()) )
 		{
-			if(ignore_lidars)
+			if(p_lid->id != pos_corr_id)
 			{
-				if(p_lid->significant_for_mapping) printf("INFO: Ignoring significant lidar scan.\n");
+				if(p_lid->significant_for_mapping) printf("INFO: Ignoring significant(%d) lidar scan.\n", p_lid->significant_for_mapping);
 			}
 			else
 			{
-
 				if(tcp_client_sock >= 0) tcp_send_hwdbg(hwdbg);
 
 				static int lidar_send_cnt = 0;
@@ -633,10 +636,10 @@ int main(int argc, char** argv)
 					if(mapping_on)
 					{
 						static int n_lidars_to_map = 0;
-						static lidar_scan_t* lidars_to_map[16];
+						static lidar_scan_t* lidars_to_map[20];
 						if(p_lid->is_invalid)
 						{
-							if(n_lidars_to_map < 5)
+							if(n_lidars_to_map < 8)
 							{
 								printf("INFO: Got DISTORTED significant lidar scan, have too few lidars -> mapping queue reset\n");
 								map_next_with_larger_search_area();
@@ -647,9 +650,8 @@ int main(int argc, char** argv)
 								printf("INFO: Got DISTORTED significant lidar scan, running mapping early on previous images\n");
 								int32_t da, dx, dy;
 								map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
-								correct_robot_pos(da, dx, dy);
-								// Get and ignore all lidar images:
-								ignore_lidars = 20000;
+								INCR_POS_CORR_ID();
+								correct_robot_pos(da, dx, dy, pos_corr_id);
 								n_lidars_to_map = 0;
 								map_next_with_larger_search_area();
 
@@ -661,14 +663,13 @@ int main(int argc, char** argv)
 							lidars_to_map[n_lidars_to_map] = p_lid;
 
 							n_lidars_to_map++;
-							if((good_time_for_lidar_mapping && n_lidars_to_map > 7) || n_lidars_to_map > 15)
+							if((good_time_for_lidar_mapping && n_lidars_to_map > 10) || n_lidars_to_map > 19)
 							{
 								if(good_time_for_lidar_mapping) good_time_for_lidar_mapping = 0;
 								int32_t da, dx, dy;
 								map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
-								correct_robot_pos(da, dx, dy);
-								// Get and ignore all lidar images:
-								ignore_lidars = 20000;
+								INCR_POS_CORR_ID();
+								correct_robot_pos(da, dx, dy, pos_corr_id);
 								n_lidars_to_map = 0;
 							}
 						}
@@ -682,10 +683,6 @@ int main(int argc, char** argv)
 				send_keepalive();
 			else
 				release_motors();
-		}
-		else
-		{
-			if(ignore_lidars>0) ignore_lidars--; // stop ignoring lidars once no more is coming.
 		}
 
 		sonar_scan_t* p_son;

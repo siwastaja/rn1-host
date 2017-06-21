@@ -122,14 +122,15 @@ int parse_uart_msg(uint8_t* buf, int len)
 			latest_lidar = lid;
 			lid->is_invalid = (buf[1]&4)?1:0;
 			lid->significant_for_mapping = is_significant;
-			lid->robot_pos.ang = (I7I7_U16_lossy(buf[2], buf[3]))<<16;
-			int mid_x = lid->robot_pos.x = I7x5_I32(buf[4],buf[5],buf[6],buf[7],buf[8]);
-			int mid_y = lid->robot_pos.y = I7x5_I32(buf[9],buf[10],buf[11],buf[12],buf[13]);
+			lid->id = buf[2];
+			lid->robot_pos.ang = (I7I7_U16_lossy(buf[3], buf[4]))<<16;
+			int mid_x = lid->robot_pos.x = I7x5_I32(buf[5],buf[6],buf[7],buf[8],buf[9]);
+			int mid_y = lid->robot_pos.y = I7x5_I32(buf[10],buf[11],buf[12],buf[13],buf[14]);
 
 			for(int i = 0; i < 360; i++)
 			{
-				int x = I14x2_I16(buf[21+4*i+0], buf[21+4*i+1])>>2;
-				int y = I14x2_I16(buf[21+4*i+2], buf[21+4*i+3])>>2;
+				int x = I14x2_I16(buf[22+4*i+0], buf[22+4*i+1])>>2;
+				int y = I14x2_I16(buf[22+4*i+2], buf[22+4*i+3])>>2;
 				if(x != 0 && y != 0)
 				{
 					lid->scan[i].x = x + mid_x;
@@ -285,28 +286,28 @@ void turn_and_go(int32_t ang_abs, int fwd_rel, int speedlimit)
 }
 
 
-void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)
+void correct_robot_pos(int32_t da, int32_t dx, int32_t dy, int id)
 {
 	dx<<=2;
 	dy<<=2;
 
-	if(dx < -32767 || dx > 32767 || dy < -32767 || dy > 32767)
+	if(dx < -32767 || dx > 32767 || dy < -32767 || dy > 32767 || id < 0 || id > 127)
 	{
-		printf("ERROR: out of range coords in correct_robot_pos()\n");
+		printf("ERROR: out of range coords or id in correct_robot_pos()\n");
 		return;
 	}
 
 	da *= -1; // Robot angles are opposite to those of trigonometric funtions.
 
-	if(da == 0 && dx == 0 && dy == 0)
+/*	if(da == 0 && dx == 0 && dy == 0)
 	{
 		printf("INFO: No position correction needed.\n");
 		return;
 	}
+*/
+	printf("INFO: Correcting robot pos by %d, %d, %d, with id %d\n", da>>16, dx, dy, id);
 
-	printf("INFO: Correcting robot pos by %d, %d, %d\n", da>>16, dx, dy);
-
-	uint8_t buf[8];
+	uint8_t buf[9];
 
 	buf[0] = 0x89;
 	buf[1] = I16_MS(da>>16);
@@ -315,9 +316,10 @@ void correct_robot_pos(int32_t da, int32_t dx, int32_t dy)
 	buf[4] = I16_LS((int16_t)dx);
 	buf[5] = I16_MS((int16_t)dy);
 	buf[6] = I16_LS((int16_t)dy);
-	buf[7] = 0xff;
+	buf[7] = id;
+	buf[8] = 0xff;
 
-	send_uart(buf, 8);
+	send_uart(buf, 9);
 }
 
 void set_robot_pos(int32_t na, int32_t nx, int32_t ny)

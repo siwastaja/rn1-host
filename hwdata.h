@@ -17,7 +17,7 @@ void release_motors();
 
 void move_to(int32_t x, int32_t y, int8_t backmode, int id, int speedlimit);
 
-void correct_robot_pos(int32_t da, int32_t dx, int32_t dy);
+void correct_robot_pos(int32_t da, int32_t dx, int32_t dy, int id);
 void set_hw_obstacle_avoidance_margin(int mm);
 void set_robot_pos(int32_t na, int32_t nx, int32_t ny);
 void do_compass_round();

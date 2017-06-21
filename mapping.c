@@ -1257,7 +1257,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 //			ret = do_map_lidars(w, n_lidars, lidar_list, da, dx, dy);
 //	}
 
-	ret = do_map_lidars(w, n_lidars, lidar_list, da, dx, dy);
+	ret = do_map_lidars_new_quick(w, n_lidars, lidar_list, da, dx, dy);
 	return ret;
 }
 

@@ -1253,8 +1253,8 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	gen_scoremap_for_small_steps(w, scoremap, mid_x, mid_y);
 
 
-	int a_range = 4;
-	int xy_range = 400;
+	int a_range = 3;
+	int xy_range = 360;
 	int xy_step = 40;
 	int n_xy_steps = 2*(xy_range/xy_step) + 1;
 	int a_step = 1*ANG_1_DEG;

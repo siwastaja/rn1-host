@@ -576,7 +576,7 @@ int main(int argc, char** argv)
 			if(p_lid->id != pos_corr_id)
 			{
 //				if(p_lid->significant_for_mapping) 
-				printf("INFO: Ignoring lidar scan with id=%d (significance=%d).\n", p_lid->id, p_lid->significant_for_mapping);
+//				printf("INFO: Ignoring lidar scan with id=%d (significance=%d).\n", p_lid->id, p_lid->significant_for_mapping);
 			}
 			else
 			{

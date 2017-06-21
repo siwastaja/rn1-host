@@ -301,10 +301,11 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 #define TEMP_MAP_W (3*MAP_PAGE_W)
 #define TEMP_MAP_MIDDLE (TEMP_MAP_W/2)
 
-static int gen_scoremap(world_t *w, int8_t **scoremap, int mid_x, int mid_y)
+static int gen_scoremap(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
 {
 	int px, py, ox, oy;
 	
+	printf("Generating scoremap..."); fflush(stdout);
 	for(int xx = 0; xx < TEMP_MAP_W; xx++)
 	{
 		for(int yy = 0; yy < TEMP_MAP_W; yy++)
@@ -330,7 +331,7 @@ static int gen_scoremap(world_t *w, int8_t **scoremap, int mid_x, int mid_y)
 			score>>=1;
 			if(score > 127) score=127; else if(score < -128) score = -128;
 
-			scoremap[xx][yy] = score;
+			scoremap[yy*TEMP_MAP_W+xx] = score;
 		}
 	}
 
@@ -343,10 +344,10 @@ static int gen_scoremap(world_t *w, int8_t **scoremap, int mid_x, int mid_y)
 		for(int ix = 0; ix < TEMP_MAP_W; ix++)
 		{
 			int r = 0, g = 0;
-			if(scoremap[ix][iy] > 0)
-				r = scoremap[ix][iy]*2;
+			if(scoremap[iy*TEMP_MAP_W+ix] > 0)
+				r = scoremap[iy*TEMP_MAP_W+ix]*2;
 			else
-				g = scoremap[ix][iy]*-2;
+				g = scoremap[iy*TEMP_MAP_W+ix]*-2;
 
 			if(r > 255) r = 255; if(g > 255) g = 255;
 			fputc(r, dbg_f); // R
@@ -357,6 +358,8 @@ static int gen_scoremap(world_t *w, int8_t **scoremap, int mid_x, int mid_y)
 
 	fclose(dbg_f);
 
+	printf(" OK.\n");
+
 
 	return 0;
 }
@@ -365,7 +368,7 @@ static int gen_scoremap(world_t *w, int8_t **scoremap, int mid_x, int mid_y)
 	score_quick uses 3*MAP_PAGE_W*3*MAP_PAGE_W*int8_t scoremap, with middlepoint at rotate_mid_x, rotate_mix_y.
 */
 
-static int32_t score_quick(int8_t **scoremap, int n_lidars, lidar_scan_t** lidar_list, 
+static int32_t score_quick(int8_t *scoremap, int n_lidars, lidar_scan_t** lidar_list, 
 	         int32_t da, int32_t dx, int32_t dy, int32_t rotate_mid_x, int32_t rotate_mid_y)
 {
 	int n_points = 0;
@@ -401,7 +404,7 @@ static int32_t score_quick(int8_t **scoremap, int n_lidars, lidar_scan_t** lidar
 				return -99999;
 			}
 
-			score += scoremap[x][y];	
+			score += scoremap[y*TEMP_MAP_W+x];	
 		}
 	}
 
@@ -1074,7 +1077,7 @@ static int do_map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, in
 
 int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy)
 {
-	static int8_t scoremap[TEMP_MAP_W][TEMP_MAP_W];
+	static int8_t scoremap[TEMP_MAP_W*TEMP_MAP_W];
 
 	*da = 0;
 	*dx = 0;
@@ -1096,6 +1099,10 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	// When correcting angle, image is rotated around this point.
 	lidars_avg_midpoint(n_lidars, lidar_list, &mid_x, &mid_y);
 
+
+	gen_scoremap(w, scoremap, mid_x, mid_y);
+
+
 	int a_range = 4;
 	int x_range = 400;
 	int y_range = 400;
@@ -1109,11 +1116,11 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		{
 			for(int idy=-1*y_range; idy<=y_range; idy+=40)
 			{
-//				int score_now = score_quick(scoremap, n_lidars, lidar_list, 
-//					ida, idx, idy, mid_x, mid_y);
+				int score_now = score_quick(scoremap, n_lidars, lidar_list, 
+					ida, idx, idy, mid_x, mid_y);
 
-				int score_now = score(w, n_lidars, lidar_list, 
-					ida, idx, idy, mid_x, mid_y, 0,0,0,0);
+//				int score_now = score(w, n_lidars, lidar_list, 
+//					ida, idx, idy, mid_x, mid_y, 0,0,0,0);
 
 //				fprintf(fdbg, "%.2f;%d;%d;%d;%d;%d;%d;%d\n",
 //					(float)ida/(float)ANG_1_DEG, idx, idy, score_now, n_matched_walls, n_exactly_matched_walls, n_new_walls, n_discovered_walls);

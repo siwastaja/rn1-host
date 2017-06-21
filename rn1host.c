@@ -525,7 +525,7 @@ int main(int argc, char** argv)
 				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(230))
 				{
 					printf("We are not at the first charger point, trying again.\n");
-					find_charger_state = 1;
+			//		find_charger_state = 1;
 				}
 				else
 				{
@@ -541,7 +541,7 @@ int main(int argc, char** argv)
 				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(170))
 				{
 					printf("We are not at the second charger point, trying again.\n");
-					find_charger_state = 1;
+				//	find_charger_state = 1;
 				}
 				else
 				{
@@ -550,12 +550,12 @@ int main(int argc, char** argv)
 				}
 			}
 		}
-		else if(find_charger_state == 80000)
+		else if(find_charger_state == 70000)
 		{
 			turn_and_go(charger_ang, 0, 23);
 			find_charger_state++;
 		}
-		else if(find_charger_state == 100000)
+		else if(find_charger_state == 85000)
 		{
 			printf("INFO: Requesting charger mount.\n");
 			hw_find_charger();

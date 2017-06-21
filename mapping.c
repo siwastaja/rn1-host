@@ -296,11 +296,12 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 #define TEMP_MAP_W (3*MAP_PAGE_W)
 #define TEMP_MAP_MIDDLE (TEMP_MAP_W/2)
 
-static int gen_scoremap(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
+// Slower, allows stepping larger steps:
+static int gen_scoremap_for_large_steps(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
 {
 	int px, py, ox, oy;
 
-	printf("Generating scoremap..."); fflush(stdout);
+	printf("Generating scoremap (for large steps)..."); fflush(stdout);
 	for(int xx = 0; xx < TEMP_MAP_W; xx++)
 	{
 		for(int yy = 0; yy < TEMP_MAP_W; yy++)
@@ -308,7 +309,7 @@ static int gen_scoremap(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
 			page_coords(mid_x + (xx-TEMP_MAP_MIDDLE)*MAP_UNIT_W, mid_y + (yy-TEMP_MAP_MIDDLE)*MAP_UNIT_W, &px, &py, &ox, &oy);
 			load_9pages(w, px, py);
 
-			int score = 4*w->pages[px][py]->units[ox][oy].num_obstacles - 2*w->pages[px][py]->units[ox][oy].num_seen;
+			int score = 8*w->pages[px][py]->units[ox][oy].num_obstacles - 4*w->pages[px][py]->units[ox][oy].num_seen;
 
 			for(int ix=-2; ix<=2; ix++)
 			{
@@ -320,12 +321,14 @@ static int gen_scoremap(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
 
 					int neigh_score;
 					if(ix == -2 || ix == 2 || iy == -2 || iy == 2)
-						neigh_score = 2*w->pages[npx][npy]->units[nox][noy].num_obstacles - 2*w->pages[npx][npy]->units[nox][noy].num_seen;
+						neigh_score = 5*w->pages[npx][npy]->units[nox][noy].num_obstacles - 4*w->pages[npx][npy]->units[nox][noy].num_seen;
 					else
-						neigh_score = 3*w->pages[npx][npy]->units[nox][noy].num_obstacles - 2*w->pages[npx][npy]->units[nox][noy].num_seen;
+						neigh_score = 6*w->pages[npx][npy]->units[nox][noy].num_obstacles - 4*w->pages[npx][npy]->units[nox][noy].num_seen;
 					if(neigh_score > score) score = neigh_score;
 				}
 			}
+
+			score >>= 1;
 
 			if(score > 63) score=63; else if(score < -64) score = -64;
 
@@ -333,7 +336,7 @@ static int gen_scoremap(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
 		}
 	}
 
-
+/*
 	// Output 768x768x24bit raw image for debug.
 	FILE* dbg_f = fopen("dbg_scoremap.data", "w");
 
@@ -355,12 +358,76 @@ static int gen_scoremap(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
 	}
 
 	fclose(dbg_f);
-
+*/
 	printf(" OK.\n");
 
 
 	return 0;
 }
+
+
+static int gen_scoremap_for_small_steps(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
+{
+	int px, py, ox, oy;
+
+	printf("Generating scoremap..."); fflush(stdout);
+	for(int xx = 0; xx < TEMP_MAP_W; xx++)
+	{
+		for(int yy = 0; yy < TEMP_MAP_W; yy++)
+		{
+			page_coords(mid_x + (xx-TEMP_MAP_MIDDLE)*MAP_UNIT_W, mid_y + (yy-TEMP_MAP_MIDDLE)*MAP_UNIT_W, &px, &py, &ox, &oy);
+			load_9pages(w, px, py);
+
+			int score = 4*w->pages[px][py]->units[ox][oy].num_obstacles - 2*w->pages[px][py]->units[ox][oy].num_seen;
+
+			for(int ix=-1; ix<=1; ix++)
+			{
+				for(int iy=-1; iy<=1; iy++)
+				{
+					int npx = px, npy = py, nox = ox + ix, noy = oy + iy;
+					if(nox < 0) { nox += MAP_PAGE_W; npx--; } else if(nox >= MAP_PAGE_W) { nox -= MAP_PAGE_W; npx++;}
+					if(noy < 0) { noy += MAP_PAGE_W; npy--; } else if(noy >= MAP_PAGE_W) { noy -= MAP_PAGE_W; npy++;}
+
+					int neigh_score = 3*w->pages[npx][npy]->units[nox][noy].num_obstacles - 2*w->pages[npx][npy]->units[nox][noy].num_seen;
+					if(neigh_score > score) score = neigh_score;
+				}
+			}
+
+			if(score > 63) score=63; else if(score < -64) score = -64;
+
+			scoremap[yy*TEMP_MAP_W+xx] = score;
+		}
+	}
+
+/*
+	// Output 768x768x24bit raw image for debug.
+	FILE* dbg_f = fopen("dbg_scoremap.data", "w");
+
+	for(int iy = 0; iy < TEMP_MAP_W; iy++)
+	{
+		for(int ix = 0; ix < TEMP_MAP_W; ix++)
+		{
+			int r = 0, g = 0;
+			if(scoremap[iy*TEMP_MAP_W+ix] > 0)
+				g = scoremap[iy*TEMP_MAP_W+ix]*4;
+			else
+				r = scoremap[iy*TEMP_MAP_W+ix]*-4;
+
+			if(r > 255) r = 255; if(g > 255) g = 255;
+			fputc(r, dbg_f); // R
+			fputc(g, dbg_f); // G
+			fputc(0, dbg_f); // B
+		}
+	}
+
+	fclose(dbg_f);
+*/
+	printf(" OK.\n");
+
+
+	return 0;
+}
+
 
 /*
 	score_quick uses 3*MAP_PAGE_W*3*MAP_PAGE_W*int8_t scoremap, with middlepoint at rotate_mid_x, rotate_mix_y.
@@ -1182,7 +1249,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	lidars_avg_midpoint(n_lidars, lidar_list, &mid_x, &mid_y);
 
 
-	gen_scoremap(w, scoremap, mid_x, mid_y);
+	gen_scoremap_for_small_steps(w, scoremap, mid_x, mid_y);
 
 
 	int a_range = 4;

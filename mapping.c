@@ -329,7 +329,7 @@ static int gen_scoremap(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
 		}
 	}
 
-
+/*
 	// Output 768x768x24bit raw image for debug.
 	FILE* dbg_f = fopen("dbg_scoremap.data", "w");
 
@@ -351,7 +351,7 @@ static int gen_scoremap(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
 	}
 
 	fclose(dbg_f);
-
+*/
 	printf(" OK.\n");
 
 
@@ -404,6 +404,86 @@ static int32_t score_quick(int8_t *scoremap, int n_lidars, lidar_scan_t** lidar_
 
 	return (1000*score)/n_points;
 }
+
+static int32_t score_quick_search_xy(int8_t *scoremap, int n_lidars, lidar_scan_t** lidar_list, 
+	       int32_t rotate_mid_x, int32_t rotate_mid_y, 
+	       int32_t da, int32_t dx_start, int32_t dx_step, int32_t num_dx, int32_t dy_start, int32_t dy_step, int32_t num_dy,
+               int32_t *best_dx, int32_t *best_dy)
+{
+	int n_points = 0;
+
+	if(num_dx > 32 || num_dy > 32 || num_dx < 1 || num_dy < 1)
+	{
+		printf("ERROR: score_quick_search_xy(): Invalid num_dx or num_dy\n.");
+		exit(1);
+	}
+
+	int score[32][32] = {{0}}; // for(int i=0; i<32;i++) { for(int o=0; o<32;o++) score[i][o] = 0; }
+
+	float ang = (float)da/((float)ANG_1_DEG*360.0)*2.0*M_PI;
+
+	// Go through all valid points in all lidars in the lidar_list.
+	for(int l=0; l<n_lidars; l++)
+	{
+		lidar_scan_t* lid = lidar_list[l];
+
+		for(int p=0; p<LIDAR_SCAN_POINTS; p++)
+		{
+			if(!lid->scan[p].valid)
+				continue;
+
+			n_points++;
+
+			// Rotate the point by da and then shift by dx, dy.
+
+			int pre_x = lid->scan[p].x - rotate_mid_x;
+			int pre_y = lid->scan[p].y - rotate_mid_y;
+
+			int rotated_x = pre_x*cos(ang) + pre_y*sin(ang);
+			int rotated_y = -1*pre_x*sin(ang) + pre_y*cos(ang);
+
+			for(int ix = 0; ix < num_dx; ix++)
+			{
+				for(int iy = 0; iy < num_dy; iy++)
+				{
+					int x = rotated_x + dx_start+dx_step*ix;
+					int y = rotated_y + dy_start+dy_step*iy;
+
+					x /= MAP_UNIT_W; y /= MAP_UNIT_W;
+					x += TEMP_MAP_MIDDLE; y += TEMP_MAP_MIDDLE;
+
+			/*			if(x < 1 || x >= 767 || y < 1 || y >= 767)
+					{
+						printf("Error: illegal indexes in score_quick: (%d, %d)\n", x, y);
+						return -99999;
+					}
+			*/
+					score[ix][iy] += scoremap[y*TEMP_MAP_W+x];
+				}
+			}
+		}
+	}
+
+	int best_score = -999999, best_ix = 0, best_iy = 0;
+	for(int ix = 0; ix < num_dx; ix++)
+	{
+		for(int iy = 0; iy < num_dy; iy++)
+		{
+			if(score[ix][iy] > best_score)
+			{
+				best_score = score[ix][iy];
+				best_ix = ix;
+				best_iy = iy;
+			}
+		}
+	}
+
+	*best_dx = dx_start+dx_step*best_ix;
+	*best_dy = dy_start+dy_step*best_iy;
+
+	return (1000*best_score)/n_points;
+}
+
 
 typedef struct  // Each bit represents each lidar scan (i.e., 32 lidar scans max).
 {
@@ -1103,8 +1183,8 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	int a_step = 1*ANG_1_DEG;
 
 	int best_score = -999999;
-	int best1_da=0, best1_dx=0, best1_dy=0;
-	for(int ida=-1*a_range*ANG_1_DEG; ida<=a_range*ANG_1_DEG; ida+=a_step)
+	int32_t best1_da=0, best1_dx=0, best1_dy=0;
+/*	for(int ida=-1*a_range*ANG_1_DEG; ida<=a_range*ANG_1_DEG; ida+=a_step)
 	{
 		for(int idx=-1*x_range; idx<=x_range; idx+=40)
 		{
@@ -1129,6 +1209,22 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			}
 		}
 	}
+*/
+
+	for(int ida=-1*a_range*ANG_1_DEG; ida<=a_range*ANG_1_DEG; ida+=a_step)
+	{
+		int32_t idx = 0, idy = 0;
+		int score_now = score_quick_search_xy(scoremap, n_lidars, lidar_list, mid_x, mid_y,
+			ida, -400, 40, 21, -400, 40, 21, &idx, &idy);
+		if(score_now > best_score)
+		{
+			best_score = score_now;
+			best1_da = ida;
+			best1_dx = idx;
+			best1_dy = idy;
+		}
+	}
+
 
 	int best_da = best1_da;
 	int best_dx = best1_dx;

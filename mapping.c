@@ -150,8 +150,6 @@ static int prefilter_lidar_list(int n_lidars, lidar_scan_t** lidar_list)
 			if(!lida->scan[pa].valid)
 				continue;
 
-			int64_t closest = INT64_MAX;
-
 			for(int lb=0; lb<n_lidars; lb++)
 			{
 				if(la == lb) continue;
@@ -167,18 +165,15 @@ static int prefilter_lidar_list(int n_lidars, lidar_scan_t** lidar_list)
 					int64_t dy = lidb->scan[pb].y - lida->scan[pa].y;
 					int64_t dist = sq(dx) + sq(dy);
 
-					if(dist < closest) closest = dist;
+					if(dist < sq(100)) goto FOUND_NEAR;
 				}
 			}
 
-			if(closest > sq(100))
-			{
-				lida->scan[pa].valid = 0;
-				n_removed_per_scan[la]++;
-				n_removed++;
-			}
+			lida->scan[pa].valid = 0;
+			n_removed_per_scan[la]++;
+			n_removed++;
 
-
+			FOUND_NEAR:;
 		}
 	}
 
@@ -304,7 +299,7 @@ static int score(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 static int gen_scoremap(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
 {
 	int px, py, ox, oy;
-	
+
 	printf("Generating scoremap..."); fflush(stdout);
 	for(int xx = 0; xx < TEMP_MAP_W; xx++)
 	{
@@ -397,12 +392,12 @@ static int32_t score_quick(int8_t *scoremap, int n_lidars, lidar_scan_t** lidar_
 			x /= MAP_UNIT_W; y /= MAP_UNIT_W;
 			x += TEMP_MAP_MIDDLE; y += TEMP_MAP_MIDDLE;
 
-			if(x < 1 || x >= 767 || y < 1 || y >= 767)
+/*			if(x < 1 || x >= 767 || y < 1 || y >= 767)
 			{
 				printf("Error: illegal indexes in score_quick: (%d, %d)\n", x, y);
 				return -99999;
 			}
-
+*/
 			score += scoremap[y*TEMP_MAP_W+x];	
 		}
 	}

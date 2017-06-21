@@ -412,13 +412,14 @@ static int32_t score_quick_search_xy(int8_t *scoremap, int n_lidars, lidar_scan_
 {
 	int n_points = 0;
 
+	printf("score_quick_search_xy: dx: %d, %d, %d   dy: %d, %d, %d\n", dx_start, dx_step, num_dx, dy_start, dy_step, num_dy);
 	if(num_dx > 32 || num_dy > 32 || num_dx < 1 || num_dy < 1)
 	{
 		printf("ERROR: score_quick_search_xy(): Invalid num_dx or num_dy\n.");
 		exit(1);
 	}
 
-	int score[32][32] = {{0}}; // for(int i=0; i<32;i++) { for(int o=0; o<32;o++) score[i][o] = 0; }
+	int score[32][32] = {{0}}; for(int i=0; i<32;i++) { for(int o=0; o<32;o++) { if(score[i][o] != 0) printf("Error horror\n"); } }
 
 	float ang = (float)da/((float)ANG_1_DEG*360.0)*2.0*M_PI;
 
@@ -464,11 +465,13 @@ static int32_t score_quick_search_xy(int8_t *scoremap, int n_lidars, lidar_scan_
 		}
 	}
 
+	printf("scores: ");
 	int best_score = -999999, best_ix = 0, best_iy = 0;
 	for(int ix = 0; ix < num_dx; ix++)
 	{
 		for(int iy = 0; iy < num_dy; iy++)
 		{
+			printf(" (%2d,%2d): %6d ", ix, iy, score[ix][iy]);
 			if(score[ix][iy] > best_score)
 			{
 				best_score = score[ix][iy];
@@ -478,6 +481,7 @@ static int32_t score_quick_search_xy(int8_t *scoremap, int n_lidars, lidar_scan_
 		}
 	}
 
+	printf("\n");
 	*best_dx = dx_start+dx_step*best_ix;
 	*best_dy = dy_start+dy_step*best_iy;
 

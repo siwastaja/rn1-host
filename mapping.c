@@ -328,8 +328,7 @@ static int gen_scoremap(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
 				}
 			}
 
-			score>>=1;
-			if(score > 127) score=127; else if(score < -128) score = -128;
+			if(score > 63) score=63; else if(score < -64) score = -64;
 
 			scoremap[yy*TEMP_MAP_W+xx] = score;
 		}
@@ -345,9 +344,9 @@ static int gen_scoremap(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
 		{
 			int r = 0, g = 0;
 			if(scoremap[iy*TEMP_MAP_W+ix] > 0)
-				r = scoremap[iy*TEMP_MAP_W+ix]*2;
+				g = scoremap[iy*TEMP_MAP_W+ix]*4;
 			else
-				g = scoremap[iy*TEMP_MAP_W+ix]*-2;
+				r = scoremap[iy*TEMP_MAP_W+ix]*-4;
 
 			if(r > 255) r = 255; if(g > 255) g = 255;
 			fputc(r, dbg_f); // R

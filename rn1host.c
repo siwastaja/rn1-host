@@ -657,7 +657,7 @@ int main(int argc, char** argv)
 						}
 						else
 						{
-							printf("INFO: Got significant(%d) lidar scan, adding to the mapping queue.\n", p_lid->significant_for_mapping);
+							printf("INFO: Got significant(%d) lidar scan, adding to the mapping queue(%d).\n", p_lid->significant_for_mapping, n_lidars_to_map);
 							lidars_to_map[n_lidars_to_map] = p_lid;
 
 							n_lidars_to_map++;

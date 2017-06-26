@@ -104,6 +104,8 @@ int unload_map_page(world_t* w, int pagex, int pagey)
 		w->pages[pagex][pagey] = 0;
 		w->changed[pagex][pagey] = 0;
 
+		free(w->rpages[pagex][pagey]);
+		w->rpages[pagex][pagey] = 0;
 	}
 	else
 	{

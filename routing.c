@@ -993,6 +993,9 @@ void gen_routing_page(world_t *w, int xpage, int ypage)
 	if(!w->pages[xpage][ypage])
 		return;
 
+	if(!w->rpages[xpage][ypage])
+		w->rpages[xpage][ypage] = malloc(sizeof(routing_page_t));
+
 	for(int xx=0; xx < MAP_PAGE_W; xx++)
 	{
 		for(int yy=0; yy < MAP_PAGE_W/32; yy++)

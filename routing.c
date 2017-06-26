@@ -1007,14 +1007,12 @@ void gen_routing_page(world_t *w, int xpage, int ypage)
 				uint8_t res = w->pages[xpage][ypage]->units[xx][yy*32+i].result;
 				tmp |= (res & UNIT_FREE) || (res & UNIT_WALL);
 			}
-			printf("a %d %d\n", xx, yy);
 			w->rpages[xpage][ypage]->obst_u32[xx][yy] = tmp;
 		}
-
-		printf("b %d %d\n", xx, MAP_PAGE_W/32);
-
 		if(w->pages[xpage][ypage+1])
 		{
+			printf("b %d %d\n", xx, MAP_PAGE_W/32);
+
 			uint32_t tmp = 0;
 			for(int i = 0; i < 32; i++)
 			{
@@ -1022,10 +1020,15 @@ void gen_routing_page(world_t *w, int xpage, int ypage)
 				uint8_t res = w->pages[xpage][ypage+1]->units[xx][0*32+i].result;
 				tmp |= (res & UNIT_FREE) || (res & UNIT_WALL);
 			}
+			printf("bbb\n");
 			w->rpages[xpage][ypage+1]->obst_u32[xx][MAP_PAGE_W/32] = tmp;
 		}
 		else
+		{
+			printf("c %d %d\n", xx, MAP_PAGE_W/32);
+
 			w->rpages[xpage][ypage+1]->obst_u32[xx][MAP_PAGE_W/32] = 0xffffffff;
+		}
 	}
 }
 

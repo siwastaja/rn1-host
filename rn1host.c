@@ -524,8 +524,8 @@ int main(int argc, char** argv)
 			{
 				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(230))
 				{
-					printf("We are not at the first charger point, trying again.\n");
-			//		find_charger_state = 1;
+					printf("We are not at the first charger point, please try again.\n");
+					find_charger_state = 0;
 				}
 				else
 				{
@@ -540,8 +540,8 @@ int main(int argc, char** argv)
 			{
 				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(170))
 				{
-					printf("We are not at the second charger point, trying again.\n");
-				//	find_charger_state = 1;
+					printf("We are not at the second charger point, please try again.\n");
+					find_charger_state = 0;
 				}
 				else
 				{

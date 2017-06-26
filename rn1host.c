@@ -573,6 +573,8 @@ int main(int argc, char** argv)
 
 		if( (p_lid = get_significant_lidar()) || (p_lid = get_basic_lidar()) )
 		{
+			if(tcp_client_sock >= 0) tcp_send_hwdbg(hwdbg);
+
 			if(p_lid->id != pos_corr_id)
 			{
 
@@ -581,8 +583,6 @@ int main(int argc, char** argv)
 			}
 			else
 			{
-				if(tcp_client_sock >= 0) tcp_send_hwdbg(hwdbg);
-
 				static int lidar_send_cnt = 0;
 				lidar_send_cnt++;
 				if(lidar_send_cnt > 5)

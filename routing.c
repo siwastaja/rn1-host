@@ -1007,8 +1007,11 @@ void gen_routing_page(world_t *w, int xpage, int ypage)
 				uint8_t res = w->pages[xpage][ypage]->units[xx][yy*32+i].result;
 				tmp |= (res & UNIT_FREE) || (res & UNIT_WALL);
 			}
+			printf("a %d %d\n", xx, yy);
 			w->rpages[xpage][ypage]->obst_u32[xx][yy] = tmp;
 		}
+
+		printf("b %d %d\n", xx, MAP_PAGE_W/32);
 
 		if(w->pages[xpage][ypage+1])
 		{

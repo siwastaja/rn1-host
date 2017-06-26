@@ -36,49 +36,36 @@ struct search_unit_t
 
 float robot_shape_x_len;
 #define ROBOT_SHAPE_WINDOW 32
-uint8_t robot_shapes[32][ROBOT_SHAPE_WINDOW][ROBOT_SHAPE_WINDOW];
+uint32_t robot_shapes[32][ROBOT_SHAPE_WINDOW];
 
 //int unmapped_limit = 3;
 
 static int check_hit(int x, int y, int direction)
 {
 //	printf("check_hit(%d, %d, %d)\n", x, y, direction);
-	int num_unmapped = 0;
 	for(int chk_x=0; chk_x<ROBOT_SHAPE_WINDOW; chk_x++)
 	{
-		for(int chk_y=0; chk_y<ROBOT_SHAPE_WINDOW; chk_y++)
+		int pageidx_x, pageidx_y, pageoffs_x, pageoffs_y;
+		page_coords_from_unit_coords(x-ROBOT_SHAPE_WINDOW/2+chk_x, y-ROBOT_SHAPE_WINDOW/2, &pageidx_x, &pageidx_y, &pageoffs_x, &pageoffs_y);
+
+		int yoffs = pageoffs_y/32;
+		int yoffs_remain = pageoffs_y - yoffs*32;
+
+		if(!routing_world->rpages[pageidx_x][pageidx_y]) // out of bounds (not allocated) - give up instantly
+			return 1;
+
+		// Now the quick comparison, which could be even faster, but we don't want to mess up the compatibility between
+		// big endian / little endian systems.
+
+		uint64_t shape = (uint64_t)robot_shapes[direction][chk_x] << (32-yoffs_remain);
+
+		if((((uint64_t)routing_world->rpages[pageidx_x][pageidx_y]->obst_u32[pageoffs_x][yoffs]<<32) |
+		   (uint64_t)routing_world->rpages[pageidx_x][pageidx_y]->obst_u32[pageoffs_x][yoffs+1])
+		      & shape)
 		{
-			int pageidx_x, pageidx_y, pageoffs_x, pageoffs_y;
-			page_coords_from_unit_coords(x-ROBOT_SHAPE_WINDOW/2+chk_x, y-ROBOT_SHAPE_WINDOW/2+chk_y, &pageidx_x, &pageidx_y, &pageoffs_x, &pageoffs_y);
-
-//			printf("%d %d  %d %d\n", pageidx_x, pageidx_y, pageoffs_x, pageoffs_y);
-//			if(pageidx_x < 0 || pageidx_x >= MAP_W || pageidx_y < 0 || pageidx_y >= MAP_W)
-//			{
-//				printf("check_hit(): out-of-range pageidx (%d, %d)\n", pageidx_x, pageidx_y);
-//				exit(1);
-//			}
-
-			if(!routing_world->pages[pageidx_x][pageidx_y]) // out of bounds (not allocated) - give up instantly
-			{
-				return 1;
-			}
-
-			if(robot_shapes[direction][chk_x][chk_y])
-			{
-				if((routing_world->pages[pageidx_x][pageidx_y]->units[pageoffs_x][pageoffs_y].result & UNIT_WALL))
-					return 1;
-
-
-				if(!(routing_world->pages[pageidx_x][pageidx_y]->units[pageoffs_x][pageoffs_y].result & UNIT_MAPPED))
-					return 2; //num_unmapped++;
-			}
-
+			return 1;
 		}
 	}
-
-
-//	if(num_unmapped > unmapped_limit)
-//		return 2;
 
 	return 0;
 }
@@ -196,7 +183,7 @@ static int minimap_check_hit(int x, int y, int direction)
 				exit(1);
 			}
 
-			if(robot_shapes[direction][chk_x][chk_y])
+			if(1) // todo: fix. robot_shapes[direction][chk_x][chk_y])
 			{
 				if(minimap[xx][yy])
 					return 1;
@@ -392,7 +379,7 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 
 
 
-#define SHAPE_PIXEL(shape, x, y) { robot_shapes[shape][(x)][(y)] = 1;}
+#define SHAPE_PIXEL(shape, x, y) { robot_shapes[shape][(x)] |= 1UL<<(31-y);}
 int limits_x[ROBOT_SHAPE_WINDOW][2];
 #define ABS(x) ((x >= 0) ? x : -x)
 static void triangle_scanline(int x1, int y1, int x2, int y2)
@@ -1000,9 +987,61 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 
 }
 
+
+void gen_routing_page(world_t *w, int xpage, int ypage)
+{
+	if(!w->pages[xpage][ypage])
+		return;
+
+	for(int xx=0; xx < MAP_PAGE_W; xx++)
+	{
+		for(int yy=0; yy < MAP_PAGE_W/32; yy++)
+		{
+			uint32_t tmp = 0;
+			for(int i = 0; i < 32; i++)
+			{
+				tmp<<=1;
+				uint8_t res = w->pages[xpage][ypage]->units[xx][yy*32+i].result;
+				tmp |= (res & UNIT_FREE) || (res & UNIT_WALL);
+			}
+			w->rpages[xpage][ypage]->obst_u32[xx][yy] = tmp;
+		}
+
+		if(w->pages[xpage][ypage+1])
+		{
+			uint32_t tmp = 0;
+			for(int i = 0; i < 32; i++)
+			{
+				tmp<<=1;
+				uint8_t res = w->pages[xpage][ypage+1]->units[xx][0*32+i].result;
+				tmp |= (res & UNIT_FREE) || (res & UNIT_WALL);
+			}
+			w->rpages[xpage][ypage+1]->obst_u32[xx][MAP_PAGE_W/32] = tmp;
+		}
+		else
+			w->rpages[xpage][ypage+1]->obst_u32[xx][MAP_PAGE_W/32] = 0xffffffff;
+	}
+}
+
+void gen_all_routing_pages(world_t *w)
+{
+	for(int xpage = 0; xpage < MAP_W; xpage++)
+	{
+		for(int ypage = 0; ypage < MAP_W; ypage++)
+		{
+			gen_routing_page(w, xpage, ypage);
+		}
+	}
+}
+
 int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_mm, int start_y_mm, int end_x_mm, int end_y_mm)
 {
 	routing_world = w;
+
+	printf("Generating routing pages... "); fflush(stdout);
+	gen_all_routing_pages(w);
+	printf("done.\n");
+
 	normal_search_mode();
 	printf("Searching with normal limits...\n");
 
@@ -1080,3 +1119,4 @@ int check_direct_route(int32_t start_ang, int start_x, int start_y, int end_x, i
 	}
 	return 0;
 }
+

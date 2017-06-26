@@ -76,6 +76,16 @@ typedef struct
 } qmap_page_t;
 
 
+/*
+	Routing pages (for optimization purposes only) use single bits to denote forbidden areas, so
+	that 32-bit wide robot shapes can be compared against hits efficiently. For the same reason,
+	one extra uint32 block is included on the bottom (positive) end.
+*/
+typedef union
+{
+	uint32_t obst_u32[MAP_PAGE_W][MAP_PAGE_W/32 + 1];
+} routing_page_t;
+
 
 /*
 world_t is one continuously mappable entity. There can be several worlds, but the worlds cannot overlap;
@@ -103,6 +113,7 @@ typedef struct
 	map_page_t*  pages[MAP_W][MAP_W];
 	uint8_t changed[MAP_W][MAP_W];
 	qmap_page_t* qpages[MAP_W][MAP_W];
+	routing_page_t* rpages[MAP_W][MAP_W];
 } world_t;
 
 void page_coords(int mm_x, int mm_y, int* pageidx_x, int* pageidx_y, int* pageoffs_x, int* pageoffs_y);

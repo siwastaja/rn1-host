@@ -573,7 +573,21 @@ int main(int argc, char** argv)
 
 		if( (p_lid = get_significant_lidar()) || (p_lid = get_basic_lidar()) )
 		{
-			if(tcp_client_sock >= 0) tcp_send_hwdbg(hwdbg);
+			static int hwdbg_cnt = 0;
+			hwdbg_cnt++;
+			if(hwdbg_cnt > 4)
+			{
+				if(tcp_client_sock >= 0) tcp_send_hwdbg(hwdbg);
+				hwdbg_cnt = 0;
+			}
+
+			static int lidar_send_cnt = 0;
+			lidar_send_cnt++;
+			if(lidar_send_cnt > 8)
+			{
+				if(tcp_client_sock >= 0) tcp_send_lidar(p_lid);
+				lidar_send_cnt = 0;
+			}
 
 			if(p_lid->id != pos_corr_id)
 			{
@@ -583,24 +597,24 @@ int main(int argc, char** argv)
 			}
 			else
 			{
-				static int lidar_send_cnt = 0;
-				lidar_send_cnt++;
-				if(lidar_send_cnt > 5)
-				{
-					if(tcp_client_sock >= 0) tcp_send_lidar(p_lid);
-					lidar_send_cnt = 0;
-				}
 
 				int idx_x, idx_y, offs_x, offs_y;
 	//			printf("INFO: Got lidar scan.\n");
 
 				cur_ang = p_lid->robot_pos.ang; cur_x = p_lid->robot_pos.x; cur_y = p_lid->robot_pos.y;
-				if(tcp_client_sock >= 0)
+
+				static int curpos_send_cnt = 0;
+				curpos_send_cnt++;
+				if(curpos_send_cnt > 2)
 				{
-					msg_rc_pos.ang = cur_ang>>16;
-					msg_rc_pos.x = cur_x;
-					msg_rc_pos.y = cur_y;
-					tcp_send_msg(&msgmeta_rc_pos, &msg_rc_pos);
+					if(tcp_client_sock >= 0)
+					{
+						msg_rc_pos.ang = cur_ang>>16;
+						msg_rc_pos.x = cur_x;
+						msg_rc_pos.y = cur_y;
+						tcp_send_msg(&msgmeta_rc_pos, &msg_rc_pos);
+					}
+					curpos_send_cnt = 0;
 				}
 
 				page_coords(p_lid->robot_pos.x, p_lid->robot_pos.y, &idx_x, &idx_y, &offs_x, &offs_y);
@@ -632,8 +646,8 @@ int main(int argc, char** argv)
 				lidars_to_map_at_routing_start[0] = p_lid;
 				if(p_lid->significant_for_mapping & map_significance_mode)
 				{
-					lidar_send_cnt = 0;
-					if(tcp_client_sock >= 0) tcp_send_lidar(p_lid);
+//					lidar_send_cnt = 0;
+//					if(tcp_client_sock >= 0) tcp_send_lidar(p_lid);
 
 					if(mapping_on)
 					{
@@ -690,7 +704,13 @@ int main(int argc, char** argv)
 		sonar_scan_t* p_son;
 		if( (p_son = get_sonar()) )
 		{
-			if(tcp_client_sock >= 0) tcp_send_sonar(p_son);
+			static int sonar_send_cnt = 0;
+			sonar_send_cnt++;
+			if(sonar_send_cnt > 8)
+			{
+				if(tcp_client_sock >= 0) tcp_send_sonar(p_son);
+				sonar_send_cnt = 0;
+			}
 			if(mapping_on)
 				map_sonar(&world, p_son);
 		}

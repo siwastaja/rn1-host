@@ -528,7 +528,7 @@ int main(int argc, char** argv)
 		{
 			if(!do_follow_route)
 			{
-				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(230))
+				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(240))
 				{
 					printf("We are not at the first charger point, please try again.\n");
 					find_charger_state = 0;
@@ -542,9 +542,9 @@ int main(int argc, char** argv)
 		}
 		else if(find_charger_state == 3)
 		{
-			if(cur_xymove.id == 0x7f && cur_xymove.remaining < 20)
+			if(cur_xymove.id == 0x7f && cur_xymove.remaining < 10)
 			{
-				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(170))
+				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(190))
 				{
 					printf("We are not at the second charger point, please try again.\n");
 					find_charger_state = 0;
@@ -556,12 +556,12 @@ int main(int argc, char** argv)
 				}
 			}
 		}
-		else if(find_charger_state == 70000)
+		else if(find_charger_state == 65000)
 		{
 			turn_and_go(charger_ang, 0, 23);
 			find_charger_state++;
 		}
-		else if(find_charger_state == 85000)
+		else if(find_charger_state == 75000)
 		{
 			printf("INFO: Requesting charger mount.\n");
 			hw_find_charger();

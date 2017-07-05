@@ -29,12 +29,21 @@ tcp_message_t msgmeta_cr_route =
 	9, "iib"
 };
 
+tcp_cr_charge_t msg_cr_charge;
+tcp_message_t msgmeta_cr_charge =
+{
+	&msg_cr_charge,
+	TCP_CR_CHARGE_MID,
+	1, "b"
+};
 
-#define NUM_CR_MSGS 2
+
+#define NUM_CR_MSGS 3
 tcp_message_t* CR_MSGS[NUM_CR_MSGS] =
 {
 	&msgmeta_cr_dest,
-	&msgmeta_cr_route
+	&msgmeta_cr_route,
+	&msgmeta_cr_charge
 };
 
 // Robot->Client messages

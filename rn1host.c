@@ -440,6 +440,12 @@ int main(int argc, char** argv)
 				}
 
 			}
+			else if(ret == TCP_CR_CHARGE_MID)
+			{
+				read_charger_pos();
+				find_charger_state = 1;
+			}
+			
 		}
 
 		if(FD_ISSET(tcp_listener_sock, &fds))

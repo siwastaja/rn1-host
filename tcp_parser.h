@@ -50,6 +50,15 @@ typedef struct __attribute__ ((packed))
 extern tcp_cr_route_t   msg_cr_route;
 
 
+#define TCP_CR_CHARGE_MID    57
+typedef struct __attribute__ ((packed))
+{
+	uint8_t params;
+} tcp_cr_charge_t;
+
+extern tcp_cr_charge_t   msg_cr_charge;
+
+
 #define TCP_RC_POS_MID    130
 typedef struct __attribute__ ((packed))
 {

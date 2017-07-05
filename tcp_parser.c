@@ -109,6 +109,18 @@ void tcp_send_lidar(lidar_scan_t* p_lid)
 
 }
 
+void tcp_send_sync_request()
+{
+	const int size = 3+1;
+	uint8_t buf[size];
+	buf[0] = TCP_RC_SYNCREQ_MID;
+	buf[1] = ((size-3)>>8)&0xff;
+	buf[2] = (size-3)&0xff;
+	buf[3] = 0;
+
+	tcp_send(buf, size);
+}
+
 void tcp_send_hwdbg(int32_t* dbg)
 {
 	const int size = 3+10*4;

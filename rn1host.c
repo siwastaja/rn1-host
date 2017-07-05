@@ -733,7 +733,10 @@ int main(int argc, char** argv)
 			unload_map_pages(&world, idx_x, idx_y);
 
 			// Sync all changed map pages to disk
-			save_map_pages(&world);
+			if(save_map_pages(&world))
+			{
+				if(tcp_client_sock >= 0) tcp_send_sync_request();
+			}
 			if(tcp_client_sock >= 0) tcp_send_battery();
 		}
 

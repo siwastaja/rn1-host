@@ -75,6 +75,7 @@ extern tcp_rc_pos_t    msg_rc_pos;
 #define TCP_RC_SONAR_MID   133
 #define TCP_RC_BATTERY_MID 134
 #define TCP_RC_ROUTEINFO_MID 135
+#define TCP_RC_SYNCREQ_MID 136
 
 int tcp_parser(int sock);
 
@@ -85,5 +86,6 @@ void tcp_send_hwdbg(int32_t* dbg);
 void tcp_send_sonar(sonar_scan_t* p_son);
 void tcp_send_battery();
 void tcp_send_route(route_unit_t **route);
+void tcp_send_sync_request();
 
 #endif

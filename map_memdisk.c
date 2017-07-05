@@ -130,19 +130,21 @@ int unload_map_pages(world_t* w, int cur_pagex, int cur_pagey)
 	return 0;
 }
 
-int save_map_pages(world_t* w)
+int save_map_pages(world_t* w)  // returns number of changed pages
 {
+	int ret = 0;
 	for(int x = 0; x < MAP_W; x++)
 	{
 		for(int y = 0; y < MAP_W; y++)
 		{
 			if(w->pages[x][y] && w->changed[x][y])
 			{
+				ret++;
 				write_map_page(w, x, y);
 			}
 		}
 	}
-	return 0;
+	return ret;
 }
 
 

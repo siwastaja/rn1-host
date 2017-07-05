@@ -298,6 +298,7 @@ int main(int argc, char** argv)
 	daiju_mode(0);
 	correct_robot_pos(0,0,0, pos_corr_id);
 
+	int lidar_ignore_over = 0;
 	int cnt = 0;
 	while(1)
 	{
@@ -530,23 +531,38 @@ int main(int argc, char** argv)
 			{
 				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(360))
 				{
-					printf("We are not at the first charger point, please try again.\n");
+					printf("INFO: We are not at the first charger point, please try again.\n");
 					find_charger_state = 0;
 				}
 				else
 				{
-					move_to(charger_second_x, charger_second_y, 0, 0x7f, 25, 1);
+					printf("INFO: At first charger point, mapping lidars for exact pos.\n");
+
+					int32_t da, dx, dy;
+					map_lidars(&world, NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start, &da, &dx, &dy);
+					INCR_POS_CORR_ID();
+					correct_robot_pos(da, dx, dy, pos_corr_id);
+					lidar_ignore_over = 0;
 					find_charger_state++;
 				}
 			}
 		}
 		else if(find_charger_state == 3)
 		{
+			if(lidar_ignore_over)
+			{
+				printf("INFO: Going to second charger point.\n");
+				move_to(charger_second_x, charger_second_y, 0, 0x7f, 25, 1);
+				find_charger_state++;
+			}
+		}
+		else if(find_charger_state == 4)
+		{
 			if(cur_xymove.id == 0x7f && cur_xymove.remaining < 10)
 			{
 				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(190))
 				{
-					printf("We are not at the second charger point, please try again.\n");
+					printf("INFO: We are not at the second charger point, please try again.\n");
 					find_charger_state = 0;
 				}
 				else
@@ -603,6 +619,7 @@ int main(int argc, char** argv)
 			}
 			else
 			{
+				lidar_ignore_over = 1;
 
 				int idx_x, idx_y, offs_x, offs_y;
 	//			printf("INFO: Got lidar scan.\n");

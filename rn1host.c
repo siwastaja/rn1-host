@@ -24,7 +24,7 @@
 
 #include "mcu_micronavi_docu.c"
 
-int mapping_on = 0;
+int mapping_on = 1;
 int pos_corr_id = 42;
 #define INCR_POS_CORR_ID() {pos_corr_id++; if(pos_corr_id > 99) pos_corr_id = 0;}
 

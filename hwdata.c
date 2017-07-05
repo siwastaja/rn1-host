@@ -239,9 +239,9 @@ void release_motors()
 	send_uart(buf, 3);
 }
 
-void move_to(int32_t x, int32_t y, int8_t backmode, int id, int speedlimit)
+void move_to(int32_t x, int32_t y, int8_t backmode, int id, int speedlimit, int accurate_turn)
 {
-	uint8_t buf[15];
+	uint8_t buf[16];
 
 	if(id < 0 || id > 127)
 	{
@@ -265,13 +265,14 @@ void move_to(int32_t x, int32_t y, int8_t backmode, int id, int speedlimit)
 	buf[11] = ((uint8_t)backmode)&0x7f;
 	buf[12] = ((uint8_t)id)&0x7f;
 	buf[13] = speedlimit&0x7f;
-	buf[14] = 0xff;
-	send_uart(buf, 15);
+	buf[14] = accurate_turn;
+	buf[15] = 0xff;
+	send_uart(buf, 16);
 }
 
-void turn_and_go(int32_t ang_abs, int fwd_rel, int speedlimit)
+void turn_and_go(int32_t ang_abs, int fwd_rel, int speedlimit, int accurate_turn)
 {
-	uint8_t buf[7];
+	uint8_t buf[8];
 
 	printf("INFO: Turn & go %d, %d\n", ang_abs, fwd_rel);
 
@@ -281,8 +282,9 @@ void turn_and_go(int32_t ang_abs, int fwd_rel, int speedlimit)
 	buf[3] = I16_MS(fwd_rel);
 	buf[4] = I16_LS(fwd_rel);
 	buf[5] = speedlimit&0x7f;
-	buf[6] = 0xff;
-	send_uart(buf, 7);
+	buf[6] = accurate_turn;
+	buf[7] = 0xff;
+	send_uart(buf, 8);
 }
 
 

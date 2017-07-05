@@ -136,7 +136,7 @@ void route_fsm()
 	if(start_route && route_pos == 0)
 	{
 		printf("Start going id=%d!\n", id_cnt<<4);
-		move_to(the_route[0].x, the_route[0].y, the_route[0].backmode, (id_cnt<<4), (mapping_on==1)?30:50);
+		move_to(the_route[0].x, the_route[0].y, the_route[0].backmode, (id_cnt<<4), (mapping_on==1)?30:50, 0);
 		start_route = 0;
 		first_fail = 1;
 	}
@@ -193,7 +193,7 @@ void route_fsm()
 							}
 						}
 						printf("Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
-						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), (mapping_on==1)?30:50);
+						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), (mapping_on==1)?30:50, 0);
 						first_fail = 1;
 					}
 					else
@@ -420,7 +420,7 @@ int main(int argc, char** argv)
 				daiju_mode(0);
 
 				printf("  ---> DEST params: X=%d Y=%d backmode=%d\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
-				move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode, 0, (mapping_on==1)?30:50);
+				move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode, 0, (mapping_on==1)?30:50, 1);
 				do_follow_route = 0;
 			}
 			else if(ret == TCP_CR_ROUTE_MID)
@@ -528,14 +528,14 @@ int main(int argc, char** argv)
 		{
 			if(!do_follow_route)
 			{
-				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(240))
+				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(360))
 				{
 					printf("We are not at the first charger point, please try again.\n");
 					find_charger_state = 0;
 				}
 				else
 				{
-					move_to(charger_second_x, charger_second_y, 0, 0x7f, 25);
+					move_to(charger_second_x, charger_second_y, 0, 0x7f, 25, 1);
 					find_charger_state++;
 				}
 			}
@@ -551,14 +551,14 @@ int main(int argc, char** argv)
 				}
 				else
 				{
-					turn_and_go(charger_ang, charger_fwd, 23);
+					turn_and_go(charger_ang, charger_fwd, 23, 1);
 					find_charger_state++;
 				}
 			}
 		}
 		else if(find_charger_state == 65000)
 		{
-			turn_and_go(charger_ang, 0, 23);
+			turn_and_go(charger_ang, 0, 23, 1);
 			find_charger_state++;
 		}
 		else if(find_charger_state == 75000)

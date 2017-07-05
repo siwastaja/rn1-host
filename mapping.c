@@ -1680,7 +1680,7 @@ void autofsm()
 				printf("Found direction\n");
 				if(movement_id == cur_xymove.id) movement_id+=2;
 				if(movement_id > 100) movement_id = 0;
-				move_to(cur_x+dx, cur_y+dy, need_to_back, movement_id, 30);
+				move_to(cur_x+dx, cur_y+dy, need_to_back, movement_id, 30, 0);
 				cur_autostate++;
 			}
 			else

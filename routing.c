@@ -270,7 +270,7 @@ static int minimap_line_of_sight(route_xy_t p1, route_xy_t p2, int reverse)
 		int x = (cos(ang)*pos + (float)p1.x)+0.5;
 		int y = (sin(ang)*pos + (float)p1.y)+0.5;
 
-		printf("DBG: minimap_line_of_sight(): x=%d, y=%d, dir=%d\n", x, y, dir);
+//		printf("DBG: minimap_line_of_sight(): x=%d, y=%d, dir=%d\n", x, y, dir);
 
 		if(minimap_check_hit(x, y, dir))
 		{
@@ -297,10 +297,12 @@ static int minimap_test_endpoint(route_xy_t p1, route_xy_t p2, int reverse)
 	float pos = len;
 
 	float ang = atan2(dy, dx);
-	if(reverse) ang += M_PI;
 	if(ang < 0.0) ang += 2.0*M_PI;
 	if(ang > 2.0*M_PI) ang -= 2.0*M_PI;
+
 	int dir = (ang/(2.0*M_PI) * 32.0)+0.5;
+	if(reverse) dir += 16;
+	if(dir > 31) dir -= 32;
 	if(dir < 0) dir = 0; else if(dir > 31) dir = 31;
 
 	int x = (cos(ang)*pos + (float)p1.x)+0.5;
@@ -386,7 +388,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 				}
 				else
 				{
-					printf("INFO: minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
+//					printf("INFO: minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
 				}
 			}
 		}

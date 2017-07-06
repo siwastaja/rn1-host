@@ -1812,14 +1812,14 @@ void autofsm()
 			float rand1 = ((float)rand() / (float)RAND_MAX)*2000.0+1000.0;
 			float rand2 = ((float)rand() / (float)RAND_MAX)*2000.0+1000.0;
 
-			if(rand()&0)
+			if(rand()&1)
 				rand1 *= -1;
-			if(rand()&0)
+			if(rand()&1)
 				rand2 *= -1;
 
 			desired_x = rand1;
 			desired_y = rand2;
-			same_dir_len = ((float)rand() / (float)RAND_MAX)*5.0;
+			same_dir_len = ((float)rand() / (float)RAND_MAX)*7.0;
 			same_dir_cnt = 0;
 			printf("INFO: Generated new random desired vector (%d, %d), time to follow = %d\n", desired_x, desired_y, same_dir_len);
 			cur_autostate++;

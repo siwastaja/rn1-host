@@ -997,8 +997,13 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 void gen_routing_page(world_t *w, int xpage, int ypage)
 {
 	if(!w->pages[xpage][ypage])
+	{
+		if(xpage == 127 && ypage == 127)
+		{
+			printf("DBG: pages[127][127] not allocated\n");
+		}
 		return;
-
+	}
 	if(!w->rpages[xpage][ypage])
 		w->rpages[xpage][ypage] = malloc(sizeof(routing_page_t));
 

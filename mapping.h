@@ -133,6 +133,7 @@ void start_automapping_skip_compass();
 void stop_automapping();
 void start_automap_only_compass();
 void autofsm();
+void dbg_test();
 
 
 #endif

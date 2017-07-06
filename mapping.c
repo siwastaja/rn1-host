@@ -1822,4 +1822,18 @@ void autofsm()
 }
 
 
-
+void dbg_test()
+{
+	map_lidar_to_minimap(latest_lidar);
+	int32_t dx, dy;
+	int need_to_back = 0;
+	extern int32_t cur_ang;
+	if(minimap_find_mapping_dir(&world, ANG32TORAD(cur_ang), &dx, &dy, 0, 0, &need_to_back))
+	{
+		printf("DBG_TEST: Found direction\n");
+	}
+	else
+	{
+		printf("DBG_TEST: Automapping: can't go anywhere; daijuing needed.\n");
+	}
+}

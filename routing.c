@@ -372,6 +372,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 	for(int i=0; i < num_cango_places; i++)
 	{	
 		int64_t dist_sq = sq(cango_places[i].x - desired_x) + sq(cango_places[i].y - desired_y);
+		if(backs[i]) dist_sq *= 2; // Make backing off less appealing
 		if(dist_sq < nearest)
 		{
 			nearest = dist_sq;

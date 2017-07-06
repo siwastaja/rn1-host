@@ -407,6 +407,10 @@ int main(int argc, char** argv)
 					printf("Robot motors enabled again.\n");
 				}
 			}
+			if(cmd == 'd')
+			{
+				dbg_test();
+			}
 
 		}
 
@@ -626,6 +630,7 @@ int main(int argc, char** argv)
 
 				if(lidar_ignore_cnt > 50)
 				{
+					lidar_ignore_cnt = 0;
 					printf("WARN: lidar id was stuck, fixing...\n");
 					INCR_POS_CORR_ID();
 					correct_robot_pos(0, 0, 0, pos_corr_id);

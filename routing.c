@@ -286,6 +286,32 @@ static int minimap_line_of_sight(route_xy_t p1, route_xy_t p2, int reverse)
 	return 1;
 }
 
+static int minimap_test_endpoint(route_xy_t p1, route_xy_t p2, int reverse)
+{
+	int dx = p2.x - p1.x;
+	int dy = p2.y - p1.y;
+
+	float len = sqrt(sq(dx) + sq(dy));
+	float pos = len;
+
+	float ang = atan2(dy, dx);
+	if(reverse) ang += M_PI;
+	if(ang < 0.0) ang += 2.0*M_PI;
+	if(ang > 2.0*M_PI) ang -= 2.0*M_PI;
+	int dir = (ang/(2.0*M_PI) * 32.0)+0.5;
+	if(dir < 0) dir = 0; else if(dir > 31) dir = 31;
+
+	int x = (cos(ang)*pos + (float)p1.x)+0.5;
+	int y = (sin(ang)*pos + (float)p1.y)+0.5;
+
+	if(minimap_check_hit(x, y, dir))
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
 
 int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, int32_t desired_x, int32_t desired_y, int* back)
 {
@@ -301,10 +327,15 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 
 	int num_cango_places = 0;
 	route_xy_t cango_places[100];
+	route_xy_t internal_cango_places[100];
 	int backs[100];
 	int disagrees = 0;
 
 	gen_all_routing_pages(w);
+
+	int in_tight_spot = 0;
+
+	route_xy_t start = {0, 0};
 
 	for(int tries=0; tries < 3; tries++)
 	{
@@ -313,7 +344,6 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 			for(float ang_to = 0; ang_to < DEGTORAD(359.9); ang_to += (tries==0)?(DEGTORAD(10.0)):(DEGTORAD(5.0)))
 			{
 				float fwd_len = fwds[f];
-				route_xy_t start = {0, 0};
 				route_xy_t end = {(int)(cos(ang_to)*fwd_len/(float)MAP_UNIT_W),
 						  (int)(sin(ang_to)*fwd_len/(float)MAP_UNIT_W)};
 
@@ -329,6 +359,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 							MM_TO_UNIT(dest_x+cur_x), MM_TO_UNIT(dest_y+cur_y)))
 						{
 //							printf(" Agreed.\n");
+							internal_cango_places[num_cango_places] = end;
 							cango_places[num_cango_places].x = dest_x; cango_places[num_cango_places].y = dest_y;
 							if(fwd_len < 0.0) backs[num_cango_places] = 1; else backs[num_cango_places] = 0;
 							num_cango_places++;
@@ -357,6 +388,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 
 		if(num_cango_places < 5)
 		{
+			in_tight_spot = 1;
 			if(tries == 0)
 			{
 				printf("INFO: minimap_find_mapping_dir goes to tighter (normal) search mode to find more possibilities (%d so far).\n", num_cango_places);
@@ -380,8 +412,44 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 		return 0;
 	}
 
-	int64_t nearest = INT64_MAX;
-	int nearest_i = 0;
+	int64_t nearest;
+	int nearest_i;;
+
+	if(in_tight_spot)
+	{
+		wide_search_mode();
+		nearest = INT64_MAX;
+		nearest_i = 0;
+		int good_candidates = 0;
+		for(int i=0; i < num_cango_places; i++)	
+		{
+			if(minimap_test_endpoint(start, internal_cango_places[i], backs[i]))
+			{
+				int64_t dist_sq = sq(cango_places[i].x - desired_x) + sq(cango_places[i].y - desired_y);
+				if(dist_sq < nearest)
+				{
+					nearest = dist_sq;
+					nearest_i = i;
+					good_candidates++;
+				}
+			}
+		}
+
+		if(nearest == INT64_MAX)
+		{
+			printf("INFO: In a tight spot; tried to choose route leading to wider environment (from %d routes); couldn't find one, just choosing the closest to desired coords:\n", num_cango_places);
+		}
+		else
+		{
+			printf("INFO: In a tight spot; of (%d found from lidar only; %d agreed with map) possibilities, %d lead to wider environment, of which (%d, %d) is nearest the desired (%d, %d)\n",
+				num_cango_places, num_cango_places+disagrees, good_candidates, cango_places[nearest_i].x, cango_places[nearest_i].y, desired_x, desired_y);
+			*x = cango_places[nearest_i].x ; *y = cango_places[nearest_i].y; *back = backs[nearest_i];
+			return 1;
+		}
+	}
+
+	nearest = INT64_MAX;
+	nearest_i = 0;
 	for(int i=0; i < num_cango_places; i++)
 	{	
 		int64_t dist_sq = sq(cango_places[i].x - desired_x) + sq(cango_places[i].y - desired_y);

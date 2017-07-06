@@ -164,3 +164,11 @@ void load_9pages(world_t* w, int pagex, int pagey)
 	}
 }
 
+void load_1page(world_t* w, int pagex, int pagey)
+{
+	if(!w->pages[pagex][pagey])
+	{
+		load_map_page(w, pagex, pagey);
+	}
+}
+

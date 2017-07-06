@@ -814,6 +814,11 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			int x = pre_x*cos(ang) + pre_y*sin(ang) /* + rotate_mid_x */ + dx ;
 			int y = -1*pre_x*sin(ang) + pre_y*cos(ang) /* + rotate_mid_y */ + dy;
 
+			// Meanwhile, mark this as visited
+			page_coords(x, y, &pagex, &pagey, &offsx, &offsy);
+			load_1page(w, pagex, pagey);
+			PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_visited);
+
 			x /= MAP_UNIT_W; y /= MAP_UNIT_W;
 
 			x += TEMP_MAP_MIDDLE; y += TEMP_MAP_MIDDLE;
@@ -1324,7 +1329,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 	if(search_area_size == 0)
 	{
-		a_range = 3;
+		a_range = 4;
 		xy_range = 360;
 		xy_step = 40;
 		a_step = 1*ANG_1_DEG;

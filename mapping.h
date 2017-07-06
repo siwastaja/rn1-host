@@ -30,7 +30,8 @@ typedef struct __attribute__ ((packed))
 	uint8_t result;   	// Mapping result decided based on all available data.
 	uint8_t latest;  	// Mapping result based on last scan.
 
-	uint16_t timestamp;	// Latest time scanned
+	uint8_t timestamp;	// Latest time scanned
+	uint8_t num_visited;    // Incremented when lidar is mapped with this robot coord. Saturated at 255.
 
 	uint8_t num_seen;  	// Number of times mapped. Saturated at 255.
 	uint8_t num_obstacles;  // "is an obstacle" counter. Every time mapped, ++ if obstacle, -- if not. Saturated at 255.

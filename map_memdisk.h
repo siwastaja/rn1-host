@@ -17,6 +17,9 @@ int unload_map_page(world_t* w, int pagex, int pagey);
 // Loads requested pagex, pagey and 8 pages around it.
 void load_9pages(world_t* w, int pagex, int pagey);
 
+// Load requested pagex, pagey
+void load_1page(world_t* w, int pagex, int pagey);
+
 // Scans through the world and unloads any loaded pages farther than 2 pages away from cur_pagex, cur_pagey.
 int unload_map_pages(world_t* w, int cur_pagex, int cur_pagey);
 

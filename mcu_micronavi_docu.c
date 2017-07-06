@@ -33,7 +33,7 @@ const char* const MCU_NAVI_STOP_NAMES[] =
 /*21*/ "res",
 /*22*/ "res",
 /*23*/ "res",
-/*24*/ "res",
+/*24*/ "object directly in the BACK, while going REVERSE",
 /*25*/ "res",
 /*26*/ "res",
 /*27*/ "res",
@@ -73,8 +73,8 @@ const char* const MCU_NAVI_ACTION_NAMES[] =
 /*25*/ "arse very close to hit if turned, do NOT turn LEFT",
 /*26*/ "arse close to hit if turned more than slightly, do NOT turn LEFT mode 2",
 /*27*/ "res",
-/*28*/ "res",
-/*29*/ "res",
+/*28*/ "while REVERSING, trying to avoid an obstacle by turning RIGHT (relative to direction of motion)",
+/*29*/ "while REVERSING, trying to avoid an obstacle by turning LEFT (relative to direction of motion)",
 /*30*/ "res",
 /*31*/ "res"
 };

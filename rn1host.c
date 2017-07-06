@@ -614,14 +614,27 @@ int main(int argc, char** argv)
 				lidar_send_cnt = 0;
 			}
 
+			static int lidar_ignore_cnt = 0;
+
 			if(p_lid->id != pos_corr_id)
 			{
 
+				lidar_ignore_cnt++;
+
 //				if(p_lid->significant_for_mapping) 
 				printf("INFO: Ignoring lidar scan with id=%d (significance=%d).\n", p_lid->id, p_lid->significant_for_mapping);
+
+				if(lidar_ignore_cnt > 50)
+				{
+					printf("WARN: lidar id was stuck, fixing...\n");
+					INCR_POS_CORR_ID();
+					correct_robot_pos(0, 0, 0, pos_corr_id);
+
+				}
 			}
 			else
 			{
+				lidar_ignore_cnt = 0;
 				lidar_ignore_over = 1;
 
 				int idx_x, idx_y, offs_x, offs_y;

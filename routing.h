@@ -24,11 +24,13 @@ int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_
 
 #define MINIMAP_SIZE 768
 #define MINIMAP_MIDDLE 384
-extern uint8_t minimap[MINIMAP_SIZE][MINIMAP_SIZE];
+extern uint32_t minimap[MINIMAP_SIZE][MINIMAP_SIZE/32 + 1];
 
-int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desired_x, int32_t desired_y, int* back);
+
+int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, int32_t desired_x, int32_t desired_y, int* back);
 
 int check_direct_route(int32_t start_ang, int start_x, int start_y, int end_x, int end_y);
 void routing_set_world(world_t *w);
+void gen_all_routing_pages(world_t *w);
 
 #endif

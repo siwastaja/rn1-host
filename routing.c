@@ -38,7 +38,6 @@ float robot_shape_x_len;
 #define ROBOT_SHAPE_WINDOW 32
 uint32_t robot_shapes[32][ROBOT_SHAPE_WINDOW];
 
-//int unmapped_limit = 3;
 
 static int check_hit(int x, int y, int direction)
 {
@@ -163,37 +162,39 @@ static int line_of_sight(route_xy_t p1, route_xy_t p2)
 	return 1;
 }
 
-
-
-#define MINIMAP_MIDDLE 384
-uint8_t minimap[768][768];
+uint32_t minimap[MINIMAP_SIZE][MINIMAP_SIZE/32 + 1];
 
 static int minimap_check_hit(int x, int y, int direction)
 {
+//	printf("minimap_check_hit(%d, %d, %d)\n", x, y, direction);
 	for(int chk_x=0; chk_x<ROBOT_SHAPE_WINDOW; chk_x++)
 	{
-		for(int chk_y=0; chk_y<ROBOT_SHAPE_WINDOW; chk_y++)
+		int xx = x-ROBOT_SHAPE_WINDOW/2+chk_x + MINIMAP_MIDDLE;
+		int yy = y-ROBOT_SHAPE_WINDOW/2 + MINIMAP_MIDDLE;
+
+		int yoffs = yy/32;
+		int yoffs_remain = yy - yoffs*32;
+
+		if( xx < 0 || xx > 767 || yoffs < 0 || yoffs > 768/32)
 		{
-			int xx = x-ROBOT_SHAPE_WINDOW/2+chk_x + MINIMAP_MIDDLE;
-			int yy = y-ROBOT_SHAPE_WINDOW/2+chk_y + MINIMAP_MIDDLE;
+			printf("WARN: minimap_check_hit(): illegal coords xx=%d, yoffs=%d, yoffs_remain=%d\n", xx, yoffs, yoffs_remain);
+			return 1;
+		}
 
-			if(xx < 0 || yy < 0 || xx >= MINIMAP_SIZE || yy >= MINIMAP_SIZE)
-			{
-				printf("ERROR: invalid minimap coords %d, %d\n", xx, yy);
-				exit(1);
-			}
+		// Now the quick comparison, which could be even faster, but we don't want to mess up the compatibility between
+		// big endian / little endian systems.
 
-			if(1) // todo: fix. robot_shapes[direction][chk_x][chk_y])
-			{
-				if(minimap[xx][yy])
-					return 1;
-			}
+		uint64_t shape = (uint64_t)robot_shapes[direction][chk_x] << (32-yoffs_remain);
 
+		if((((uint64_t)minimap[xx][yoffs]<<32) | (uint64_t)minimap[xx][yoffs+1])  & shape)
+		{
+			return 1;
 		}
 	}
 
 	return 0;
 }
+
 
 static int minimap_test_robot_turn(int x, int y, float start, float end)
 {
@@ -278,25 +279,27 @@ static int minimap_line_of_sight(route_xy_t p1, route_xy_t p2)
 }
 
 
-int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desired_x, int32_t desired_y, int* back)
+int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, int32_t desired_x, int32_t desired_y, int* back)
 {
 	extern int32_t cur_ang;
 	extern int cur_x, cur_y;
 	normal_search_mode();
 
-	#define NUM_FWDS 6
-	const float fwds[NUM_FWDS] = {750.0, -500.0, 400.0, -300.0, 200.0, -150.0};
+	#define NUM_FWDS 7
+	const float fwds[NUM_FWDS] = {1000.0, 750.0, -500.0, 400.0, -300.0, 200.0, -150.0};
 
 	int num_cango_places = 0;
 	route_xy_t cango_places[100];
 	int backs[100];
 	int disagrees = 0;
 
+	gen_all_routing_pages(w);
+
 	for(int tries=0; tries < 2; tries++)
 	{
 		for(int f=0; f < NUM_FWDS; f++)
 		{
-			for(float ang_to = 0; ang_to < DEGTORAD(359.9); ang_to += DEGTORAD(5.0))
+			for(float ang_to = 0; ang_to < DEGTORAD(359.9); ang_to += DEGTORAD(10.0))
 			{
 				float fwd_len = fwds[f];
 				route_xy_t start = {0, 0};
@@ -310,11 +313,11 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 						int dest_x = cos(ang_to)*fwd_len;
 						int dest_y = sin(ang_to)*fwd_len;
 
-//						printf("Minimap: can go to (%d, %d), check actual map...", dest_x, dest_y);
+						printf("Minimap: can go to (%d, %d), check actual map...", dest_x, dest_y);
 						if(check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), 
 							MM_TO_UNIT(dest_x+cur_x), MM_TO_UNIT(dest_y+cur_y)))
 						{
-//							printf(" Agreed.\n");
+							printf(" Agreed.\n");
 							cango_places[num_cango_places].x = dest_x; cango_places[num_cango_places].y = dest_y;
 							if(fwd_len < 0.0) backs[num_cango_places] = 1; else backs[num_cango_places] = 0;
 							num_cango_places++;
@@ -324,7 +327,7 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 						else
 						{
 							disagrees++;
-//							printf(" Disagreed.\n");
+							printf(" Disagreed.\n");
 						}
 
 					}
@@ -343,7 +346,7 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 
 		if(num_cango_places < 5)
 		{
-//			printf("INFO: minimap_find_mapping_dir goes to tight search mode to find more possibilities (%d so far).\n", num_cango_places);
+			printf("INFO: minimap_find_mapping_dir goes to tight search mode to find more possibilities (%d so far).\n", num_cango_places);
 			tight_search_mode();
 		}
 		else
@@ -370,8 +373,8 @@ int minimap_find_mapping_dir(float ang_now, int32_t* x, int32_t* y, int32_t desi
 		}
 	}
 
-//	printf("INFO: (%d, %d) is nearest the desired (%d, %d) (%d found from lidar only; %d agreed with map)\n",
-//		cango_places[nearest_i].x, cango_places[nearest_i].y, desired_x, desired_y, num_cango_places, num_cango_places+disagrees);
+	printf("INFO: (%d, %d) is nearest the desired (%d, %d) (%d found from lidar only; %d agreed with map)\n",
+		cango_places[nearest_i].x, cango_places[nearest_i].y, desired_x, desired_y, num_cango_places, num_cango_places+disagrees);
 	*x = cango_places[nearest_i].x ; *y = cango_places[nearest_i].y; *back = backs[nearest_i];
 
 	return 1;

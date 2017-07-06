@@ -1390,10 +1390,6 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	return ret;
 }
 
-#define MINIMAP_SIZE 768
-#define MINIMAP_MIDDLE 384
-extern uint8_t minimap[MINIMAP_SIZE][MINIMAP_SIZE];
-
 int map_lidar_to_minimap(lidar_scan_t *p_lid)
 {
 	if(!p_lid)
@@ -1403,7 +1399,7 @@ int map_lidar_to_minimap(lidar_scan_t *p_lid)
 	}
 
 //	printf("Info: mapping lidar to minimap\n");
-	memset(minimap, 0, MINIMAP_SIZE*MINIMAP_SIZE*sizeof(uint8_t));
+	memset(minimap, 0, MINIMAP_SIZE*(MINIMAP_SIZE/32+1)*sizeof(uint32_t));
 	for(int p=0; p<LIDAR_SCAN_POINTS; p++)
 	{
 		if(!p_lid->scan[p].valid)
@@ -1412,13 +1408,16 @@ int map_lidar_to_minimap(lidar_scan_t *p_lid)
 		int x = (p_lid->scan[p].x - p_lid->robot_pos.x) / MAP_UNIT_W + MINIMAP_MIDDLE;
 		int y = (p_lid->scan[p].y - p_lid->robot_pos.y) / MAP_UNIT_W + MINIMAP_MIDDLE;
 
-		if(x < 0 || x >= MINIMAP_SIZE || y < 0 || y >= MINIMAP_SIZE)
+		int yoffs = y/32;
+		int yoffs_remain = y - yoffs*32;		
+
+		if(x < 0 || x >= MINIMAP_SIZE || yoffs < 0 || yoffs >= MINIMAP_SIZE/32+1)
 		{
-			printf("WARN: ignoring out of range coordinates (map_lidar_to_minimap(), %d,%d)\n", x, y);
+			printf("WARN: ignoring out of range coordinates (map_lidar_to_minimap(), x=%d, yoffs=%d, yoffs_remain=%d)\n", x, yoffs, yoffs_remain);
 			continue;
 		}
 
-		minimap[x][y] = 1;
+		minimap[x][yoffs] |= 1<<(32-yoffs_remain);
 	}
 
 	return 0;
@@ -1766,7 +1765,7 @@ void autofsm()
 			int32_t dx, dy;
 			int need_to_back = 0;
 			extern int32_t cur_ang;
-			if(minimap_find_mapping_dir(ANG32TORAD(cur_ang), &dx, &dy, desired_x, desired_y, &need_to_back))
+			if(minimap_find_mapping_dir(&world, ANG32TORAD(cur_ang), &dx, &dy, desired_x, desired_y, &need_to_back))
 			{
 				printf("Found direction\n");
 				if(movement_id == cur_xymove.id) movement_id+=2;

@@ -1708,6 +1708,7 @@ void autofsm()
 	static int same_dir_cnt;
 	static int same_dir_len;
 	static int daijuing_cnt;
+	static int num_stops;
 
 	switch(cur_autostate)
 	{
@@ -1773,20 +1774,30 @@ void autofsm()
 			int32_t dx, dy;
 			int need_to_back = 0;
 			extern int32_t cur_ang;
-			if(minimap_find_mapping_dir(&world, ANG32TORAD(cur_ang), &dx, &dy, desired_x, desired_y, &need_to_back))
+			if(num_stops > 10)
 			{
-				printf("Found direction\n");
-				if(movement_id == cur_xymove.id) movement_id+=2;
-				if(movement_id > 100) movement_id = 0;
-				move_to(cur_x+dx, cur_y+dy, need_to_back, movement_id, 30, 0);
-				cur_autostate++;
-			}
-			else
-			{
-				printf("INFO: Automapping: can't go anywhere; daijuing for a while.\n");
+				printf("INFO: Too many stops without success, daijuing for a while.\n");
 				daiju_mode(1);
 				cur_autostate = S_DAIJUING;
 				daijuing_cnt = 0;
+			}
+			else
+			{
+				if(minimap_find_mapping_dir(&world, ANG32TORAD(cur_ang), &dx, &dy, desired_x, desired_y, &need_to_back))
+				{
+					printf("Found direction\n");
+					if(movement_id == cur_xymove.id) movement_id+=2;
+					if(movement_id > 100) movement_id = 0;
+					move_to(cur_x+dx, cur_y+dy, need_to_back, movement_id, 30, 0);
+					cur_autostate++;
+				}
+				else
+				{
+					printf("INFO: Automapping: can't go anywhere; daijuing for a while.\n");
+					daiju_mode(1);
+					cur_autostate = S_DAIJUING;
+					daijuing_cnt = 0;
+				}
 			}
 
 		} break;
@@ -1795,6 +1806,7 @@ void autofsm()
 
 			if(cur_xymove.id == movement_id && cur_xymove.remaining < 20)
 			{
+				num_stops = 0;
 				movement_id++; if(movement_id > 100) movement_id = 0;
 				printf("INFO: Automapping: movement finished, next!\n");
 				same_dir_cnt++;
@@ -1807,6 +1819,7 @@ void autofsm()
 			{
 				movement_id++; if(movement_id > 100) movement_id = 0;
 				printf("INFO: Automapping: movement stopped, next different way\n");
+				num_stops++;
 				cur_autostate = S_GEN_DESIRED_DIR;
 			}
 

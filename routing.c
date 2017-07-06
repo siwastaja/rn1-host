@@ -13,6 +13,7 @@
 #define M_PI 3.141592653589793238
 #endif
 
+static void wide_search_mode();
 static void normal_search_mode();
 static void tight_search_mode();
 
@@ -293,7 +294,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 
 	routing_world = w;
 
-	normal_search_mode();
+	wide_search_mode();
 
 	#define NUM_FWDS 7
 	const float fwds[NUM_FWDS] = {1000.0, 750.0, -500.0, 400.0, -300.0, 200.0, -150.0};
@@ -305,7 +306,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 
 	gen_all_routing_pages(w);
 
-	for(int tries=0; tries < 2; tries++)
+	for(int tries=0; tries < 3; tries++)
 	{
 		for(int f=0; f < NUM_FWDS; f++)
 		{
@@ -356,8 +357,16 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 
 		if(num_cango_places < 5)
 		{
-			printf("INFO: minimap_find_mapping_dir goes to tight search mode to find more possibilities (%d so far).\n", num_cango_places);
-			tight_search_mode();
+			if(tries == 0)
+			{
+				printf("INFO: minimap_find_mapping_dir goes to tighter (normal) search mode to find more possibilities (%d so far).\n", num_cango_places);
+				normal_search_mode();
+			}
+			else if(tries == 1)
+			{
+				printf("INFO: minimap_find_mapping_dir goes to the tightest (tight) search mode to find more possibilities (%d so far).\n", num_cango_places);
+				tight_search_mode();
+			}
 		}
 		else
 			goto PLACE_LIST_DONE;
@@ -496,16 +505,22 @@ static void draw_robot_shape(int a_idx, float ang)
 	float middle_xoffs; // from o_x, o_y to the robot middle point.
 	float middle_yoffs = -0.0;
 
-	if(tight_shapes)
+	if(tight_shapes == 1)
 	{
 		robot_xs = (524.0 - 40.0);
 		robot_ys = (480.0 - 40.0);
 		middle_xoffs = -120.0;
 	}
-	else
+	else if(tight_shapes == 0)
 	{
 		robot_xs = (524.0 + 140.0);
 		robot_ys = (480.0 + 200.0);
+		middle_xoffs = -120.0;
+	}
+	else // wide
+	{
+		robot_xs = (524.0 + 360.0);
+		robot_ys = (480.0 + 360.0);
 		middle_xoffs = -120.0;
 	}
 
@@ -603,16 +618,21 @@ static void gen_robot_shapes()
 
 }
 
+static void wide_search_mode()
+{
+	tight_shapes = -1;
+	gen_robot_shapes();	
+}
+
+
 static void normal_search_mode()
 {
-//	unmapped_limit = 3;
 	tight_shapes = 0;
 	gen_robot_shapes();	
 }
 
 static void tight_search_mode()
 {
-//	unmapped_limit = 10;
 	tight_shapes = 1;
 	gen_robot_shapes();	
 }

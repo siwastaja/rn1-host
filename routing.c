@@ -313,6 +313,8 @@ static int minimap_test_endpoint(route_xy_t p1, route_xy_t p2, int reverse)
 }
 
 
+#define MAX_CANGOS 500
+
 int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, int32_t desired_x, int32_t desired_y, int* back)
 {
 	extern int32_t cur_ang;
@@ -322,13 +324,13 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 
 	wide_search_mode();
 
-	#define NUM_FWDS 7
-	const float fwds[NUM_FWDS] = {1000.0, 750.0, -500.0, 400.0, -300.0, 200.0, -150.0};
+	#define NUM_FWDS 8
+	const float fwds[NUM_FWDS] = {1000.0, 750.0, -500.0, 400.0, -300.0, 200.0, -150.0, -750.0};
 
 	int num_cango_places = 0;
-	route_xy_t cango_places[100];
-	route_xy_t internal_cango_places[100];
-	int backs[100];
+	route_xy_t cango_places[MAX_CANGOS];
+	route_xy_t internal_cango_places[MAX_CANGOS];
+	int backs[MAX_CANGOS];
 	int disagrees = 0;
 
 	gen_all_routing_pages(w);
@@ -363,7 +365,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 							cango_places[num_cango_places].x = dest_x; cango_places[num_cango_places].y = dest_y;
 							if(fwd_len < 0.0) backs[num_cango_places] = 1; else backs[num_cango_places] = 0;
 							num_cango_places++;
-							if(num_cango_places > 99)
+							if(num_cango_places > MAX_CANGOS-1)
 								goto PLACE_LIST_FULL;
 						}
 						else
@@ -413,7 +415,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 	}
 
 	int64_t nearest;
-	int nearest_i;;
+	int nearest_i;
 
 	if(in_tight_spot)
 	{
@@ -587,8 +589,8 @@ static void draw_robot_shape(int a_idx, float ang)
 	}
 	else // wide
 	{
-		robot_xs = (524.0 + 360.0);
-		robot_ys = (480.0 + 360.0);
+		robot_xs = (524.0 + 420.0);
+		robot_ys = (480.0 + 420.0);
 		middle_xoffs = -120.0;
 	}
 

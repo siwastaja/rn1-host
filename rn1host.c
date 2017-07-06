@@ -66,7 +66,7 @@ int good_time_for_lidar_mapping = 0;
 #define sq(x) ((x)*(x))
 
 #define NUM_LATEST_LIDARS_FOR_ROUTING_START 7
-static lidar_scan_t* lidars_to_map_at_routing_start[NUM_LATEST_LIDARS_FOR_ROUTING_START];
+lidar_scan_t* lidars_to_map_at_routing_start[NUM_LATEST_LIDARS_FOR_ROUTING_START];
 
 int run_search()
 {

@@ -184,6 +184,57 @@ static int prefilter_lidar_list(int n_lidars, lidar_scan_t** lidar_list)
 	return n_removed;
 }
 
+
+static int prefilter_lidar_list_aggressive(int n_lidars, lidar_scan_t** lidar_list)
+{
+	int n_removed_per_scan[32] = {0};
+	int n_removed = 0;
+
+	for(int la=0; la<n_lidars; la++)
+	{
+		lidar_scan_t* lida = lidar_list[la];
+
+		for(int pa=0; pa<LIDAR_SCAN_POINTS; pa++)
+		{
+			if(!lida->scan[pa].valid)
+				continue;
+
+			int nears = 0;
+			for(int lb=0; lb<n_lidars; lb++)
+			{
+				if(la == lb) continue;
+
+				lidar_scan_t* lidb = lidar_list[lb];
+
+				for(int pb=0; pb<LIDAR_SCAN_POINTS; pb++)
+				{
+					if(!lidb->scan[pb].valid)
+						continue;
+
+					int64_t dx = lidb->scan[pb].x - lida->scan[pa].x;
+					int64_t dy = lidb->scan[pb].y - lida->scan[pa].y;
+					int64_t dist = sq(dx) + sq(dy);
+
+					if(dist < sq(80)) nears++;
+				}
+			}
+
+			if(nears < n_lidars/2)
+			{
+				lida->scan[pa].valid = 0;
+				n_removed_per_scan[la]++;
+				n_removed++;
+			}
+		}
+	}
+
+	printf("INFO: prefilter_lidar_list_aggressive() removed %d points: ", n_removed);
+	for(int i=0; i < n_lidars; i++)	printf("%d, ", n_removed_per_scan[i]);
+	printf("\n");
+	return n_removed;
+}
+
+
 /* Rotation:
 x2 = x*cos(a) + y*sin(a)
 y2 = -1*x*sin(a) + y*cos(a)
@@ -1423,6 +1474,13 @@ int map_lidar_to_minimap(lidar_scan_t *p_lid)
 	return 0;
 }
 
+int map_lidars_to_minimap(int n_lidars, lidar_scan_t** lidar_list)
+{
+	prefilter_lidar_list_aggressive(n_lidars, lidar_list);
+	return map_lidar_to_minimap(lidar_list[n_lidars-1]);
+}
+
+
 #define STOP_REASON_JERK 1
 #define STOP_REASON_OBSTACLE_RIGHT 2
 #define STOP_REASON_OBSTACLE_LEFT 3
@@ -1770,12 +1828,19 @@ void autofsm()
 		case S_FIND_DIR: {
 			map_significance_mode = MAP_SIGNIFICANT_IMGS | MAP_SEMISIGNIFICANT_IMGS;
 			mapping_on = 1;
-			map_lidar_to_minimap(latest_lidar);
+
+			#define NUM_LATEST_LIDARS_FOR_ROUTING_START 7
+			extern lidar_scan_t* lidars_to_map_at_routing_start[NUM_LATEST_LIDARS_FOR_ROUTING_START];
+			map_lidars_to_minimap(NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start);
+
+//			map_lidar_to_minimap(latest_lidar);
+
 			int32_t dx, dy;
 			int need_to_back = 0;
 			extern int32_t cur_ang;
 			if(num_stops > 10)
 			{
+				num_stops = 0;
 				printf("INFO: Too many stops without success, daijuing for a while.\n");
 				daiju_mode(1);
 				cur_autostate = S_DAIJUING;

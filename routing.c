@@ -51,7 +51,10 @@ static int check_hit(int x, int y, int direction)
 		int yoffs_remain = pageoffs_y - yoffs*32;
 
 		if(!routing_world->rpages[pageidx_x][pageidx_y]) // out of bounds (not allocated) - give up instantly
+		{
+			printf("rpages[%d][%d] not allocated\n", pageidx_x, pageidx_y);
 			return 1;
+		}
 
 		// Now the quick comparison, which could be even faster, but we don't want to mess up the compatibility between
 		// big endian / little endian systems.
@@ -102,7 +105,7 @@ static int test_robot_turn(int x, int y, float start, float end)
 
 	while(dir_cur != dir_end)
 	{
-//		printf("test_robot_turn(): dir_cur = %d, dir_end=%d\n", dir_cur, dir_end);
+		printf("test_robot_turn(): dir_cur = %d, dir_end=%d\n", dir_cur, dir_end);
 
 		if(check_hit(x, y, dir_cur))
 			return 0;

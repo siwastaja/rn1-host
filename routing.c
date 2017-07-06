@@ -105,7 +105,7 @@ static int test_robot_turn(int x, int y, float start, float end)
 
 	while(dir_cur != dir_end)
 	{
-		printf("test_robot_turn(): dir_cur = %d, dir_end=%d\n", dir_cur, dir_end);
+//		printf("test_robot_turn(): dir_cur = %d, dir_end=%d\n", dir_cur, dir_end);
 
 		if(check_hit(x, y, dir_cur))
 			return 0;
@@ -316,7 +316,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 						int dest_x = cos(ang_to)*fwd_len;
 						int dest_y = sin(ang_to)*fwd_len;
 
-						printf("Minimap: can go to (%d, %d), check actual map...", dest_x, dest_y);
+//						printf("Minimap: can go to (%d, %d), check actual map...", dest_x, dest_y);
 						if(check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), 
 							MM_TO_UNIT(dest_x+cur_x), MM_TO_UNIT(dest_y+cur_y)))
 						{
@@ -330,7 +330,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 						else
 						{
 							disagrees++;
-							printf(" Disagreed.\n");
+//							printf(" Disagreed.\n");
 						}
 
 					}
@@ -1118,17 +1118,17 @@ int check_direct_route(int32_t start_ang, int start_x, int start_y, int end_x, i
 	float end_ang = atan2(dy, dx);
 	if(end_ang < 0.0) end_ang += 2.0*M_PI;
 
-	printf("check_direct_route(%d, %d, %d, %d, %d)\n", start_ang, start_x, start_y, end_x, end_y);
+//	printf("check_direct_route(%d, %d, %d, %d, %d)\n", start_ang, start_x, start_y, end_x, end_y);
 
 	if(test_robot_turn(start_x, start_y, ANG32TORAD(start_ang), end_ang))
 	{
-		printf("INFO: check_direct_route(): robot can turn...\n");
+//		printf("INFO: check_direct_route(): robot can turn...\n");
 		route_xy_t start = {start_x, start_y};
 		route_xy_t end = {end_x, end_y};
-		printf(" start = (%d, %d)  end = (%d, %d)\n", start_x, start_y, end_x, end_y);
+//		printf(" start = (%d, %d)  end = (%d, %d)\n", start_x, start_y, end_x, end_y);
 		if(line_of_sight(start, end))
 		{
-			printf("INFO: check_direct_route(): there is line of sight\n");
+//			printf("INFO: check_direct_route(): there is line of sight\n");
 			return 1;
 		}
 	}

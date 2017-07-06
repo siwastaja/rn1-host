@@ -286,6 +286,9 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 {
 	extern int32_t cur_ang;
 	extern int cur_x, cur_y;
+
+	routing_world = w;
+
 	normal_search_mode();
 
 	#define NUM_FWDS 7
@@ -996,15 +999,15 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 
 void gen_routing_page(world_t *w, int xpage, int ypage)
 {
-	if((xpage > 124 && xpage < 130) && (ypage > 124 && ypage < 130)) printf("gen_routing_page (%d, %d)\n", xpage, ypage);
+//	if((xpage > 124 && xpage < 130) && (ypage > 124 && ypage < 130)) printf("gen_routing_page (%d, %d)\n", xpage, ypage);
 	if(!w->pages[xpage][ypage])
 	{
-		if((xpage > 124 && xpage < 130) && (ypage > 124 && ypage < 130)) printf("Unallocated page.\n");
+//		if((xpage > 124 && xpage < 130) && (ypage > 124 && ypage < 130)) printf("Unallocated page.\n");
 		return;
 	}
 	if(!w->rpages[xpage][ypage])
 	{
-		if((xpage > 124 && xpage < 130) && (ypage > 124 && ypage < 130)) printf("mallocing...\n");
+//		if((xpage > 124 && xpage < 130) && (ypage > 124 && ypage < 130)) printf("mallocing...\n");
 
 		w->rpages[xpage][ypage] = malloc(sizeof(routing_page_t));
 	}

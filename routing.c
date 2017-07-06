@@ -267,7 +267,7 @@ static int minimap_line_of_sight(route_xy_t p1, route_xy_t p2, int reverse)
 		int x = (cos(ang)*pos + (float)p1.x)+0.5;
 		int y = (sin(ang)*pos + (float)p1.y)+0.5;
 
-		printf("DBG: minimap_line_of_sight(): x=%d, y=%d, dir=%d\n", x, y, dir);
+//		printf("DBG: minimap_line_of_sight(): x=%d, y=%d, dir=%d\n", x, y, dir);
 
 		if(minimap_check_hit(x, y, dir))
 		{
@@ -309,7 +309,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 	{
 		for(int f=0; f < NUM_FWDS; f++)
 		{
-			for(float ang_to = 0; ang_to < DEGTORAD(359.9); ang_to += DEGTORAD(10.0))
+			for(float ang_to = 0; ang_to < DEGTORAD(359.9); ang_to += (tries==0)?(DEGTORAD(10.0)):(DEGTORAD(5.0)))
 			{
 				float fwd_len = fwds[f];
 				route_xy_t start = {0, 0};
@@ -323,11 +323,11 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 						int dest_x = cos(ang_to)*fwd_len;
 						int dest_y = sin(ang_to)*fwd_len;
 
-						printf("Minimap: can go to (%d, %d), check actual map...", dest_x, dest_y);
+//						printf("Minimap: can go to (%d, %d), check actual map...", dest_x, dest_y);
 						if(check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), 
 							MM_TO_UNIT(dest_x+cur_x), MM_TO_UNIT(dest_y+cur_y)))
 						{
-							printf(" Agreed.\n");
+//							printf(" Agreed.\n");
 							cango_places[num_cango_places].x = dest_x; cango_places[num_cango_places].y = dest_y;
 							if(fwd_len < 0.0) backs[num_cango_places] = 1; else backs[num_cango_places] = 0;
 							num_cango_places++;
@@ -337,19 +337,19 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 						else
 						{
 							disagrees++;
-							printf(" Disagreed.\n");
+//							printf(" Disagreed.\n");
 						}
 
 					}
 					else
 					{
-						printf("INFO: minimap_find_mapping_dir: robot cannot go %.1f mm to %.1f deg\n", fwd_len, RADTODEG(ang_to));
+//						printf("INFO: minimap_find_mapping_dir: robot cannot go %.1f mm to %.1f deg\n", fwd_len, RADTODEG(ang_to));
 					}
 
 				}
 				else
 				{
-					printf("INFO: minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
+//					printf("INFO: minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
 				}
 			}
 		}

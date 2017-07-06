@@ -1110,17 +1110,17 @@ int check_direct_route(int32_t start_ang, int start_x, int start_y, int end_x, i
 	float end_ang = atan2(dy, dx);
 	if(end_ang < 0.0) end_ang += 2.0*M_PI;
 
-//	printf("check_direct_route(%d, %d, %d, %d, %d)\n", start_ang, start_x, start_y, end_x, end_y);
+	printf("check_direct_route(%d, %d, %d, %d, %d)\n", start_ang, start_x, start_y, end_x, end_y);
 
 	if(test_robot_turn(start_x, start_y, ANG32TORAD(start_ang), end_ang))
 	{
-//		printf("INFO: check_direct_route(): robot can turn...\n");
+		printf("INFO: check_direct_route(): robot can turn...\n");
 		route_xy_t start = {start_x, start_y};
 		route_xy_t end = {end_x, end_y};
-//		printf(" start = (%d, %d)  end = (%d, %d)\n", start_x, start_y, end_x, end_y);
+		printf(" start = (%d, %d)  end = (%d, %d)\n", start_x, start_y, end_x, end_y);
 		if(line_of_sight(start, end))
 		{
-//			printf("INFO: check_direct_route(): there is line of sight\n");
+			printf("INFO: check_direct_route(): there is line of sight\n");
 			return 1;
 		}
 	}

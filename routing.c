@@ -818,7 +818,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 				{
 					if(!test_robot_turn(p_cur->loc.x, p_cur->loc.y, start_ang, ((float)direction/32.0)*2.0*M_PI*direction))
 					{
-						printf("Robot cannot turn to direction %d\n", direction);
+//						printf("Robot cannot turn to direction %d\n", direction);
 						continue;
 					}
 				}
@@ -914,9 +914,9 @@ Return values:
 int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_mm, int end_x_mm, int end_y_mm)
 {
 
-#define SRCH_NUM_A 11
+#define SRCH_NUM_A 15
 	static const int a_s[SRCH_NUM_A] = 
-	{	0,	-12,	12,	-24,	24,	-36,	36,	-48,	48,	-60,	60	};
+	{	0,	-12,	12,	-24,	24,	-36,	36,	-48,	48,	-60,	60,	-72,	72, 	-84,	84	};
 
 
 #define SRCH_NUM_BACK 10

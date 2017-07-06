@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <math.h>
 #include <unistd.h>
+#include <time.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323
@@ -1054,7 +1055,6 @@ void map_next_with_extra_large_search_area()
 	bigger_search_area = 2;
 }
 
-
 static int do_map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy)
 {
 	*da = 0;
@@ -1100,9 +1100,17 @@ static int do_map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, in
 		y_range = 400;
 		a_step = 1*ANG_1_DEG;
 	}
-	else if(bigger_search_area > 1)
+	else if(bigger_search_area == 2)
 	{
 		printf("INFO: Using MUCH bigger search area, this will take quite long\n");
+		a_range = 18;
+		x_range = 560;
+		y_range = 560;
+		a_step = 2*ANG_1_DEG;
+	}
+	else if(bigger_search_area == 3)
+	{
+		printf("INFO: Using MASSIVE search area, this will take ages\n");
 		a_range = 18;
 		x_range = 560;
 		y_range = 560;
@@ -1225,6 +1233,13 @@ static int do_map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, in
 }
 
 
+int search_area_size = 0;
+
+void massive_search_area()
+{
+	search_area_size = 1;
+}
+
 int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy)
 {
 	static int8_t scoremap[TEMP_MAP_W*TEMP_MAP_W];
@@ -1249,15 +1264,29 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	// When correcting angle, image is rotated around this point.
 	lidars_avg_midpoint(n_lidars, lidar_list, &mid_x, &mid_y);
 
+	if(search_area_size)
+		gen_scoremap_for_large_steps(w, scoremap, mid_x, mid_y);
+	else
+		gen_scoremap_for_small_steps(w, scoremap, mid_x, mid_y);
 
-	gen_scoremap_for_small_steps(w, scoremap, mid_x, mid_y);
+	int a_range, xy_range, xy_step, a_step;
 
+	if(search_area_size == 0)
+	{
+		a_range = 3;
+		xy_range = 360;
+		xy_step = 40;
+		a_step = 1*ANG_1_DEG;
+	}
+	else
+	{
+		a_range = 18;
+		xy_range = 1800;
+		xy_step = 120;
+		a_step = 2;
+	}
 
-	int a_range = 3;
-	int xy_range = 360;
-	int xy_step = 40;
 	int n_xy_steps = 2*(xy_range/xy_step) + 1;
-	int a_step = 1*ANG_1_DEG;
 
 	int best_score = -999999;
 	int best1_da=0, best1_dx=0, best1_dy=0;
@@ -1276,14 +1305,51 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		}
 	}
 
+	int pass2_a_range, pass2_a_step;
+	int pass2_dx_start, pass2_dx_step, pass2_num_dx, pass2_dy_start, pass2_dy_step, pass2_num_dy;
+
+	if(search_area_size == 0)
+	{
+		// we already gave scoremap for small steps
+		pass2_a_range = 2; // in half degs
+		pass2_a_step = ANG_0_5_DEG;
+		pass2_dx_start = best1_dx-40;
+		pass2_dx_step = 20;
+		pass2_num_dx = 2*(40/20) + 1;
+		pass2_dy_start = best1_dy-40;
+		pass2_dy_step = 20;
+		pass2_num_dy = 2*(40/20) + 1;
+	}
+	else
+	{
+		printf("Info: Pass1 complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best1_da/(float)ANG_1_DEG, best1_dx, best1_dy, best_score);
+
+		gen_scoremap_for_small_steps(w, scoremap, mid_x, mid_y); // overwrite large step scoremap.
+		pass2_a_range = 4; // in half degs
+		pass2_a_step = ANG_0_5_DEG;
+		pass2_dx_start = best1_dx-120;
+		pass2_dx_step = 20;
+		pass2_num_dx = 2*(120/20) + 1;
+		pass2_dy_start = best1_dy-120;
+		pass2_dy_step = 20;
+		pass2_num_dy = 2*(120/20) + 1;
+	}
+
+	if(best_score < 0)
+	{
+		printf("INFO: Best score is < 0, preventing mapping\n.");
+		extern int mapping_on;
+		mapping_on = 0; 
+	}
+
 	best_score = -999999;
 	int best2_da=0, best2_dx=0, best2_dy=0;
 
-	for(int ida=best1_da-2*ANG_0_5_DEG; ida<=best1_da+2*ANG_0_5_DEG; ida+=ANG_0_5_DEG)
+	for(int ida=best1_da-pass2_a_range*pass2_a_step; ida<=best1_da+pass2_a_range*pass2_a_step; ida+=pass2_a_step)
 	{
 		int32_t idx = 0, idy = 0;
 		int score_now = score_quick_search_xy(scoremap, n_lidars, lidar_list, mid_x, mid_y,
-			ida, best1_dx-40, 20, 5, best1_dy-40, 20, 5, &idx, &idy);
+			ida, pass2_dx_start, pass2_dx_step, pass2_num_dx, pass2_dy_start, pass2_dy_step, pass2_num_dy, &idx, &idy);
 		if(score_now > best_score)
 		{
 			best_score = score_now;
@@ -1577,10 +1643,10 @@ const char* const AUTOSTATE_NAMES[] =
 	"WAIT_COMPASS_START",
 	"WAIT_COMPASS_END",
 	"SYNC_TO_COMPASS",
+	"GEN_DESIRED_DIR",
 	"FIND_DIR",
 	"WAIT_MOVEMENT",
 	"DAIJUING",
-	"res",
 	"res",
 	"res",
 	"res",
@@ -1596,9 +1662,10 @@ typedef enum
 	S_WAIT_COMPASS_START	= 3,
 	S_WAIT_COMPASS_END	= 4,
 	S_SYNC_TO_COMPASS	= 5,
-	S_FIND_DIR		= 6,
-	S_WAIT_MOVEMENT  	= 7,
-	S_DAIJUING		= 8
+	S_GEN_DESIRED_DIR	= 6,
+	S_FIND_DIR		= 7,
+	S_WAIT_MOVEMENT  	= 8,
+	S_DAIJUING		= 9
 } autostate_t;
 
 autostate_t cur_autostate;
@@ -1610,13 +1677,21 @@ void start_automapping_from_compass()
 
 void start_automapping_skip_compass()
 {
-	cur_autostate = S_FIND_DIR;
+	cur_autostate = S_GEN_DESIRED_DIR;
 }
 
 void stop_automapping()
 {
 	map_significance_mode = MAP_SIGNIFICANT_IMGS;
 	cur_autostate = S_IDLE;
+}
+
+int automap_only_compass;
+
+void start_automap_only_compass()
+{
+	cur_autostate = S_START;
+	automap_only_compass = 1;
 }
 
 void autofsm()
@@ -1629,9 +1704,11 @@ void autofsm()
 
 	int prev_autostate = cur_autostate;
 
-	static int some_desired_x = 1000;
-	static int some_desired_y = 1000;
-	static int daijuing_cnt = 0;
+	static int desired_x;
+	static int desired_y;
+	static int same_dir_cnt;
+	static int same_dir_len;
+	static int daijuing_cnt;
 
 	switch(cur_autostate)
 	{
@@ -1646,6 +1723,7 @@ void autofsm()
 		} break;
 
 		case S_COMPASS: {
+			printf("INFO: Started compass round\n");
 			do_compass_round();
 			cur_autostate++;
 		} break;
@@ -1663,9 +1741,22 @@ void autofsm()
 		case S_SYNC_TO_COMPASS: {
 			int32_t ang = cur_compass_ang-90*ANG_1_DEG;
 			set_robot_pos(ang,cur_x,cur_y);		
+//			printf("INFO: Syncing robot angle to compass, turning mapping on, requesting massive search area.\n");
+//			mapping_on = 1;
+//			massive_search_area();
+			if(automap_only_compass)
+				cur_autostate = S_IDLE;
+			else
+				cur_autostate++;
+		} break;
+
+		case S_GEN_DESIRED_DIR: {
+			desired_x = -2000 + ((float)rand() / (float)RAND_MAX)*4000.0;
+			desired_y = -2000 + ((float)rand() / (float)RAND_MAX)*4000.0;
+			same_dir_len = ((float)rand() / (float)RAND_MAX)*5.0;
+			same_dir_cnt = 0;
+			printf("INFO: Generated new random desired vector (%d, %d), time to follow = %d\n", desired_x, desired_y, same_dir_len);
 			cur_autostate++;
-//			printf("Info: turned mapping on.\n");
-//			mapping_on = 0;
 		} break;
 
 		case S_FIND_DIR: {
@@ -1675,7 +1766,7 @@ void autofsm()
 			int32_t dx, dy;
 			int need_to_back = 0;
 			extern int32_t cur_ang;
-			if(minimap_find_mapping_dir(ANG32TORAD(cur_ang), &dx, &dy, some_desired_x, some_desired_y, &need_to_back))
+			if(minimap_find_mapping_dir(ANG32TORAD(cur_ang), &dx, &dy, desired_x, desired_y, &need_to_back))
 			{
 				printf("Found direction\n");
 				if(movement_id == cur_xymove.id) movement_id+=2;
@@ -1699,14 +1790,17 @@ void autofsm()
 			{
 				movement_id++; if(movement_id > 100) movement_id = 0;
 				printf("INFO: Automapping: movement finished, next!\n");
-				cur_autostate = S_FIND_DIR;
+				same_dir_cnt++;
+				if(same_dir_cnt > same_dir_len)
+					cur_autostate = S_GEN_DESIRED_DIR;
+				else
+					cur_autostate = S_FIND_DIR;
 			}
 			else if(cur_xymove.id == movement_id && (cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags))
 			{
 				movement_id++; if(movement_id > 100) movement_id = 0;
 				printf("INFO: Automapping: movement stopped, next different way\n");
-				some_desired_x *= -1; some_desired_y *= -1;
-				cur_autostate = S_FIND_DIR;
+				cur_autostate = S_GEN_DESIRED_DIR;
 			}
 
 		} break;
@@ -1714,7 +1808,7 @@ void autofsm()
 		case S_DAIJUING: {
 			if(++daijuing_cnt > 50000)
 			{
-				cur_autostate = S_FIND_DIR;
+				cur_autostate = S_GEN_DESIRED_DIR;
 				daiju_mode(0);
 			}
 		} break;

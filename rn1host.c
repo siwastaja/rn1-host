@@ -11,6 +11,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <string.h>
+#include <time.h>
 
 #include "datatypes.h"
 #include "hwdata.h"
@@ -24,7 +25,7 @@
 
 #include "mcu_micronavi_docu.c"
 
-int mapping_on = 1;
+int mapping_on = 0;
 int pos_corr_id = 42;
 #define INCR_POS_CORR_ID() {pos_corr_id++; if(pos_corr_id > 99) pos_corr_id = 0;}
 
@@ -294,6 +295,8 @@ int main(int argc, char** argv)
 		fprintf(stderr, "TCP communication initialization failed.\n");
 		return 1;
 	}
+
+	srand(time(NULL));
 
 	daiju_mode(0);
 	correct_robot_pos(0,0,0, pos_corr_id);
@@ -755,8 +758,15 @@ int main(int argc, char** argv)
 				if(tcp_client_sock >= 0) tcp_send_sync_request();
 			}
 			if(tcp_client_sock >= 0) tcp_send_battery();
-		}
 
+			static int automap_started = 0;
+			if(!automap_started)
+			{
+				automap_started = 1;
+				start_automapping_from_compass();
+			}
+
+		}
 	}
 
 	return 0;

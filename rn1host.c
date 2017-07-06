@@ -300,6 +300,8 @@ int main(int argc, char** argv)
 
 	daiju_mode(0);
 	correct_robot_pos(0,0,0, pos_corr_id);
+	turn_and_go(0, 50, 30, 1);
+
 
 	int lidar_ignore_over = 0;
 	int cnt = 0;
@@ -781,7 +783,7 @@ int main(int argc, char** argv)
 			if(!automap_started)
 			{
 				automap_started = 1;
-//				start_automapping_from_compass();
+				start_automapping_from_compass();
 			}
 
 		}

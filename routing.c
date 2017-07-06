@@ -257,10 +257,12 @@ static int minimap_line_of_sight(route_xy_t p1, route_xy_t p2, int reverse)
 	int terminate = 0;
 
 	float ang = atan2(dy, dx);
-	if(reverse) ang += M_PI;
 	if(ang < 0.0) ang += 2.0*M_PI;
 	if(ang > 2.0*M_PI) ang -= 2.0*M_PI;
+
 	int dir = (ang/(2.0*M_PI) * 32.0)+0.5;
+	if(reverse) dir += 16;
+	if(dir > 31) dir -= 32;
 	if(dir < 0) dir = 0; else if(dir > 31) dir = 31;
 
 	while(1)

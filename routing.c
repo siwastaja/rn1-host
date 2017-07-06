@@ -243,7 +243,7 @@ static int minimap_test_robot_turn(int x, int y, float start, float end)
 	return 1;
 }
 
-static int minimap_line_of_sight(route_xy_t p1, route_xy_t p2)
+static int minimap_line_of_sight(route_xy_t p1, route_xy_t p2, int reverse)
 {
 	int dx = p2.x - p1.x;
 	int dy = p2.y - p1.y;
@@ -256,7 +256,9 @@ static int minimap_line_of_sight(route_xy_t p1, route_xy_t p2)
 	int terminate = 0;
 
 	float ang = atan2(dy, dx);
+	if(reverse) ang += M_PI;
 	if(ang < 0.0) ang += 2.0*M_PI;
+	if(ang > 2.0*M_PI) ang -= 2.0*M_PI;
 	int dir = (ang/(2.0*M_PI) * 32.0)+0.5;
 	if(dir < 0) dir = 0; else if(dir > 31) dir = 31;
 
@@ -316,7 +318,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 
 				if(minimap_test_robot_turn(0, 0, ang_now, ang_to))
 				{
-					if(minimap_line_of_sight(start, end))
+					if(minimap_line_of_sight(start, end, fwd_len<0))
 					{
 						int dest_x = cos(ang_to)*fwd_len;
 						int dest_y = sin(ang_to)*fwd_len;

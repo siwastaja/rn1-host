@@ -351,7 +351,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 
 				if(minimap_test_robot_turn(0, 0, ang_now, ang_to))
 				{
-					if(minimap_line_of_sight(start, end, fwd_len<0))
+					if(minimap_line_of_sight(start, end, fwd_len<0.0))
 					{
 						int dest_x = cos(ang_to)*fwd_len;
 						int dest_y = sin(ang_to)*fwd_len;

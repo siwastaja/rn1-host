@@ -1914,13 +1914,14 @@ void autofsm()
 
 void dbg_test()
 {
-	map_lidar_to_minimap(latest_lidar);
+	extern lidar_scan_t* lidars_to_map_at_routing_start[NUM_LATEST_LIDARS_FOR_ROUTING_START];
+	map_lidars_to_minimap(NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start);
 	int32_t dx, dy;
 	int need_to_back = 0;
 	extern int32_t cur_ang;
 	if(minimap_find_mapping_dir(&world, ANG32TORAD(cur_ang), &dx, &dy, 0, 0, &need_to_back))
 	{
-		printf("DBG_TEST: Found direction\n");
+		printf("DBG_TEST: Found direction dx=%d  dy=%d  need_to_back=%d\n", dx, dy, need_to_back);
 	}
 	else
 	{

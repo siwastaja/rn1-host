@@ -339,13 +339,13 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 					}
 					else
 					{
-//						printf("INFO: minimap_find_mapping_dir: robot cannot go %.1f mm to %.1f deg\n", fwd_len, RADTODEG(ang_to));
+						printf("INFO: minimap_find_mapping_dir: robot cannot go %.1f mm to %.1f deg\n", fwd_len, RADTODEG(ang_to));
 					}
 
 				}
 				else
 				{
-//					printf("INFO: minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
+					printf("INFO: minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
 				}
 			}
 		}

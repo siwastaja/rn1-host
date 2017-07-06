@@ -1850,9 +1850,13 @@ void autofsm()
 			{
 				if(minimap_find_mapping_dir(&world, ANG32TORAD(cur_ang), &dx, &dy, desired_x, desired_y, &need_to_back))
 				{
-					printf("Found direction\n");
-					if(movement_id == cur_xymove.id) movement_id+=2;
-					if(movement_id > 100) movement_id = 0;
+					printf("INFO: Found direction\n");
+					if(movement_id == cur_xymove.id)
+					{
+						printf("INFO: id issue, incrementing by 5\n");
+						movement_id+=5;
+						if(movement_id > 100) movement_id = 0;
+					}
 					move_to(cur_x+dx, cur_y+dy, need_to_back, movement_id, 30, 0);
 					cur_autostate++;
 				}
@@ -1869,11 +1873,11 @@ void autofsm()
 
 		case S_WAIT_MOVEMENT: {
 
-			if(cur_xymove.id == movement_id && cur_xymove.remaining < 20)
+			if(cur_xymove.id == movement_id && cur_xymove.remaining < 70)
 			{
 				num_stops = 0;
+				printf("INFO: Automapping: movement id=%d finished, next!\n", movement_id);
 				movement_id++; if(movement_id > 100) movement_id = 0;
-				printf("INFO: Automapping: movement finished, next!\n");
 				same_dir_cnt++;
 				if(same_dir_cnt > same_dir_len)
 					cur_autostate = S_GEN_DESIRED_DIR;
@@ -1882,8 +1886,8 @@ void autofsm()
 			}
 			else if(cur_xymove.id == movement_id && (cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags))
 			{
+				printf("INFO: Automapping: movement id=%d stopped, next different way\n", movement_id);
 				movement_id++; if(movement_id > 100) movement_id = 0;
-				printf("INFO: Automapping: movement stopped, next different way\n");
 				num_stops++;
 				cur_autostate = S_GEN_DESIRED_DIR;
 			}

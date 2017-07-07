@@ -37,13 +37,22 @@ tcp_message_t msgmeta_cr_charge =
 	1, "b"
 };
 
+tcp_cr_mode_t msg_cr_mode;
+tcp_message_t msgmeta_cr_mode =
+{
+	&msg_cr_mode,
+	TCP_CR_MODE_MID,
+	1, "b"
+};
 
-#define NUM_CR_MSGS 3
+
+#define NUM_CR_MSGS 4
 tcp_message_t* CR_MSGS[NUM_CR_MSGS] =
 {
 	&msgmeta_cr_dest,
 	&msgmeta_cr_route,
-	&msgmeta_cr_charge
+	&msgmeta_cr_charge,
+	&msgmeta_cr_mode
 };
 
 // Robot->Client messages

@@ -455,6 +455,49 @@ int main(int argc, char** argv)
 				read_charger_pos();
 				find_charger_state = 1;
 			}
+			else if(ret == TCP_CR_MODE_MID)
+			{
+				printf("INFO: Request for MODE %d\n", msg_cr_mode.mode);
+				switch(msg_cr_mode.mode)
+				{
+					case 0:
+					{
+						daiju_mode(0);
+						stop_automapping();
+						mapping_on = 0;
+					} break;
+
+					case 1:
+					{
+						daiju_mode(0);
+						stop_automapping();
+						mapping_on = 1;
+					} break;
+
+					case 2:
+					{
+						daiju_mode(0);
+						routing_set_world(&world);
+						start_automapping_skip_compass();
+						mapping_on = 1;
+					} break;
+
+					case 3:
+					{
+						daiju_mode(0);
+						routing_set_world(&world);
+						start_automapping_from_compass();
+						mapping_on = 1;
+					} break;
+
+					case 4:
+					{
+						daiju_mode(1);
+						mapping_on = 0;
+					} break;
+
+				}
+			}
 			
 		}
 

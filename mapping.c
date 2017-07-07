@@ -1698,6 +1698,58 @@ void map_sonar(world_t* w, sonar_scan_t* p_son)
 	}
 }
 
+int unfamiliarity_score(world_t* w, int x, int y)
+{
+	int n_seen = 0;
+	int n_visited = 0;
+	for(int xx = x - 360; xx <= x + 360; xx += 40)
+	{
+		for(int yy = y - 360; yy <= y + 360; yy += 40)
+		{
+			int px, py, ox, oy;
+			page_coords(xx,yy, &px, &py, &ox, &oy);
+
+			if(w->pages[px][py])
+			{
+				n_seen += w->pages[px][py]->units[ox][oy].num_seen;
+				n_visited += w->pages[px][py]->units[ox][oy].num_visited;
+			}
+
+		}
+	}
+
+	return n_seen/n_visited;
+}
+
+int find_unfamiliar_direction(world_t* w, int *dx_out, int *dy_out)
+{
+	int biggest = 0;
+	int biggest_dx, biggest_dy;
+	for(int dx = -4000; dx <= 4000; dx += 200)
+	{
+		for(int dy = -4000; dy <= 4000; dy += 200)
+		{
+			extern int32_t cur_x, cur_y;
+			int score = unfamiliarity_score(w, cur_x+dx, cur_y+dy);
+			if(score > biggest)
+			{
+				biggest = score;
+				biggest_dx = dx;
+				biggest_dy = dy;
+			}
+		}
+	}
+
+	if(biggest)
+	{
+		*dx_out = biggest_dx;
+		*dy_out = biggest_dy;
+	}
+
+	return biggest;
+}
+
+
 const int robot_xs = 480;
 const int robot_ys = 524;
 const int lidar_xoffs = 120;
@@ -1820,19 +1872,30 @@ void autofsm()
 		} break;
 
 		case S_GEN_DESIRED_DIR: {
-			float rand1 = ((float)rand() / (float)RAND_MAX)*2000.0+1000.0;
-			float rand2 = ((float)rand() / (float)RAND_MAX)*2000.0+1000.0;
 
-			if(rand()&1)
-				rand1 *= -1;
-			if(rand()&1)
-				rand2 *= -1;
+			int unfam_score = find_unfamiliar_direction(&world, &desired_x, &desired_y);
 
-			desired_x = rand1;
-			desired_y = rand2;
-			same_dir_len = ((float)rand() / (float)RAND_MAX)*7.0;
+			if(unfam_score)
+			{
+				same_dir_len = 10;
+				printf("INFO: Generated new desired vector (%d, %d) based on unfamiliarity score %d, time to follow = %d\n", desired_x, desired_y, unfam_score, same_dir_len);
+			}
+			else
+			{
+				float rand1 = ((float)rand() / (float)RAND_MAX)*2000.0+1000.0;
+				float rand2 = ((float)rand() / (float)RAND_MAX)*2000.0+1000.0;
+
+				if(rand()&1)
+					rand1 *= -1;
+				if(rand()&1)
+					rand2 *= -1;
+
+				desired_x = rand1;
+				desired_y = rand2;
+				same_dir_len = ((float)rand() / (float)RAND_MAX)*7.0;
+				printf("INFO: No unfamiliarity scores generated (area unmapped?): generated new random desired vector (%d, %d), time to follow = %d\n", desired_x, desired_y, same_dir_len);
+			}
 			same_dir_cnt = 0;
-			printf("INFO: Generated new random desired vector (%d, %d), time to follow = %d\n", desired_x, desired_y, same_dir_len);
 			cur_autostate++;
 		} break;
 

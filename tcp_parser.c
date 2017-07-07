@@ -214,7 +214,7 @@ void tcp_send_dbgpoint(int x, int y, uint8_t r, uint8_t g, uint8_t b)
 	buf[1] = ((size-3)>>8)&0xff;
 	buf[2] = (size-3)&0xff;
 	I32TOBUF(x, buf, 3);
-	I32TOBUF(x, buf, 7);
+	I32TOBUF(y, buf, 7);
 	buf[11] = r;
 	buf[12] = g;
 	buf[13] = b;

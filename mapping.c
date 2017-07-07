@@ -1884,7 +1884,7 @@ void autofsm()
 
 			if(unfam_score)
 			{
-				same_dir_len = 10;
+				same_dir_len = 1;
 				printf("INFO: Generated new desired vector (%d, %d) based on unfamiliarity score %d, time to follow = %d\n", desired_x, desired_y, unfam_score, same_dir_len);
 				if(tcp_client_sock >= 0) tcp_send_dbgpoint(cur_x+desired_x, cur_y+desired_y, 0, 255, 40);
 			}
@@ -1960,12 +1960,16 @@ void autofsm()
 			{
 				num_stops = 0;
 				printf("INFO: Automapping: movement id=%d finished, next!\n", movement_id);
+
 				movement_id++; if(movement_id > 100) movement_id = 0;
 				same_dir_cnt++;
 				if(same_dir_cnt > same_dir_len)
 					cur_autostate = S_GEN_DESIRED_DIR;
 				else
+				{
+					if(tcp_client_sock >= 0) tcp_send_dbgpoint(cur_x+desired_x, cur_y+desired_y, 200, 200, 40);
 					cur_autostate = S_FIND_DIR;
+				}
 			}
 			else if(cur_xymove.id == movement_id && (cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags))
 			{

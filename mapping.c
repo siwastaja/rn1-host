@@ -1701,7 +1701,7 @@ void map_sonar(world_t* w, sonar_scan_t* p_son)
 int unfamiliarity_score(world_t* w, int x, int y)
 {
 	int n_seen = 0;
-	int n_visited = 0;
+	int n_visited = 1; // to avoid div per zero
 	for(int xx = x - 360; xx <= x + 360; xx += 40)
 	{
 		for(int yy = y - 360; yy <= y + 360; yy += 40)

@@ -206,6 +206,22 @@ void tcp_send_route(route_unit_t **route)
 	tcp_send(buf, i);
 }
 
+void tcp_send_dbgpoint(int x, int y, uint8_t r, uint8_t g, uint8_t b)
+{
+	const int size = 3+4+4+3;
+	uint8_t buf[size];
+	buf[0] = TCP_RC_DBGPOINT_MID;
+	buf[1] = ((size-3)>>8)&0xff;
+	buf[2] = (size-3)&0xff;
+	I32TOBUF(x, buf, 3);
+	I32TOBUF(x, buf, 7);
+	buf[11] = r;
+	buf[12] = g;
+	buf[13] = b;
+	tcp_send(buf, size);
+}
+
+
 int tcp_send_msg(tcp_message_t* msg_type, void* msg)
 {
 	static uint8_t sendbuf[65536];

@@ -17,6 +17,9 @@
 #include "hwdata.h"
 #include "routing.h"
 
+#include "tcp_comm.h"   // to send dbgpoint.
+#include "tcp_parser.h" // to send dbgpoint.
+
 static const int search_order[25][2] = { 
 	{ 0, 0},
 	{ 0, 1},
@@ -1722,7 +1725,7 @@ int unfamiliarity_score(world_t* w, int x, int y)
 		}
 	}
 
-	return n_seen/n_visited;
+	return sqrt(n_seen)/n_visited;
 }
 
 int find_unfamiliar_direction(world_t* w, int *dx_out, int *dy_out)
@@ -1883,6 +1886,7 @@ void autofsm()
 			{
 				same_dir_len = 10;
 				printf("INFO: Generated new desired vector (%d, %d) based on unfamiliarity score %d, time to follow = %d\n", desired_x, desired_y, unfam_score, same_dir_len);
+				if(tcp_client_sock >= 0) tcp_send_dbgpoint(cur_x+desired_x, cur_y+desired_y, 0, 255, 40);
 			}
 			else
 			{
@@ -1898,6 +1902,7 @@ void autofsm()
 				desired_y = rand2;
 				same_dir_len = ((float)rand() / (float)RAND_MAX)*7.0;
 				printf("INFO: No unfamiliarity scores generated (area unmapped?): generated new random desired vector (%d, %d), time to follow = %d\n", desired_x, desired_y, same_dir_len);
+				if(tcp_client_sock >= 0) tcp_send_dbgpoint(cur_x+desired_x, cur_y+desired_y, 255, 60, 40);
 			}
 			same_dir_cnt = 0;
 			cur_autostate++;

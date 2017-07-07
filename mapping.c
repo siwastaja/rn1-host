@@ -786,9 +786,20 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		Processing round - try to remove duplicate wall units within the same vectors.
 	*/
 
+	int prev_visit_px = -1, prev_visit_py = -1, prev_visit_ox = 0, prev_visit_oy = 0;
+
 	for(int l=0; l<n_lidars; l++)
 	{
 		lidar_scan_t* lid = lidar_list[l];
+
+		// mark this as visited
+		page_coords(lid->robot_pos.x, lid->robot_pos.y, &pagex, &pagey, &offsx, &offsy);
+		if(pagex != prev_visit_px || pagey != prev_visit_py || offsx != prev_visit_ox || offsy != prev_visit_oy)
+		{
+			load_1page(w, pagex, pagey);
+			PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_visited);
+		}
+		prev_visit_px = pagex; prev_visit_py = pagey; prev_visit_ox = offsx; prev_visit_oy = offsy;
 
 		// Rotate the point by da and then shift by dx, dy.
 		float ang = (float)da/((float)ANG_1_DEG*360.0)*2.0*M_PI;
@@ -813,11 +824,6 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 			int x = pre_x*cos(ang) + pre_y*sin(ang) /* + rotate_mid_x */ + dx ;
 			int y = -1*pre_x*sin(ang) + pre_y*cos(ang) /* + rotate_mid_y */ + dy;
-
-			// Meanwhile, mark this as visited
-			page_coords(x, y, &pagex, &pagey, &offsx, &offsy);
-			load_1page(w, pagex, pagey);
-			PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_visited);
 
 			x /= MAP_UNIT_W; y /= MAP_UNIT_W;
 

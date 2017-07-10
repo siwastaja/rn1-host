@@ -4,7 +4,9 @@ const char* const MCU_FEEDBACK_COLLISION_NAMES[] =
 /* 1 */ "Acceleration sensor (jerk)",
 /* 2 */ "Wheel differential integral compared to gyro integral (wheel slip) : obstacle RIGHT",
 /* 3 */ "Wheel differential integral compared to gyro integral (wheel slip) : obstacle LEFT",
-/* 4 */ "Host watchdog ran out"
+/* 4 */ "Host watchdog ran out",
+/* 5 */ "Wheel differential integral compared to gyro integral (wheel slip) : obstacle BACK LEFT",
+/* 6 */ "Wheel differential integral compared to gyro integral (wheel slip) : obstacle BACK RIGHT"
 };
 
 const char* const MCU_NAVI_STOP_NAMES[] =

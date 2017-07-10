@@ -391,6 +391,8 @@ void hw_find_charger()
 // Last resort when routefinding is stuck; robot randomly goes wherever it can.
 void daiju_mode(int on)
 {
+	set_hw_obstacle_avoidance_margin(0);
+
 	uint8_t buf[3];
 
 	buf[0] = 0x86;

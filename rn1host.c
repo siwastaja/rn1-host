@@ -712,17 +712,7 @@ int main(int argc, char** argv)
 				if(mapping_on)
 				{
 					// Clear any walls and items within the robot:
-
-					for(int xx = -120; xx <= 120; xx++)
-					{
-						for(int yy = -120; yy <= 120; yy++)
-						{
-							page_coords(p_lid->robot_pos.x + xx, p_lid->robot_pos.y + yy, &idx_x, &idx_y, &offs_x, &offs_y);
-							world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = UNIT_MAPPED;
-							MINUS_SAT_0(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
-						}
-					}
-
+					clear_within_robot(&world, p_lid->robot_pos);
 				}
 
 

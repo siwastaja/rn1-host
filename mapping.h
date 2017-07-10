@@ -135,6 +135,7 @@ void stop_automapping();
 void start_automap_only_compass();
 void autofsm();
 void dbg_test();
+void clear_within_robot(world_t* w, pos_t pos);
 
 
 #endif

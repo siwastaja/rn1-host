@@ -1494,10 +1494,17 @@ int map_lidars_to_minimap(int n_lidars, lidar_scan_t** lidar_list)
 	return map_lidar_to_minimap(lidar_list[n_lidars-1]);
 }
 
+const int robot_xs = 480;
+const int robot_ys = 524;
+const int lidar_xoffs = 120;
+const int lidar_yoffs = 0;
 
 #define STOP_REASON_JERK 1
-#define STOP_REASON_OBSTACLE_RIGHT 2
-#define STOP_REASON_OBSTACLE_LEFT 3
+#define STOP_REASON_OBSTACLE_FRONT_RIGHT 2
+#define STOP_REASON_OBSTACLE_FRONT_LEFT 3
+#define STOP_REASON_OBSTACLE_BACK_LEFT 5
+#define STOP_REASON_OBSTACLE_BACK_RIGHT 6
+
 
 #define ORIGIN_TO_ROBOT_FRONT 130
 #define ASSUMED_ITEM_POS_FROM_MIDDLE_START 100
@@ -1544,14 +1551,14 @@ const int robot_outline[32] =
 void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, int stop_reason, int vect_valid, float vect_ang_rad)
 {
 	int idx_x, idx_y, offs_x, offs_y;
-	if(stop_reason == STOP_REASON_OBSTACLE_LEFT || stop_reason == STOP_REASON_OBSTACLE_RIGHT)
+	if(stop_reason == STOP_REASON_OBSTACLE_FRONT_LEFT || stop_reason == STOP_REASON_OBSTACLE_FRONT_RIGHT)
 	{
-		printf("Mapping obstacle due to wheel slip.\n");
-		float x = (float)cur_x + cos(ANG32TORAD(cur_ang))*(float)ORIGIN_TO_ROBOT_FRONT;
-		float y = (float)cur_y + sin(ANG32TORAD(cur_ang))*(float)ORIGIN_TO_ROBOT_FRONT;
+		printf("Mapping FRONT obstacle due to wheel slip.\n");
+		float x = (float)cur_x + cos(ANG32TORAD(cur_ang))*(float)(ORIGIN_TO_ROBOT_FRONT+20.0);
+		float y = (float)cur_y + sin(ANG32TORAD(cur_ang))*(float)(ORIGIN_TO_ROBOT_FRONT+20.0);
 
 		// Shift the result to the right or left:
-		int32_t angle = cur_ang + (uint32_t)( ((stop_reason==STOP_REASON_OBSTACLE_RIGHT)?90:-90) *ANG_1_DEG);
+		int32_t angle = cur_ang + (uint32_t)( ((stop_reason==STOP_REASON_OBSTACLE_FRONT_RIGHT)?90:-90) *ANG_1_DEG);
 
 		x += cos(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE_START;
 		y += sin(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE_START;
@@ -1571,9 +1578,38 @@ void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, i
 			w->changed[idx_x][idx_y] = 1;
 		}
 	}
+
+	else if(stop_reason == STOP_REASON_OBSTACLE_BACK_LEFT || stop_reason == STOP_REASON_OBSTACLE_BACK_RIGHT)
+	{
+		printf("Mapping BACK (ARSE) obstacle due to wheel slip.\n");
+		float x = (float)cur_x + cos(ANG32TORAD(cur_ang))*(float)-300.0;
+		float y = (float)cur_y + sin(ANG32TORAD(cur_ang))*(float)-300.0;
+
+		// Shift the result to the right or left:
+		int32_t angle = cur_ang + (uint32_t)( ((stop_reason==STOP_REASON_OBSTACLE_BACK_RIGHT)?90:-90) *ANG_1_DEG);
+
+		x += cos(ANG32TORAD(angle))*(float)robot_ys/2.0;
+		y += sin(ANG32TORAD(angle))*(float)robot_ys/2.0;
+
+		for(int i = 0; i < 2; i++)
+		{
+			x += cos(ANG32TORAD(angle))*(float)ASSUMED_ITEM_STEP_SIZE;
+			y += sin(ANG32TORAD(angle))*(float)ASSUMED_ITEM_STEP_SIZE;
+
+			page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
+			load_9pages(&world, idx_x, idx_y);
+			world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM | UNIT_WALL | UNIT_DO_NOT_REMOVE_BY_LIDAR;
+			world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest |= UNIT_ITEM | UNIT_WALL | UNIT_DO_NOT_REMOVE_BY_LIDAR;
+			PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+			PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+			PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+			w->changed[idx_x][idx_y] = 1;
+		}
+	}
+
 	else if(stop_reason == STOP_REASON_JERK)
 	{
-		printf("Mapping obstacle due to acceleration (ang = %.0f).\n", RADTODEG(vect_ang_rad));
+/*		printf("Mapping obstacle due to acceleration (ang = %.0f).\n", RADTODEG(vect_ang_rad));
 		for(int i=-2; i<=2; i++)
 		{
 			int idx = 32.0*vect_ang_rad/(2.0*M_PI);
@@ -1594,7 +1630,7 @@ void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, i
 				PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
 				w->changed[idx_x][idx_y] = 1;
 			}
-		}
+		} */
 	}
 	else
 	{
@@ -1602,6 +1638,35 @@ void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, i
 	}
 	
 
+}
+
+void clear_within_robot(world_t* w, pos_t pos)
+{
+	int idx_x, idx_y, offs_x, offs_y;
+	for(int stripe = 0; stripe < robot_xs/MAP_UNIT_W; stripe++)
+	{
+		float x = (float)pos.x + cos(ANG32TORAD(pos.ang))*(float)(ORIGIN_TO_ROBOT_FRONT-stripe*MAP_UNIT_W);
+		float y = (float)pos.y + sin(ANG32TORAD(pos.ang))*(float)(ORIGIN_TO_ROBOT_FRONT-stripe*MAP_UNIT_W);
+
+		// Shift the result in robot_y direction
+		int32_t angle = pos.ang + (uint32_t)(90*ANG_1_DEG);
+
+		x += cos(ANG32TORAD(angle))*(float)robot_ys/-2.0;
+		y += sin(ANG32TORAD(angle))*(float)robot_ys/-2.0;
+
+		for(int i = 0; i < robot_ys/MAP_UNIT_W; i++)
+		{
+			x += cos(ANG32TORAD(angle))*(float)MAP_UNIT_W;
+			y += sin(ANG32TORAD(angle))*(float)MAP_UNIT_W;
+
+			page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
+			load_1page(&world, idx_x, idx_y);
+			world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = UNIT_DBG;
+			world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest = UNIT_DBG;
+			MINUS_SAT_0(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+			w->changed[idx_x][idx_y] = 1;
+		}
+	}
 }
 
 
@@ -1797,12 +1862,6 @@ int find_unfamiliar_direction(world_t* w, int *x_out, int *y_out)
 
 	return biggest;
 }
-
-
-const int robot_xs = 480;
-const int robot_ys = 524;
-const int lidar_xoffs = 120;
-const int lidar_yoffs = 0;
 
 const char* const AUTOSTATE_NAMES[] =
 {

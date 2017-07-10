@@ -1345,7 +1345,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	}
 	else
 	{
-		a_range = 18;
+		a_range = 24;
 		xy_range = 1800;
 		xy_step = 120;
 		a_step = 2;
@@ -1368,12 +1368,6 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			best1_dx = idx;
 			best1_dy = idy;
 		}
-	}
-
-	if(best_score < 1000)
-	{
-		printf("WARN: Best score (%d) < 1000, correction and mapping skipped.\n", best_score);
-		return 0;
 	}
 
 	int pass2_a_range, pass2_a_step;
@@ -1406,13 +1400,6 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		pass2_num_dy = 2*(120/20) + 1;
 	}
 
-	if(best_score < 0)
-	{
-		printf("INFO: Best score is < 0, preventing mapping\n.");
-		extern int mapping_on;
-		mapping_on = 0; 
-	}
-
 	best_score = -999999;
 	int best2_da=0, best2_dx=0, best2_dy=0;
 
@@ -1435,6 +1422,13 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	int best_dy = best2_dy;
 
 	printf("Info: Map search complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best_da/(float)ANG_1_DEG, best_dx, best_dy, best_score);
+
+	if(best_score < 1000)
+	{
+		printf("INFO: Best score low, mapping with zero correction.\n");
+		best_da = 0; best_dx = 0; best_dy = 0;
+	}
+
 	int32_t aft_corr_x = 0, aft_corr_y = 0;
 
 	do_mapping(w, n_lidars, lidar_list, best_da, best_dx, best_dy, mid_x, mid_y, &aft_corr_x, &aft_corr_y);
@@ -1980,9 +1974,9 @@ void autofsm()
 		case S_SYNC_TO_COMPASS: {
 			int32_t ang = cur_compass_ang-90*ANG_1_DEG;
 			set_robot_pos(ang,cur_x,cur_y);		
-//			printf("INFO: Syncing robot angle to compass, turning mapping on, requesting massive search area.\n");
-//			mapping_on = 1;
-//			massive_search_area();
+			printf("INFO: Syncing robot angle to compass, turning mapping on, requesting massive search area.\n");
+			mapping_on = 1;
+			massive_search_area();
 			if(automap_only_compass)
 				cur_autostate = S_IDLE;
 			else

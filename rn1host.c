@@ -816,7 +816,7 @@ int main(int argc, char** argv)
 			if(!automap_started)
 			{
 				automap_started = 1;
-//				start_automapping_from_compass();
+				start_automapping_from_compass();
 			}
 
 		}

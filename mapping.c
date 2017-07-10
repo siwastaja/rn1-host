@@ -1706,9 +1706,9 @@ int unfamiliarity_score(world_t* w, int x, int y)
 	int n_walls = 0;
 	int n_seen = 0;
 	int n_visited = 1; // to avoid div per zero
-	for(int xx = x - 360; xx <= x + 360; xx += 40)
+	for(int xx = x - 400; xx <= x + 400; xx += 40)
 	{
-		for(int yy = y - 360; yy <= y + 360; yy += 40)
+		for(int yy = y - 400; yy <= y + 400; yy += 40)
 		{
 			int px, py, ox, oy;
 			page_coords(xx,yy, &px, &py, &ox, &oy);
@@ -1716,7 +1716,7 @@ int unfamiliarity_score(world_t* w, int x, int y)
 			if(w->pages[px][py])
 			{
 				if(w->pages[px][py]->units[ox][oy].result & UNIT_WALL) n_walls++;
-				if(n_walls > 2)
+				if(n_walls > 1)
 					return 0;
 				n_seen += w->pages[px][py]->units[ox][oy].num_seen;
 				n_visited += w->pages[px][py]->units[ox][oy].num_visited;
@@ -1728,29 +1728,71 @@ int unfamiliarity_score(world_t* w, int x, int y)
 	return sqrt(n_seen)/n_visited;
 }
 
-int find_unfamiliar_direction(world_t* w, int *dx_out, int *dy_out)
+typedef struct
+{
+	int enabled;
+	int x;
+	int y;
+} cant_goto_place_t;
+
+// This list is populated when going towards a (desired_x,desired_y) destination leads to stop, or the dest is not reached within sensible time.
+// Places near the ones in this list are ignored when finding unfamiliar places.
+// The list is purposedly overwritten so that we try again older places, in case the conditions have changed.
+// TODO: move this to work per every world.
+
+#define CANT_GOTO_PLACE_LIST_LEN 16
+cant_goto_place_t cant_goto_places[CANT_GOTO_PLACE_LIST_LEN];
+int cant_goto_place_wr_idx;
+
+void add_cant_goto_place(int x, int y)
+{
+	printf("INFO: Adding cant_goto_place idx=%d, abs (%d, %d) mm\n", cant_goto_place_wr_idx, x, y);
+	cant_goto_places[cant_goto_place_wr_idx].enabled = 1;
+	cant_goto_places[cant_goto_place_wr_idx].x = x;
+	cant_goto_places[cant_goto_place_wr_idx].y = y;
+	cant_goto_place_wr_idx++;
+	if(cant_goto_place_wr_idx >= CANT_GOTO_PLACE_LIST_LEN)
+	{
+		printf("INFO: cant_goto_place_list wraps around, old out-of-limits areas will be tried again.\n");
+		cant_goto_place_wr_idx = 0;
+
+	}
+}
+
+int find_unfamiliar_direction(world_t* w, int *x_out, int *y_out)
 {
 	int biggest = 0;
-	int biggest_dx, biggest_dy;
-	for(int dx = -4000; dx <= 4000; dx += 200)
+	int biggest_x, biggest_y;
+	for(int dx = -4800; dx <= 4800; dx += 200)
 	{
-		for(int dy = -4000; dy <= 4000; dy += 200)
+		for(int dy = -4800; dy <= 4800; dy += 200)
 		{
 			extern int32_t cur_x, cur_y;
 			int score = unfamiliarity_score(w, cur_x+dx, cur_y+dy);
 			if(score > biggest)
 			{
+				for(int i = 0; i < CANT_GOTO_PLACE_LIST_LEN; i++)
+				{
+					if(cant_goto_places[i].enabled && (sq(cant_goto_places[i].x-(cur_x+dx))+sq(cant_goto_places[i].x-(cur_x+dx))) < sq(300) )
+					{
+						printf("Info: ignoring potential biggest score place, cant_goto_idx=%d, abs (%d, %d) mm.\n", i, cur_x+dx, cur_y+dy);
+						goto CONTINUE_UNFAM_LOOP;
+					}
+				}
+
 				biggest = score;
-				biggest_dx = dx;
-				biggest_dy = dy;
+				biggest_x = cur_x+dx;
+				biggest_y = cur_y+dy;
+
+				CONTINUE_UNFAM_LOOP:;
 			}
 		}
 	}
 
 	if(biggest)
 	{
-		*dx_out = biggest_dx;
-		*dy_out = biggest_dy;
+		*x_out = biggest_x;
+		*y_out = biggest_y;
 	}
 
 	return biggest;
@@ -1879,30 +1921,31 @@ void autofsm()
 		} break;
 
 		case S_GEN_DESIRED_DIR: {
+			daiju_mode(0);
 
 			int unfam_score = find_unfamiliar_direction(&world, &desired_x, &desired_y);
 
 			if(unfam_score)
 			{
-				same_dir_len = 1;
-				printf("INFO: Generated new desired vector (%d, %d) based on unfamiliarity score %d, time to follow = %d\n", desired_x, desired_y, unfam_score, same_dir_len);
-				if(tcp_client_sock >= 0) tcp_send_dbgpoint(cur_x+desired_x, cur_y+desired_y, 0, 255, 40);
+				same_dir_len = 10;
+				printf("INFO: Generated new desired vector abs (%d, %d) mm based on unfamiliarity score %d, time to follow = %d\n", desired_x, desired_y, unfam_score, same_dir_len);
+				if(tcp_client_sock >= 0) tcp_send_dbgpoint(desired_x, desired_y, 0, 255, 40);
 			}
 			else
 			{
-				float rand1 = ((float)rand() / (float)RAND_MAX)*2000.0+1000.0;
-				float rand2 = ((float)rand() / (float)RAND_MAX)*2000.0+1000.0;
+				float rand1 = ((float)rand() / (float)RAND_MAX)*4000.0+2000.0;
+				float rand2 = ((float)rand() / (float)RAND_MAX)*4000.0+2000.0;
 
 				if(rand()&1)
 					rand1 *= -1;
 				if(rand()&1)
 					rand2 *= -1;
 
-				desired_x = rand1;
-				desired_y = rand2;
-				same_dir_len = ((float)rand() / (float)RAND_MAX)*7.0;
-				printf("INFO: No unfamiliarity scores generated (area unmapped?): generated new random desired vector (%d, %d), time to follow = %d\n", desired_x, desired_y, same_dir_len);
-				if(tcp_client_sock >= 0) tcp_send_dbgpoint(cur_x+desired_x, cur_y+desired_y, 255, 60, 40);
+				desired_x = cur_x+rand1;
+				desired_y = cur_y+rand2;
+				same_dir_len = 10; //((float)rand() / (float)RAND_MAX)*7.0;
+				printf("INFO: No unfamiliarity scores generated (area unmapped?): generated new random desired vector abs (%d, %d) mm, time to follow = %d\n", desired_x, desired_y, same_dir_len);
+				if(tcp_client_sock >= 0) tcp_send_dbgpoint(desired_x, desired_y, 128, 150, 40);
 			}
 			same_dir_cnt = 0;
 			cur_autostate++;
@@ -1921,7 +1964,7 @@ void autofsm()
 			int32_t dx, dy;
 			int need_to_back = 0;
 			extern int32_t cur_ang;
-			if(num_stops > 10)
+			if(num_stops > 8)
 			{
 				num_stops = 0;
 				printf("INFO: Too many stops without success, daijuing for a while.\n");
@@ -1931,7 +1974,7 @@ void autofsm()
 			}
 			else
 			{
-				if(minimap_find_mapping_dir(&world, ANG32TORAD(cur_ang), &dx, &dy, desired_x, desired_y, &need_to_back))
+				if(minimap_find_mapping_dir(&world, ANG32TORAD(cur_ang), &dx, &dy, desired_x-cur_x, desired_y-cur_y, &need_to_back))
 				{
 					printf("INFO: Found direction\n");
 					if(movement_id == cur_xymove.id)
@@ -1956,24 +1999,33 @@ void autofsm()
 
 		case S_WAIT_MOVEMENT: {
 
-			if(cur_xymove.id == movement_id && cur_xymove.remaining < 70)
+			if(cur_xymove.id == movement_id && cur_xymove.remaining < 80)
 			{
 				num_stops = 0;
-				printf("INFO: Automapping: movement id=%d finished, next!\n", movement_id);
+				printf("INFO: Automapping: movement id=%d finished, ", movement_id);
 
 				movement_id++; if(movement_id > 100) movement_id = 0;
 				same_dir_cnt++;
-				if(same_dir_cnt > same_dir_len)
+				if(same_dir_cnt > same_dir_len || (sq(cur_x-desired_x) + sq(cur_y-desired_y)) < sq(300))
+				{
+					printf("generate new desired direction.\n");
+					if(same_dir_cnt > same_dir_len)
+					{
+						add_cant_goto_place(desired_x, desired_y);
+						if(tcp_client_sock >= 0) tcp_send_dbgpoint(desired_x, desired_y, 255, 30, 50);
+					}
 					cur_autostate = S_GEN_DESIRED_DIR;
+				}
 				else
 				{
-					if(tcp_client_sock >= 0) tcp_send_dbgpoint(cur_x+desired_x, cur_y+desired_y, 200, 200, 40);
+					printf("continue with the old desired direction.\n");
 					cur_autostate = S_FIND_DIR;
 				}
 			}
 			else if(cur_xymove.id == movement_id && (cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags))
 			{
-				printf("INFO: Automapping: movement id=%d stopped, next different way\n", movement_id);
+				printf("INFO: Automapping: movement id=%d stopped, generating new desired direction\n", movement_id);
+				add_cant_goto_place(desired_x, desired_y);
 				movement_id++; if(movement_id > 100) movement_id = 0;
 				num_stops++;
 				cur_autostate = S_GEN_DESIRED_DIR;

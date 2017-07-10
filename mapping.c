@@ -1345,8 +1345,8 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	}
 	else
 	{
-		a_range = 21;
-		xy_range = 1800;
+		a_range = 24;
+		xy_range = 1920;
 		xy_step = 120;
 		a_step = 3*ANG_1_DEG;
 	}
@@ -1428,6 +1428,8 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		printf("INFO: Best score low, mapping with zero correction.\n");
 		best_da = 0; best_dx = 0; best_dy = 0;
 	}
+	else
+		search_area_size = 0;
 
 	int32_t aft_corr_x = 0, aft_corr_y = 0;
 
@@ -1794,7 +1796,10 @@ int unfamiliarity_score(world_t* w, int x, int y)
 		}
 	}
 
-	return (100*sqrt(sqrt(n_seen)))/n_visited;
+	if(n_seen < 5)
+		return 0;
+
+	return 1000000/n_visited;
 }
 
 typedef struct
@@ -1809,7 +1814,7 @@ typedef struct
 // The list is purposedly overwritten so that we try again older places, in case the conditions have changed.
 // TODO: move this to work per every world.
 
-#define CANT_GOTO_PLACE_LIST_LEN 16
+#define CANT_GOTO_PLACE_LIST_LEN 32
 cant_goto_place_t cant_goto_places[CANT_GOTO_PLACE_LIST_LEN];
 int cant_goto_place_wr_idx;
 
@@ -1842,7 +1847,7 @@ int find_unfamiliar_direction(world_t* w, int *x_out, int *y_out)
 			{
 				for(int i = 0; i < CANT_GOTO_PLACE_LIST_LEN; i++)
 				{
-					if(cant_goto_places[i].enabled && (sq(cant_goto_places[i].x-(cur_x+dx))+sq(cant_goto_places[i].x-(cur_x+dx))) < sq(300) )
+					if(cant_goto_places[i].enabled && (sq(cant_goto_places[i].x-(cur_x+dx))+sq(cant_goto_places[i].x-(cur_x+dx))) < sq(500) )
 					{
 						printf("Info: ignoring potential biggest score place, cant_goto_idx=%d, abs (%d, %d) mm.\n", i, cur_x+dx, cur_y+dy);
 						goto CONTINUE_UNFAM_LOOP;
@@ -2072,7 +2077,7 @@ void autofsm()
 
 				movement_id++; if(movement_id > 100) movement_id = 0;
 				same_dir_cnt++;
-				if(same_dir_cnt > same_dir_len || (sq(cur_x-desired_x) + sq(cur_y-desired_y)) < sq(300))
+				if(same_dir_cnt > same_dir_len || (sq(cur_x-desired_x) + sq(cur_y-desired_y)) < sq(400))
 				{
 					printf("generate new desired direction.\n");
 					if(same_dir_cnt > same_dir_len)

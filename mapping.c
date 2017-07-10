@@ -1879,6 +1879,7 @@ const char* const AUTOSTATE_NAMES[] =
 	"COMPASS",
 	"WAIT_COMPASS_START",
 	"WAIT_COMPASS_END",
+	"WAIT_COMPASS_MEASURED",
 	"SYNC_TO_COMPASS",
 	"GEN_DESIRED_DIR",
 	"FIND_DIR",
@@ -1898,11 +1899,12 @@ typedef enum
 	S_COMPASS		= 2,
 	S_WAIT_COMPASS_START	= 3,
 	S_WAIT_COMPASS_END	= 4,
-	S_SYNC_TO_COMPASS	= 5,
-	S_GEN_DESIRED_DIR	= 6,
-	S_FIND_DIR		= 7,
-	S_WAIT_MOVEMENT  	= 8,
-	S_DAIJUING		= 9
+	S_WAIT_COMPASS_MEASURED	= 5,
+	S_SYNC_TO_COMPASS	= 6,
+	S_GEN_DESIRED_DIR	= 7,
+	S_FIND_DIR		= 8,
+	S_WAIT_MOVEMENT  	= 9,
+	S_DAIJUING		= 10
 } autostate_t;
 
 autostate_t cur_autostate;
@@ -1973,7 +1975,17 @@ void autofsm()
 
 		case S_WAIT_COMPASS_END: {
 			if(!compass_round_active)
+			{
+				compass_round_active = 1; // to force one more compass reading, with robot being still.
 				cur_autostate++;
+			}
+		} break;
+
+		case S_WAIT_COMPASS_MEASURED: {
+			if(!compass_round_active)
+			{
+				cur_autostate++;
+			}
 		} break;
 
 		case S_SYNC_TO_COMPASS: {

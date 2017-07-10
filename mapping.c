@@ -1346,7 +1346,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	else
 	{
 		a_range = 24;
-		xy_range = 1920;
+		xy_range = 1800; // max, produces 32 steps.
 		xy_step = 120;
 		a_step = 3*ANG_1_DEG;
 	}
@@ -1977,9 +1977,10 @@ void autofsm()
 		} break;
 
 		case S_SYNC_TO_COMPASS: {
-			int32_t ang = cur_compass_ang-90*ANG_1_DEG;
-			set_robot_pos(ang,cur_x,cur_y);		
 			printf("INFO: Syncing robot angle to compass, turning mapping on, requesting massive search area.\n");
+			int32_t ang = cur_compass_ang-90*ANG_1_DEG;
+			printf("DBG: cur_compass_ang=%d (%.1fdeg), ang=%d (%.1fdeg)", cur_compass_ang, ANG32TOFDEG(cur_compass_ang), ang, ANG32TOFDEG(ang));
+			set_robot_pos(ang,cur_x,cur_y);
 			mapping_on = 1;
 			massive_search_area();
 			if(automap_only_compass)

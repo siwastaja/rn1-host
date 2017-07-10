@@ -1643,21 +1643,21 @@ void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, i
 void clear_within_robot(world_t* w, pos_t pos)
 {
 	int idx_x, idx_y, offs_x, offs_y;
-	for(int stripe = 0; stripe < robot_xs/MAP_UNIT_W; stripe++)
+	for(int stripe = 0; stripe < robot_xs/20 - 1; stripe++)
 	{
-		float x = (float)pos.x + cos(ANG32TORAD(pos.ang))*(float)(ORIGIN_TO_ROBOT_FRONT-stripe*MAP_UNIT_W);
-		float y = (float)pos.y + sin(ANG32TORAD(pos.ang))*(float)(ORIGIN_TO_ROBOT_FRONT-stripe*MAP_UNIT_W);
+		float x = (float)pos.x + cos(ANG32TORAD(pos.ang))*(float)(ORIGIN_TO_ROBOT_FRONT-stripe*20);
+		float y = (float)pos.y + sin(ANG32TORAD(pos.ang))*(float)(ORIGIN_TO_ROBOT_FRONT-stripe*20);
 
 		// Shift the result in robot_y direction
 		int32_t angle = pos.ang + (uint32_t)(90*ANG_1_DEG);
 
-		x += cos(ANG32TORAD(angle))*(float)robot_ys/-2.0;
-		y += sin(ANG32TORAD(angle))*(float)robot_ys/-2.0;
+		x += cos(ANG32TORAD(angle))*((float)robot_ys/-2.0+10);
+		y += sin(ANG32TORAD(angle))*((float)robot_ys/-2.0+10);
 
-		for(int i = 0; i < robot_ys/MAP_UNIT_W; i++)
+		for(int i = 0; i < robot_ys/20 - 1; i++)
 		{
-			x += cos(ANG32TORAD(angle))*(float)MAP_UNIT_W;
-			y += sin(ANG32TORAD(angle))*(float)MAP_UNIT_W;
+			x += cos(ANG32TORAD(angle))*(float)20.0;
+			y += sin(ANG32TORAD(angle))*(float)20.0;
 
 			page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
 			load_1page(&world, idx_x, idx_y);

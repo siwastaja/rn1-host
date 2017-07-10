@@ -1725,7 +1725,7 @@ int unfamiliarity_score(world_t* w, int x, int y)
 		}
 	}
 
-	return sqrt(n_seen)/n_visited;
+	return (100*sqrt(sqrt(n_seen)))/n_visited;
 }
 
 typedef struct
@@ -1974,7 +1974,8 @@ void autofsm()
 			}
 			else
 			{
-				if(minimap_find_mapping_dir(&world, ANG32TORAD(cur_ang), &dx, &dy, desired_x-cur_x, desired_y-cur_y, &need_to_back))
+				int ret;
+				if( (ret = minimap_find_mapping_dir(&world, ANG32TORAD(cur_ang), &dx, &dy, desired_x-cur_x, desired_y-cur_y, &need_to_back)) )
 				{
 					printf("INFO: Found direction\n");
 					if(movement_id == cur_xymove.id)
@@ -1983,6 +1984,8 @@ void autofsm()
 						movement_id+=5;
 						if(movement_id > 100) movement_id = 0;
 					}
+					set_hw_obstacle_avoidance_margin((ret&2)?0:120);
+
 					move_to(cur_x+dx, cur_y+dy, need_to_back, movement_id, 30, 0);
 					cur_autostate++;
 				}

@@ -671,7 +671,7 @@ int main(int argc, char** argv)
 				lidar_ignore_cnt++;
 
 //				if(p_lid->significant_for_mapping) 
-				printf("INFO: Ignoring lidar scan with id=%d (significance=%d).\n", p_lid->id, p_lid->significant_for_mapping);
+//				printf("INFO: Ignoring lidar scan with id=%d (significance=%d).\n", p_lid->id, p_lid->significant_for_mapping);
 
 				if(lidar_ignore_cnt > 50)
 				{
@@ -764,7 +764,7 @@ int main(int argc, char** argv)
 						}
 						else
 						{
-							printf("INFO: Got significant(%d) lidar scan, adding to the mapping queue(%d).\n", p_lid->significant_for_mapping, n_lidars_to_map);
+//							printf("INFO: Got significant(%d) lidar scan, adding to the mapping queue(%d).\n", p_lid->significant_for_mapping, n_lidars_to_map);
 							lidars_to_map[n_lidars_to_map] = p_lid;
 
 							n_lidars_to_map++;

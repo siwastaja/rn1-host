@@ -357,6 +357,8 @@ void set_hw_obstacle_avoidance_margin(int mm)
 	if(cm < 0) cm = 0;
 	else if(cm > 100) cm = 100;
 
+	printf("INFO: set_hw_obstacle_avoidance_margin to %d cm\n", cm);
+
 	buf[0] = 0x88;
 	buf[1] = cm;
 	buf[2] = 0xff;

@@ -451,7 +451,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 			printf("INFO: In a tight spot; of (%d found from lidar only; %d agreed with map) possibilities, %d lead to wider environment, of which (%d, %d) is nearest the desired (%d, %d)\n",
 				num_cango_places+disagrees, num_cango_places, good_candidates, cango_places[nearest_i].x, cango_places[nearest_i].y, desired_x, desired_y);
 			*x = cango_places[nearest_i].x ; *y = cango_places[nearest_i].y; *back = backs[nearest_i];
-			return 1;
+			return 1 | ((in_tight_spot)?2:0);
 		}
 	}
 
@@ -472,7 +472,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 		cango_places[nearest_i].x, cango_places[nearest_i].y, desired_x, desired_y, num_cango_places+disagrees, num_cango_places);
 	*x = cango_places[nearest_i].x ; *y = cango_places[nearest_i].y; *back = backs[nearest_i];
 
-	return 1;
+	return 1 | ((in_tight_spot)?2:0);
 }
 
 

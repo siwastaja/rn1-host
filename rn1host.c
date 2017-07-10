@@ -691,6 +691,7 @@ int main(int argc, char** argv)
 	//			printf("INFO: Got lidar scan.\n");
 
 				cur_ang = p_lid->robot_pos.ang; cur_x = p_lid->robot_pos.x; cur_y = p_lid->robot_pos.y;
+				printf("INFO: cur_ang = %6.1fdeg\n", ANG32TOFDEG(cur_ang));
 
 				static int curpos_send_cnt = 0;
 				curpos_send_cnt++;

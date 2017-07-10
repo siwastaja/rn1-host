@@ -189,6 +189,8 @@ int parse_uart_msg(uint8_t* buf, int len)
 			extern int compass_round_active;
 			compass_round_active = buf[1];
 			cur_compass_ang = I7I7_U16_lossy(buf[2], buf[3])<<16;
+
+			printf("INFO: cur_compass_ang = %6.1fdeg  %s\n", ANG32TOFDEG(cur_compass_ang), compass_round_active?"CALIBRATING":"");
 		}
 		break;
 

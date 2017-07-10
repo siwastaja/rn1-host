@@ -96,6 +96,6 @@ void tcp_send_sonar(sonar_scan_t* p_son);
 void tcp_send_battery();
 void tcp_send_route(route_unit_t **route);
 void tcp_send_sync_request();
-void tcp_send_dbgpoint(int x, int y, uint8_t r, uint8_t g, uint8_t b);
+void tcp_send_dbgpoint(int x, int y, uint8_t r, uint8_t g, uint8_t b, int persistence);
 
 #endif

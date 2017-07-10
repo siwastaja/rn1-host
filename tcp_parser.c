@@ -206,9 +206,9 @@ void tcp_send_route(route_unit_t **route)
 	tcp_send(buf, i);
 }
 
-void tcp_send_dbgpoint(int x, int y, uint8_t r, uint8_t g, uint8_t b)
+void tcp_send_dbgpoint(int x, int y, uint8_t r, uint8_t g, uint8_t b, int persistence)
 {
-	const int size = 3+4+4+3;
+	const int size = 3+4+4+3+1;
 	uint8_t buf[size];
 	buf[0] = TCP_RC_DBGPOINT_MID;
 	buf[1] = ((size-3)>>8)&0xff;
@@ -218,6 +218,7 @@ void tcp_send_dbgpoint(int x, int y, uint8_t r, uint8_t g, uint8_t b)
 	buf[11] = r;
 	buf[12] = g;
 	buf[13] = b;
+	buf[14] = persistence&0xff;
 	tcp_send(buf, size);
 }
 

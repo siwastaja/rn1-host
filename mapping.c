@@ -1929,7 +1929,7 @@ void autofsm()
 			{
 				same_dir_len = 10;
 				printf("INFO: Generated new desired vector abs (%d, %d) mm based on unfamiliarity score %d, time to follow = %d\n", desired_x, desired_y, unfam_score, same_dir_len);
-				if(tcp_client_sock >= 0) tcp_send_dbgpoint(desired_x, desired_y, 0, 255, 40);
+				if(tcp_client_sock >= 0) tcp_send_dbgpoint(desired_x, desired_y, 0, 255, 40, 0);
 			}
 			else
 			{
@@ -1945,7 +1945,7 @@ void autofsm()
 				desired_y = cur_y+rand2;
 				same_dir_len = 10; //((float)rand() / (float)RAND_MAX)*7.0;
 				printf("INFO: No unfamiliarity scores generated (area unmapped?): generated new random desired vector abs (%d, %d) mm, time to follow = %d\n", desired_x, desired_y, same_dir_len);
-				if(tcp_client_sock >= 0) tcp_send_dbgpoint(desired_x, desired_y, 128, 150, 40);
+				if(tcp_client_sock >= 0) tcp_send_dbgpoint(desired_x, desired_y, 128, 150, 40, 0);
 			}
 			same_dir_cnt = 0;
 			cur_autostate++;
@@ -2015,7 +2015,7 @@ void autofsm()
 					if(same_dir_cnt > same_dir_len)
 					{
 						add_cant_goto_place(desired_x, desired_y);
-						if(tcp_client_sock >= 0) tcp_send_dbgpoint(desired_x, desired_y, 255, 30, 50);
+						if(tcp_client_sock >= 0) tcp_send_dbgpoint(desired_x, desired_y, 255, 30, 50, 1);
 					}
 					cur_autostate = S_GEN_DESIRED_DIR;
 				}
@@ -2029,6 +2029,7 @@ void autofsm()
 			{
 				printf("INFO: Automapping: movement id=%d stopped, generating new desired direction\n", movement_id);
 				add_cant_goto_place(desired_x, desired_y);
+				if(tcp_client_sock >= 0) tcp_send_dbgpoint(desired_x, desired_y, 255, 30, 50, 1);
 				movement_id++; if(movement_id > 100) movement_id = 0;
 				num_stops++;
 				cur_autostate = S_GEN_DESIRED_DIR;

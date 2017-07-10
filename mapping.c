@@ -1370,12 +1370,18 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		}
 	}
 
+	if(best_score < 1000)
+	{
+		printf("WARN: Best score (%d) < 1000, correction and mapping skipped.\n", best_score);
+		return 0;
+	}
+
 	int pass2_a_range, pass2_a_step;
 	int pass2_dx_start, pass2_dx_step, pass2_num_dx, pass2_dy_start, pass2_dy_step, pass2_num_dy;
 
 	if(search_area_size == 0)
 	{
-		// we already gave scoremap for small steps
+		// we already generated scoremap for small steps
 		pass2_a_range = 2; // in half degs
 		pass2_a_step = ANG_0_5_DEG;
 		pass2_dx_start = best1_dx-40;
@@ -1661,10 +1667,14 @@ void clear_within_robot(world_t* w, pos_t pos)
 
 			page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
 			load_1page(&world, idx_x, idx_y);
-			world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = UNIT_DBG;
-			world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest = UNIT_DBG;
-			MINUS_SAT_0(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
-			w->changed[idx_x][idx_y] = 1;
+			if((world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_WALL) ||
+			   (world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_ITEM))
+			{
+				world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = UNIT_MAPPED;
+				world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest = UNIT_MAPPED;
+				MINUS_SAT_0(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+				w->changed[idx_x][idx_y] = 1;
+			}
 		}
 	}
 }

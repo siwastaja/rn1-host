@@ -462,6 +462,7 @@ int main(int argc, char** argv)
 				{
 					case 0:
 					{
+						motors_on = 1;
 						daiju_mode(0);
 						stop_automapping();
 						mapping_on = 0;
@@ -469,6 +470,7 @@ int main(int argc, char** argv)
 
 					case 1:
 					{
+						motors_on = 1;
 						daiju_mode(0);
 						stop_automapping();
 						mapping_on = 1;
@@ -476,6 +478,7 @@ int main(int argc, char** argv)
 
 					case 2:
 					{
+						motors_on = 1;
 						daiju_mode(0);
 						routing_set_world(&world);
 						start_automapping_skip_compass();
@@ -484,6 +487,7 @@ int main(int argc, char** argv)
 
 					case 3:
 					{
+						motors_on = 1;
 						daiju_mode(0);
 						routing_set_world(&world);
 						start_automapping_from_compass();
@@ -492,10 +496,22 @@ int main(int argc, char** argv)
 
 					case 4:
 					{
+						motors_on = 1;
 						daiju_mode(1);
 						mapping_on = 0;
 					} break;
 
+					case 5:
+					{
+						motors_on = 0;
+						mapping_on = 1;
+					} break;
+
+					case 6:
+					{
+						motors_on = 0;
+						mapping_on = 0;
+					} break;
 				}
 			}
 			
@@ -691,7 +707,7 @@ int main(int argc, char** argv)
 	//			printf("INFO: Got lidar scan.\n");
 
 				cur_ang = p_lid->robot_pos.ang; cur_x = p_lid->robot_pos.x; cur_y = p_lid->robot_pos.y;
-				printf("INFO: cur_ang = %6.1fdeg\n", ANG32TOFDEG(cur_ang));
+//				printf("INFO: cur_ang = %6.1fdeg\n", ANG32TOFDEG(cur_ang));
 
 				static int curpos_send_cnt = 0;
 				curpos_send_cnt++;

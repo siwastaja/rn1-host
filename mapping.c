@@ -1345,10 +1345,10 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	}
 	else
 	{
-		a_range = 24;
+		a_range = 21;
 		xy_range = 1800;
 		xy_step = 120;
-		a_step = 2;
+		a_step = 3*ANG_1_DEG;
 	}
 
 	int n_xy_steps = 2*(xy_range/xy_step) + 1;
@@ -1390,7 +1390,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		printf("Info: Pass1 complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best1_da/(float)ANG_1_DEG, best1_dx, best1_dy, best_score);
 
 		gen_scoremap_for_small_steps(w, scoremap, mid_x, mid_y); // overwrite large step scoremap.
-		pass2_a_range = 4; // in half degs
+		pass2_a_range = 6; // in half degs
 		pass2_a_step = ANG_0_5_DEG;
 		pass2_dx_start = best1_dx-120;
 		pass2_dx_step = 20;

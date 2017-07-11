@@ -1569,28 +1569,31 @@ void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, i
 	if(stop_reason == STOP_REASON_OBSTACLE_FRONT_LEFT || stop_reason == STOP_REASON_OBSTACLE_FRONT_RIGHT)
 	{
 		printf("Mapping FRONT obstacle due to wheel slip.\n");
-		float x = (float)cur_x + cos(ANG32TORAD(cur_ang))*(float)(ORIGIN_TO_ROBOT_FRONT+20.0);
-		float y = (float)cur_y + sin(ANG32TORAD(cur_ang))*(float)(ORIGIN_TO_ROBOT_FRONT+20.0);
-
-		// Shift the result to the right or left:
-		int32_t angle = cur_ang + (uint32_t)( ((stop_reason==STOP_REASON_OBSTACLE_FRONT_RIGHT)?90:-90) *ANG_1_DEG);
-
-		x += cos(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE_START;
-		y += sin(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE_START;
-
-		for(int i = 0; i < ASSUMED_ITEM_NUM_STEPS; i++)
+		for(int deep=0; deep<2; deep++)
 		{
-			x += cos(ANG32TORAD(angle))*(float)ASSUMED_ITEM_STEP_SIZE;
-			y += sin(ANG32TORAD(angle))*(float)ASSUMED_ITEM_STEP_SIZE;
+			float x = (float)cur_x + cos(ANG32TORAD(cur_ang))*(float)(ORIGIN_TO_ROBOT_FRONT+20.0 + deep*40.0);
+			float y = (float)cur_y + sin(ANG32TORAD(cur_ang))*(float)(ORIGIN_TO_ROBOT_FRONT+20.0 + deep*40.0);
 
-			page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
-			load_9pages(&world, idx_x, idx_y);
-			world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM | UNIT_WALL | UNIT_DO_NOT_REMOVE_BY_LIDAR;
-			world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest |= UNIT_ITEM | UNIT_WALL | UNIT_DO_NOT_REMOVE_BY_LIDAR;
-			PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
-			PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
-			PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
-			w->changed[idx_x][idx_y] = 1;
+			// Shift the result to the right or left:
+			int32_t angle = cur_ang + (uint32_t)( ((stop_reason==STOP_REASON_OBSTACLE_FRONT_RIGHT)?90:-90) *ANG_1_DEG);
+
+			x += cos(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE_START;
+			y += sin(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE_START;
+
+			for(int i = 0; i < ASSUMED_ITEM_NUM_STEPS; i++)
+			{
+				x += cos(ANG32TORAD(angle))*(float)ASSUMED_ITEM_STEP_SIZE;
+				y += sin(ANG32TORAD(angle))*(float)ASSUMED_ITEM_STEP_SIZE;
+
+				page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
+				load_9pages(&world, idx_x, idx_y);
+				world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM | UNIT_WALL | UNIT_DO_NOT_REMOVE_BY_LIDAR;
+				world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest |= UNIT_ITEM | UNIT_WALL | UNIT_DO_NOT_REMOVE_BY_LIDAR;
+				PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+				PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+				PLUS_SAT_255(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+				w->changed[idx_x][idx_y] = 1;
+			}
 		}
 	}
 
@@ -1606,7 +1609,7 @@ void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, i
 		x += cos(ANG32TORAD(angle))*(float)robot_ys/2.0;
 		y += sin(ANG32TORAD(angle))*(float)robot_ys/2.0;
 
-		for(int i = 0; i < 2; i++)
+		for(int i = 0; i < 3; i++)
 		{
 			x += cos(ANG32TORAD(angle))*(float)ASSUMED_ITEM_STEP_SIZE;
 			y += sin(ANG32TORAD(angle))*(float)ASSUMED_ITEM_STEP_SIZE;
@@ -1658,18 +1661,18 @@ void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, i
 void clear_within_robot(world_t* w, pos_t pos)
 {
 	int idx_x, idx_y, offs_x, offs_y;
-	for(int stripe = 0; stripe < robot_xs/20 - 1; stripe++)
+	for(int stripe = 0; stripe < robot_xs/20 - 3; stripe++)
 	{
-		float x = (float)pos.x + cos(ANG32TORAD(pos.ang))*(float)(ORIGIN_TO_ROBOT_FRONT-stripe*20);
-		float y = (float)pos.y + sin(ANG32TORAD(pos.ang))*(float)(ORIGIN_TO_ROBOT_FRONT-stripe*20);
+		float x = (float)pos.x + cos(ANG32TORAD(pos.ang))*(float)(ORIGIN_TO_ROBOT_FRONT-20-stripe*20);
+		float y = (float)pos.y + sin(ANG32TORAD(pos.ang))*(float)(ORIGIN_TO_ROBOT_FRONT-20-stripe*20);
 
 		// Shift the result in robot_y direction
 		int32_t angle = pos.ang + (uint32_t)(90*ANG_1_DEG);
 
-		x += cos(ANG32TORAD(angle))*((float)robot_ys/-2.0+10);
-		y += sin(ANG32TORAD(angle))*((float)robot_ys/-2.0+10);
+		x += cos(ANG32TORAD(angle))*((float)robot_ys/-2.0+30);
+		y += sin(ANG32TORAD(angle))*((float)robot_ys/-2.0+30);
 
-		for(int i = 0; i < robot_ys/20 - 1; i++)
+		for(int i = 0; i < robot_ys/20 - 3; i++)
 		{
 			x += cos(ANG32TORAD(angle))*(float)20.0;
 			y += sin(ANG32TORAD(angle))*(float)20.0;

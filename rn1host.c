@@ -512,6 +512,7 @@ int main(int argc, char** argv)
 					case 4:
 					{
 						stop_automapping();
+						do_follow_route = 0;
 						motors_on = 1;
 						daiju_mode(1);
 						mapping_on = 0;
@@ -520,6 +521,7 @@ int main(int argc, char** argv)
 					case 5:
 					{
 						stop_automapping();
+						do_follow_route = 0;
 						motors_on = 0;
 						mapping_on = 1;
 					} break;
@@ -527,6 +529,7 @@ int main(int argc, char** argv)
 					case 6:
 					{
 						stop_automapping();
+						do_follow_route = 0;
 						motors_on = 0;
 						mapping_on = 0;
 					} break;

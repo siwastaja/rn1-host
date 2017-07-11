@@ -649,10 +649,10 @@ int main(int argc, char** argv)
 		{
 			if(!do_follow_route)
 			{
-				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(400))
+				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(300))
 				{
-					printf("INFO: We are not at the first charger point, please try again.\n");
-					find_charger_state = 0;
+					printf("INFO: We are not at the first charger point, trying again.\n");
+					find_charger_state = 1;
 				}
 				else
 				{
@@ -683,10 +683,10 @@ int main(int argc, char** argv)
 		}
 		else if(find_charger_state == 4)
 		{
-			if(lidar_ignore_over && subsec_timestamp() > chafind_timestamp+2.0)
+			if(lidar_ignore_over && subsec_timestamp() > chafind_timestamp+4.0)
 			{
 				printf("INFO: Going to second charger point.\n");
-				move_to(charger_second_x, charger_second_y, 0, 0x7f, 25, 1);
+				move_to(charger_second_x, charger_second_y, 0, 0x7f, 20, 1);
 				find_charger_state++;
 			}
 		}
@@ -694,14 +694,14 @@ int main(int argc, char** argv)
 		{
 			if(cur_xymove.id == 0x7f && cur_xymove.remaining < 10)
 			{
-				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(220))
+				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(180))
 				{
-					printf("INFO: We are not at the second charger point, please try again.\n");
-					find_charger_state = 0;
+					printf("INFO: We are not at the second charger point, trying again.\n");
+					find_charger_state = 1;
 				}
 				else
 				{
-					turn_and_go(charger_ang, charger_fwd, 23, 1);
+					turn_and_go(charger_ang, charger_fwd, 20, 1);
 					chafind_timestamp = subsec_timestamp();
 					find_charger_state++;
 				}

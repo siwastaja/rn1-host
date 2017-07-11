@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200809L
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,6 +25,14 @@
 #include "utlist.h"
 
 #include "mcu_micronavi_docu.c"
+
+double subsec_timestamp()
+{
+	struct timespec spec;
+	clock_gettime(CLOCK_MONOTONIC, &spec);
+
+	return (double)spec.tv_sec + (double)spec.tv_nsec/1.0e9;
+}
 
 int mapping_on = 0;
 int pos_corr_id = 42;
@@ -83,14 +92,14 @@ int run_search()
 	int len = 0;
 	DL_FOREACH(some_route, rt)
 	{
-		if(rt->backmode)
-			printf(" REVERSE ");
-		else
-			printf("         ");
+//		if(rt->backmode)
+//			printf(" REVERSE ");
+//		else
+//			printf("         ");
 
 		int x_mm, y_mm;
 		mm_from_unit_coords(rt->loc.x, rt->loc.y, &x_mm, &y_mm);					
-		printf("to %d,%d\n", x_mm, y_mm);
+//		printf("to %d,%d\n", x_mm, y_mm);
 
 		the_route[len].x = x_mm; the_route[len].y = y_mm; the_route[len].backmode = rt->backmode;
 		the_route[len].take_next_early = 100;
@@ -307,11 +316,10 @@ int main(int argc, char** argv)
 
 	daiju_mode(0);
 	correct_robot_pos(0,0,0, pos_corr_id);
-	turn_and_go(0, 50, 30, 1);
+	turn_and_go(0, 40, 30, 1);
 
-
+	double chafind_timestamp = 0.0;
 	int lidar_ignore_over = 0;
-	int cnt = 0;
 	while(1)
 	{
 		// Calculate fd_set size (biggest fd+1)
@@ -330,7 +338,7 @@ int main(int argc, char** argv)
 		if(tcp_client_sock >= 0)
 			FD_SET(tcp_client_sock, &fds);
 
-		struct timeval select_time = {0, 100};
+		struct timeval select_time = {0, 200};
 
 		if(select(fds_size, &fds, NULL, NULL, &select_time) < 0)
 		{
@@ -677,24 +685,29 @@ int main(int argc, char** argv)
 				else
 				{
 					turn_and_go(charger_ang, charger_fwd, 23, 1);
+					chafind_timestamp = subsec_timestamp();
 					find_charger_state++;
 				}
 			}
 		}
-		else if(find_charger_state == 65000)
+		else if(find_charger_state == 5)
 		{
-			turn_and_go(charger_ang, 0, 23, 1);
-			find_charger_state++;
+			double stamp;
+			if( (stamp=subsec_timestamp()) > chafind_timestamp+3.0)
+			{
+				chafind_timestamp = stamp;
+				turn_and_go(charger_ang, 0, 23, 1);
+				find_charger_state++;
+			}
 		}
-		else if(find_charger_state == 72000)
+		else if(find_charger_state == 6)
 		{
-			printf("INFO: Requesting charger mount.\n");
-			hw_find_charger();
-			find_charger_state = 0;
-		}
-		else if(find_charger_state != 0)
-		{
-			find_charger_state++;
+			if(subsec_timestamp() > chafind_timestamp+1.5)
+			{
+				printf("INFO: Requesting charger mount.\n");
+				hw_find_charger();
+				find_charger_state = 0;
+			}
 		}
 
 		route_fsm();
@@ -852,10 +865,11 @@ int main(int argc, char** argv)
 				map_sonar(&world, p_son);
 		}
 
-		cnt++;
-		if(cnt > 100000)
+		static double prev_sync = 0;
+		double stamp;
+		if( (stamp=subsec_timestamp()) > prev_sync+5.0)
 		{
-			cnt = 0;
+			prev_sync = stamp;
 
 			int idx_x, idx_y, offs_x, offs_y;
 			page_coords(cur_x, cur_y, &idx_x, &idx_y, &offs_x, &offs_y);

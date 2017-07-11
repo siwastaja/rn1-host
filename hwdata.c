@@ -309,7 +309,7 @@ void correct_robot_pos(int32_t da, int32_t dx, int32_t dy, int id)
 		return;
 	}
 */
-	printf("INFO: Correcting robot pos by %d, %d, %d, with id %d\n", da>>16, dx, dy, id);
+//	printf("INFO: Correcting robot pos by %d, %d, %d, with id %d\n", da>>16, dx, dy, id);
 
 	uint8_t buf[9];
 
@@ -359,7 +359,7 @@ void set_hw_obstacle_avoidance_margin(int mm)
 	if(cm < 0) cm = 0;
 	else if(cm > 100) cm = 100;
 
-	printf("INFO: set_hw_obstacle_avoidance_margin to %d cm\n", cm);
+//	printf("INFO: set_hw_obstacle_avoidance_margin to %d cm\n", cm);
 
 	buf[0] = 0x88;
 	buf[1] = cm;

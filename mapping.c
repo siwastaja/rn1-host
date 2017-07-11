@@ -181,9 +181,9 @@ static int prefilter_lidar_list(int n_lidars, lidar_scan_t** lidar_list)
 		}
 	}
 
-	printf("INFO: prefilter_lidar_list() removed %d points: ", n_removed);
-	for(int i=0; i < n_lidars; i++)	printf("%d, ", n_removed_per_scan[i]);
-	printf("\n");
+//	printf("INFO: prefilter_lidar_list() removed %d points: ", n_removed);
+//	for(int i=0; i < n_lidars; i++)	printf("%d, ", n_removed_per_scan[i]);
+//	printf("\n");
 	return n_removed;
 }
 
@@ -231,9 +231,9 @@ static int prefilter_lidar_list_aggressive(int n_lidars, lidar_scan_t** lidar_li
 		}
 	}
 
-	printf("INFO: prefilter_lidar_list_aggressive() removed %d points: ", n_removed);
-	for(int i=0; i < n_lidars; i++)	printf("%d, ", n_removed_per_scan[i]);
-	printf("\n");
+//	printf("INFO: prefilter_lidar_list_aggressive() removed %d points: ", n_removed);
+//	for(int i=0; i < n_lidars; i++)	printf("%d, ", n_removed_per_scan[i]);
+//	printf("\n");
 	return n_removed;
 }
 
@@ -356,7 +356,7 @@ static int gen_scoremap_for_large_steps(world_t *w, int8_t *scoremap, int mid_x,
 {
 	int px, py, ox, oy;
 
-	printf("Generating scoremap (for large steps)..."); fflush(stdout);
+//	printf("Generating scoremap (for large steps)..."); fflush(stdout);
 	for(int xx = 0; xx < TEMP_MAP_W; xx++)
 	{
 		for(int yy = 0; yy < TEMP_MAP_W; yy++)
@@ -414,7 +414,7 @@ static int gen_scoremap_for_large_steps(world_t *w, int8_t *scoremap, int mid_x,
 
 	fclose(dbg_f);
 */
-	printf(" OK.\n");
+//	printf(" OK.\n");
 
 
 	return 0;
@@ -425,7 +425,7 @@ static int gen_scoremap_for_small_steps(world_t *w, int8_t *scoremap, int mid_x,
 {
 	int px, py, ox, oy;
 
-	printf("Generating scoremap..."); fflush(stdout);
+//	printf("Generating scoremap..."); fflush(stdout);
 	for(int xx = 0; xx < TEMP_MAP_W; xx++)
 	{
 		for(int yy = 0; yy < TEMP_MAP_W; yy++)
@@ -478,7 +478,7 @@ static int gen_scoremap_for_small_steps(world_t *w, int8_t *scoremap, int mid_x,
 
 	fclose(dbg_f);
 */
-	printf(" OK.\n");
+//	printf(" OK.\n");
 
 
 	return 0;
@@ -1061,7 +1061,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		*after_dy = (avg_drift_y*MAP_UNIT_W)/avg_drift_cnt;
 	}
 
-	printf("INFO: Average adjustment during map insertion: x=%d mm, y=%d mm (%d samples)\n", *after_dx, *after_dy, avg_drift_cnt);
+//	printf("INFO: Average adjustment during map insertion: x=%d mm, y=%d mm (%d samples)\n", *after_dx, *after_dy, avg_drift_cnt);
 
 
 	free(temp_map);
@@ -1139,7 +1139,7 @@ static int do_map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, in
 //		return 1;
 //	}
 
-	printf("Info: Attempting to map %d lidar images\n", n_lidars);
+//	printf("Info: Attempting to map %d lidar images\n", n_lidars);
 
 	prefilter_lidar_list(n_lidars, lidar_list);
 
@@ -1281,7 +1281,7 @@ static int do_map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, in
 
 	if(!do_not_map)
 	{
-		printf("Info: Map search complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best_da/(float)ANG_1_DEG, best_dx, best_dy, best_score);
+		printf("Info: Map search complete (%d lidars), corr: a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", n_lidars, (float)best_da/(float)ANG_1_DEG, best_dx, best_dy, best_score);
 
 		int32_t aft_corr_x = 0, aft_corr_y = 0;
 

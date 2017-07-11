@@ -356,7 +356,7 @@ static int gen_scoremap_for_large_steps(world_t *w, int8_t *scoremap, int mid_x,
 {
 	int px, py, ox, oy;
 
-//	printf("Generating scoremap (for large steps)..."); fflush(stdout);
+	printf("Generating scoremap (for large steps)..."); fflush(stdout);
 	for(int xx = 0; xx < TEMP_MAP_W; xx++)
 	{
 		for(int yy = 0; yy < TEMP_MAP_W; yy++)
@@ -366,9 +366,9 @@ static int gen_scoremap_for_large_steps(world_t *w, int8_t *scoremap, int mid_x,
 
 			int score = 4*w->pages[px][py]->units[ox][oy].num_obstacles;
 
-			for(int ix=-4; ix<=4; ix++)
+			for(int ix=-5; ix<=5; ix++)
 			{
-				for(int iy=-4; iy<=4; iy++)
+				for(int iy=-5; iy<=5; iy++)
 				{
 					int npx = px, npy = py, nox = ox + ix, noy = oy + iy;
 					if(nox < 0) { nox += MAP_PAGE_W; npx--; } else if(nox >= MAP_PAGE_W) { nox -= MAP_PAGE_W; npx++;}
@@ -413,7 +413,7 @@ static int gen_scoremap_for_large_steps(world_t *w, int8_t *scoremap, int mid_x,
 
 	fclose(dbg_f);
 */
-//	printf(" OK.\n");
+	printf(" OK.\n");
 
 
 	return 0;

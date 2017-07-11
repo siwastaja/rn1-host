@@ -1299,9 +1299,14 @@ static int do_map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, in
 
 int search_area_size = 0;
 
-void massive_search_area()
+void big_search_area()
 {
 	search_area_size = 1;
+}
+
+void massive_search_area()
+{
+	search_area_size = 2;
 }
 
 int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy)
@@ -1328,7 +1333,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	// When correcting angle, image is rotated around this point.
 	lidars_avg_midpoint(n_lidars, lidar_list, &mid_x, &mid_y);
 
-	if(search_area_size)
+	if(search_area_size == 2)
 		gen_scoremap_for_large_steps(w, scoremap, mid_x, mid_y);
 	else
 		gen_scoremap_for_small_steps(w, scoremap, mid_x, mid_y);
@@ -1342,9 +1347,16 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		xy_step = 40;
 		a_step = 1*ANG_1_DEG;
 	}
-	else
+	else if(search_area_size == 1)
 	{
-		a_range = 45;
+		a_range = 6;
+		xy_range = 480;
+		xy_step = 40;
+		a_step = 1*ANG_1_DEG;
+	}
+	else // massive
+	{
+		a_range = 60;
 		xy_range = 2400; // max, produces 32 steps.
 		xy_step = 160;
 		a_step = 3*ANG_1_DEG;
@@ -1372,7 +1384,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	int pass2_a_range, pass2_a_step;
 	int pass2_dx_start, pass2_dx_step, pass2_num_dx, pass2_dy_start, pass2_dy_step, pass2_num_dy;
 
-	if(search_area_size == 0)
+	if(search_area_size == 0 || search_area_size == 1)
 	{
 		// we already generated scoremap for small steps
 		pass2_a_range = 2; // in half degs
@@ -1384,7 +1396,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		pass2_dy_step = 20;
 		pass2_num_dy = 2*(40/20) + 1;
 	}
-	else
+	else // massive
 	{
 		printf("Info: Pass1 complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best1_da/(float)ANG_1_DEG, best1_dx, best1_dy, best_score);
 
@@ -1428,7 +1440,9 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		best_da = 0; best_dx = 0; best_dy = 0;
 	}
 	else
-		search_area_size = 0;
+	{
+		if(search_area_size) search_area_size--;
+	}
 
 	int32_t aft_corr_x = 0, aft_corr_y = 0;
 
@@ -1848,7 +1862,7 @@ int find_unfamiliar_direction(world_t* w, int *x_out, int *y_out)
 				{
 					if(cant_goto_places[i].enabled && (sq(cant_goto_places[i].x-(cur_x+dx))+sq(cant_goto_places[i].x-(cur_x+dx))) < sq(500) )
 					{
-						printf("Info: ignoring potential biggest score place, cant_goto_idx=%d, abs (%d, %d) mm.\n", i, cur_x+dx, cur_y+dy);
+//						printf("Info: ignoring potential biggest score place, cant_goto_idx=%d, abs (%d, %d) mm.\n", i, cur_x+dx, cur_y+dy);
 						goto CONTINUE_UNFAM_LOOP;
 					}
 				}
@@ -1932,6 +1946,8 @@ void start_automap_only_compass()
 	automap_only_compass = 1;
 }
 
+extern double subsec_timestamp();
+
 void autofsm()
 {
 	static int movement_id = 0;
@@ -1946,7 +1962,7 @@ void autofsm()
 	static int desired_y;
 	static int same_dir_cnt;
 	static int same_dir_len;
-	static int daijuing_cnt;
+	static double daijuing_timestamp;
 	static int num_stops;
 
 	switch(cur_autostate)
@@ -2054,7 +2070,7 @@ void autofsm()
 				printf("INFO: Too many stops without success, daijuing for a while.\n");
 				daiju_mode(1);
 				cur_autostate = S_DAIJUING;
-				daijuing_cnt = 0;
+				daijuing_timestamp = subsec_timestamp();
 			}
 			else
 			{
@@ -2078,7 +2094,7 @@ void autofsm()
 					printf("INFO: Automapping: can't go anywhere; daijuing for a while.\n");
 					daiju_mode(1);
 					cur_autostate = S_DAIJUING;
-					daijuing_cnt = 0;
+					daijuing_timestamp = subsec_timestamp();
 				}
 			}
 
@@ -2122,7 +2138,7 @@ void autofsm()
 		} break;
 
 		case S_DAIJUING: {
-			if(++daijuing_cnt > 50000)
+			if(subsec_timestamp() > daijuing_timestamp+3.0)
 			{
 				cur_autostate = S_GEN_DESIRED_DIR;
 				daiju_mode(0);

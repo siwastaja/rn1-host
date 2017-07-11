@@ -656,27 +656,41 @@ int main(int argc, char** argv)
 				}
 				else
 				{
-					printf("INFO: At first charger point, mapping lidars for exact pos.\n");
-
-					int32_t da, dx, dy;
-					map_lidars(&world, NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start, &da, &dx, &dy);
-					INCR_POS_CORR_ID();
-					correct_robot_pos(da, dx, dy, pos_corr_id);
-					lidar_ignore_over = 0;
+					printf("INFO: At first charger point, turning for charger.\n");
+					turn_and_go(charger_ang, 0, 23, 1);
 					find_charger_state++;
+					chafind_timestamp = subsec_timestamp();
+
 				}
 			}
 		}
 		else if(find_charger_state == 3)
 		{
-			if(lidar_ignore_over)
+			double stamp;
+			if( (stamp=subsec_timestamp()) > chafind_timestamp+3.0)
+			{
+				chafind_timestamp = stamp;
+
+				printf("INFO: Turned at first charger point, mapping lidars for exact pos.\n");
+
+				int32_t da, dx, dy;
+				map_lidars(&world, NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start, &da, &dx, &dy);
+				INCR_POS_CORR_ID();
+				correct_robot_pos(da, dx, dy, pos_corr_id);
+				lidar_ignore_over = 0;
+				find_charger_state++;
+			}
+		}
+		else if(find_charger_state == 4)
+		{
+			if(lidar_ignore_over && subsec_timestamp() > chafind_timestamp+2.0)
 			{
 				printf("INFO: Going to second charger point.\n");
 				move_to(charger_second_x, charger_second_y, 0, 0x7f, 25, 1);
 				find_charger_state++;
 			}
 		}
-		else if(find_charger_state == 4)
+		else if(find_charger_state == 5)
 		{
 			if(cur_xymove.id == 0x7f && cur_xymove.remaining < 10)
 			{
@@ -693,7 +707,7 @@ int main(int argc, char** argv)
 				}
 			}
 		}
-		else if(find_charger_state == 5)
+		else if(find_charger_state == 6)
 		{
 			double stamp;
 			if( (stamp=subsec_timestamp()) > chafind_timestamp+3.0)
@@ -703,7 +717,7 @@ int main(int argc, char** argv)
 				find_charger_state++;
 			}
 		}
-		else if(find_charger_state == 6)
+		else if(find_charger_state == 7)
 		{
 			if(subsec_timestamp() > chafind_timestamp+1.5)
 			{

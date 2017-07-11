@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "mapping.h"
 
+#define MAP_DIR "/home/hrst/rn1-host"
+
 // Disk access; file name is generated and the page is stored/read.
 int write_map_page(world_t* w, int pagex, int pagey);
 int read_map_page(world_t* w, int pagex, int pagey);

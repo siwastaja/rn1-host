@@ -66,6 +66,14 @@ typedef struct __attribute__ ((packed))
 
 extern tcp_cr_mode_t   msg_cr_mode;
 
+#define TCP_CR_MANU_MID    59
+typedef struct __attribute__ ((packed))
+{
+	uint8_t op;
+} tcp_cr_manu_t;
+
+extern tcp_cr_manu_t   msg_cr_manu;
+
 
 #define TCP_RC_POS_MID    130
 typedef struct __attribute__ ((packed))

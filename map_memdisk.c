@@ -13,7 +13,8 @@ int write_map_page(world_t* w, int pagex, int pagey)
 {
 	char fname[1024];
 
-	sprintf(fname, "%08x_%u_%u_%u.map", robot_id, w->id, pagex, pagey);
+	if(snprintf(fname, 1024, MAP_DIR"/%08x_%u_%u_%u.map", robot_id, w->id, pagex, pagey) > 1022)
+		fname[1023] = 0;
 
 	printf("Info: writing map page %s\n", fname);
 
@@ -37,7 +38,8 @@ int write_map_page(world_t* w, int pagex, int pagey)
 int read_map_page(world_t* w, int pagex, int pagey)
 {
 	char fname[1024];
-	sprintf(fname, "%08x_%u_%u_%u.map", robot_id, w->id, pagex, pagey);
+	if(snprintf(fname, 1024, MAP_DIR"/%08x_%u_%u_%u.map", robot_id, w->id, pagex, pagey) > 1022)
+		fname[1023] = 0;
 
 	//printf("Info: Attempting to read map page %s\n", fname);
 

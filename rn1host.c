@@ -217,6 +217,7 @@ int charger_first_x, charger_first_y, charger_second_x, charger_second_y;
 #define CHARGER_SECOND_DIST 500
 #define CHARGER_THIRD_DIST  180
 
+/*
 void conf_charger_pos_pre()  // call when the robot is *in* the charger.
 {
 	int32_t da, dx, dy;
@@ -224,11 +225,11 @@ void conf_charger_pos_pre()  // call when the robot is *in* the charger.
 	INCR_POS_CORR_ID();
 	correct_robot_pos(da, dx, dy, pos_corr_id);
 }
-
+*/
 
 void save_robot_pos()
 {
-	FILE* f_cha = fopen("robot_pos.txt", "w");
+	FILE* f_cha = fopen("/home/hrst/rn1-host/robot_pos.txt", "w");
 	if(f_cha)
 	{
 		fprintf(f_cha, "%d %d %d\n", cur_ang, cur_x, cur_y);
@@ -240,7 +241,7 @@ void retrieve_robot_pos()
 {
 	int32_t ang;
 	int x; int y;
-	FILE* f_cha = fopen("robot_pos.txt", "r");
+	FILE* f_cha = fopen("/home/hrst/rn1-host/robot_pos.txt", "r");
 	if(f_cha)
 	{
 		fscanf(f_cha, "%d %d %d", &ang, &x, &y);
@@ -251,7 +252,13 @@ void retrieve_robot_pos()
 
 void conf_charger_pos()  // call when the robot is *in* the charger.
 {
-	int32_t cha_ang = cur_ang; int cha_x = cur_x; int cha_y = cur_y;
+	int32_t da, dx, dy;
+	map_lidars(&world, NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start, &da, &dx, &dy);
+	INCR_POS_CORR_ID();
+
+	int32_t cha_ang = cur_ang-da; int cha_x = cur_x+dx; int cha_y = cur_y+dy;
+
+	correct_robot_pos(da, dx, dy, pos_corr_id);
 
 	printf("INFO: Set charger pos at ang=%d, x=%d, y=%d\n", cha_ang, cha_x, cha_y);
 	charger_first_x = (float)cha_x - cos(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;
@@ -261,7 +268,7 @@ void conf_charger_pos()  // call when the robot is *in* the charger.
 	charger_fwd = CHARGER_SECOND_DIST-CHARGER_THIRD_DIST;
 	charger_ang = cha_ang;
 
-	FILE* f_cha = fopen("charger_pos.txt", "w");
+	FILE* f_cha = fopen("/home/hrst/rn1-host/charger_pos.txt", "w");
 	if(f_cha)
 	{
 		fprintf(f_cha, "%d %d %d %d %d %d\n", charger_first_x, charger_first_y, charger_second_x, charger_second_y, charger_ang, charger_fwd);
@@ -271,7 +278,7 @@ void conf_charger_pos()  // call when the robot is *in* the charger.
 
 void read_charger_pos()
 {
-	FILE* f_cha = fopen("charger_pos.txt", "r");
+	FILE* f_cha = fopen("/home/hrst/rn1-host/charger_pos.txt", "r");
 	if(f_cha)
 	{
 		fscanf(f_cha, "%d %d %d %d %d %d", &charger_first_x, &charger_first_y, &charger_second_x, &charger_second_y, &charger_ang, &charger_fwd);
@@ -383,10 +390,10 @@ int main(int argc, char** argv)
 				mapping_on = 2;
 				printf("Turned mapping to fast mode.\n");
 			}
-			if(cmd == 'K')
-			{
-				conf_charger_pos_pre();
-			}
+//			if(cmd == 'K')
+//			{
+//				conf_charger_pos_pre();
+//			}
 			if(cmd == 'L')
 			{
 				conf_charger_pos();
@@ -512,9 +519,43 @@ int main(int argc, char** argv)
 						motors_on = 0;
 						mapping_on = 0;
 					} break;
+
+					case 7:
+					{
+						conf_charger_pos();
+					} break;
+
+					default: break;
 				}
 			}
-			
+			else if(ret == TCP_CR_MANU_MID)
+			{
+				#define MANU_FWD   10
+				#define MANU_BACK  11
+				#define MANU_LEFT  12
+				#define MANU_RIGHT 13
+				stop_automapping();
+				daiju_mode(0);
+				motors_on = 1;
+				printf("INFO: Manual OP %d\n", msg_cr_manu.op);
+				switch(msg_cr_manu.op)
+				{
+					case MANU_FWD:
+						turn_and_go(cur_ang, 100, 10, 1);
+					break;
+					case MANU_BACK:
+						turn_and_go(cur_ang, -100, 10, 1);
+					break;
+					case MANU_LEFT:
+						turn_and_go(cur_ang-10*ANG_1_DEG, 0, 10, 1);
+					break;
+					case MANU_RIGHT:
+						turn_and_go(cur_ang+10*ANG_1_DEG, 0, 10, 1);
+					break;
+					default:
+					break;
+				}
+			}		
 		}
 
 		if(FD_ISSET(tcp_listener_sock, &fds))
@@ -597,7 +638,7 @@ int main(int argc, char** argv)
 		{
 			if(!do_follow_route)
 			{
-				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(360))
+				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(400))
 				{
 					printf("INFO: We are not at the first charger point, please try again.\n");
 					find_charger_state = 0;
@@ -628,7 +669,7 @@ int main(int argc, char** argv)
 		{
 			if(cur_xymove.id == 0x7f && cur_xymove.remaining < 10)
 			{
-				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(190))
+				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(220))
 				{
 					printf("INFO: We are not at the second charger point, please try again.\n");
 					find_charger_state = 0;
@@ -645,7 +686,7 @@ int main(int argc, char** argv)
 			turn_and_go(charger_ang, 0, 23, 1);
 			find_charger_state++;
 		}
-		else if(find_charger_state == 75000)
+		else if(find_charger_state == 72000)
 		{
 			printf("INFO: Requesting charger mount.\n");
 			hw_find_charger();

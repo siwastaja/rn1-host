@@ -45,14 +45,23 @@ tcp_message_t msgmeta_cr_mode =
 	1, "b"
 };
 
+tcp_cr_manu_t msg_cr_manu;
+tcp_message_t msgmeta_cr_manu =
+{
+	&msg_cr_manu,
+	TCP_CR_MANU_MID,
+	1, "b"
+};
 
-#define NUM_CR_MSGS 4
+
+#define NUM_CR_MSGS 5
 tcp_message_t* CR_MSGS[NUM_CR_MSGS] =
 {
 	&msgmeta_cr_dest,
 	&msgmeta_cr_route,
 	&msgmeta_cr_charge,
-	&msgmeta_cr_mode
+	&msgmeta_cr_mode,
+	&msgmeta_cr_manu
 };
 
 // Robot->Client messages

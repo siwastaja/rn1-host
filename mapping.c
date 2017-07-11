@@ -364,27 +364,26 @@ static int gen_scoremap_for_large_steps(world_t *w, int8_t *scoremap, int mid_x,
 			page_coords(mid_x + (xx-TEMP_MAP_MIDDLE)*MAP_UNIT_W, mid_y + (yy-TEMP_MAP_MIDDLE)*MAP_UNIT_W, &px, &py, &ox, &oy);
 			load_9pages(w, px, py);
 
-			int score = 8*w->pages[px][py]->units[ox][oy].num_obstacles - 4*w->pages[px][py]->units[ox][oy].num_seen;
+			int score = 4*w->pages[px][py]->units[ox][oy].num_obstacles;
 
-			for(int ix=-2; ix<=2; ix++)
+			for(int ix=-4; ix<=4; ix++)
 			{
-				for(int iy=-2; iy<=2; iy++)
+				for(int iy=-4; iy<=4; iy++)
 				{
 					int npx = px, npy = py, nox = ox + ix, noy = oy + iy;
 					if(nox < 0) { nox += MAP_PAGE_W; npx--; } else if(nox >= MAP_PAGE_W) { nox -= MAP_PAGE_W; npx++;}
 					if(noy < 0) { noy += MAP_PAGE_W; npy--; } else if(noy >= MAP_PAGE_W) { noy -= MAP_PAGE_W; npy++;}
 
 					int neigh_score;
-					if(ix == -2 || ix == 2 || iy == -2 || iy == 2)
-						neigh_score = 5*w->pages[npx][npy]->units[nox][noy].num_obstacles - 4*w->pages[npx][npy]->units[nox][noy].num_seen;
-					else
-						neigh_score = 6*w->pages[npx][npy]->units[nox][noy].num_obstacles - 4*w->pages[npx][npy]->units[nox][noy].num_seen;
+//					if(ix == -4 || ix == 4 || iy == -4 || iy == 4)
+//						neigh_score = 2*w->pages[npx][npy]->units[nox][noy].num_obstacles;
+//					else
+						neigh_score = 3*w->pages[npx][npy]->units[nox][noy].num_obstacles;
 					if(neigh_score > score) score = neigh_score;
 				}
 			}
 
 			score >>= 1;
-
 			if(score > 63) score=63; else if(score < -64) score = -64;
 
 			scoremap[yy*TEMP_MAP_W+xx] = score;
@@ -1345,9 +1344,9 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	}
 	else
 	{
-		a_range = 24;
-		xy_range = 1800; // max, produces 32 steps.
-		xy_step = 120;
+		a_range = 45;
+		xy_range = 2400; // max, produces 32 steps.
+		xy_step = 160;
 		a_step = 3*ANG_1_DEG;
 	}
 
@@ -1390,14 +1389,14 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		printf("Info: Pass1 complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best1_da/(float)ANG_1_DEG, best1_dx, best1_dy, best_score);
 
 		gen_scoremap_for_small_steps(w, scoremap, mid_x, mid_y); // overwrite large step scoremap.
-		pass2_a_range = 6; // in half degs
+		pass2_a_range = 8; // in half degs
 		pass2_a_step = ANG_0_5_DEG;
-		pass2_dx_start = best1_dx-120;
+		pass2_dx_start = best1_dx-200;
 		pass2_dx_step = 20;
-		pass2_num_dx = 2*(120/20) + 1;
-		pass2_dy_start = best1_dy-120;
+		pass2_num_dx = 2*(200/20) + 1;
+		pass2_dy_start = best1_dy-200;
 		pass2_dy_step = 20;
-		pass2_num_dy = 2*(120/20) + 1;
+		pass2_num_dy = 2*(200/20) + 1;
 	}
 
 	best_score = -999999;
@@ -1984,21 +1983,25 @@ void autofsm()
 		case S_WAIT_COMPASS_MEASURED: {
 			if(!compass_round_active)
 			{
+				compass_round_active = 1; // to force one more compass reading, with robot being still.
 				cur_autostate++;
 			}
 		} break;
 
 		case S_SYNC_TO_COMPASS: {
-			printf("INFO: Syncing robot angle to compass, turning mapping on, requesting massive search area.\n");
-			int32_t ang = cur_compass_ang-90*ANG_1_DEG;
-			printf("DBG: cur_compass_ang=%d (%.1fdeg), ang=%d (%.1fdeg)", cur_compass_ang, ANG32TOFDEG(cur_compass_ang), ang, ANG32TOFDEG(ang));
-			set_robot_pos(ang,cur_x,cur_y);
-			mapping_on = 1;
-			massive_search_area();
-			if(automap_only_compass)
-				cur_autostate = S_IDLE;
-			else
-				cur_autostate++;
+			if(!compass_round_active)
+			{
+				printf("INFO: Syncing robot angle to compass, zeroing coords, turning mapping on, requesting massive search area.\n");
+				int32_t ang = cur_compass_ang-90*ANG_1_DEG;
+				printf("DBG: cur_compass_ang=%d (%.1fdeg), ang=%d (%.1fdeg)\n", cur_compass_ang, ANG32TOFDEG(cur_compass_ang), ang, ANG32TOFDEG(ang));
+				set_robot_pos(ang,0,0);
+				mapping_on = 1;
+				massive_search_area();
+				if(automap_only_compass)
+					cur_autostate = S_IDLE;
+				else
+					cur_autostate++;
+			}
 		} break;
 
 		case S_GEN_DESIRED_DIR: {

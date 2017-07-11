@@ -799,16 +799,15 @@ int main(int argc, char** argv)
 //					lidar_send_cnt = 0;
 //					if(tcp_client_sock >= 0) tcp_send_lidar(p_lid);
 
+					static int n_lidars_to_map = 0;
+					static lidar_scan_t* lidars_to_map[20];
 					if(mapping_on)
 					{
-						static int n_lidars_to_map = 0;
-						static lidar_scan_t* lidars_to_map[20];
 						if(p_lid->is_invalid)
 						{
 							if(n_lidars_to_map < 8)
 							{
 								printf("INFO: Got DISTORTED significant lidar scan, have too few lidars -> mapping queue reset\n");
-								map_next_with_larger_search_area();
 								n_lidars_to_map = 0;
 							}
 							else
@@ -819,8 +818,6 @@ int main(int argc, char** argv)
 								INCR_POS_CORR_ID();
 								correct_robot_pos(da, dx, dy, pos_corr_id);
 								n_lidars_to_map = 0;
-								map_next_with_larger_search_area();
-
 							}
 						}
 						else
@@ -839,6 +836,10 @@ int main(int argc, char** argv)
 								n_lidars_to_map = 0;
 							}
 						}
+					}
+					else
+					{
+						n_lidars_to_map = 0;
 					}
 
 				}

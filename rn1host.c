@@ -224,7 +224,7 @@ int charger_fwd;
 int charger_first_x, charger_first_y, charger_second_x, charger_second_y;
 #define CHARGER_FIRST_DIST 1000
 #define CHARGER_SECOND_DIST 500
-#define CHARGER_THIRD_DIST  180
+#define CHARGER_THIRD_DIST  170
 
 /*
 void conf_charger_pos_pre()  // call when the robot is *in* the charger.
@@ -908,6 +908,8 @@ int main(int argc, char** argv)
 				automap_started = 1;
 //				start_automapping_from_compass();
 			}
+
+			fflush(stdout); // syncs log file.
 
 		}
 	}

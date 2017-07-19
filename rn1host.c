@@ -301,12 +301,6 @@ void read_charger_pos()
 
 void* main_thread()
 {
-	while(1)
-	{
-		sleep(1);
-		printf("main thread\n");
-	}
-
 	int find_charger_state = 0;
 	if(init_uart())
 	{

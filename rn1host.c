@@ -801,6 +801,9 @@ void* main_thread()
 						msg_rc_pos.x = cur_x;
 						msg_rc_pos.y = cur_y;
 						tcp_send_msg(&msgmeta_rc_pos, &msg_rc_pos);
+
+						tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, cur_ang, cur_x, cur_y, TOF3D_HMAP_SPOT_SIZE, tof3d_objmap);
+
 					}
 					curpos_send_cnt = 0;
 				}

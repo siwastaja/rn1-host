@@ -31,6 +31,8 @@
 #include <string>
 #include <cstring>
 
+#include "tof3d.h"
+
 class Softkinetic_tof
 {	
 
@@ -92,7 +94,7 @@ Softkinetic_tof::Softkinetic_tof()
 , _calibrating(false)
 , _mode30(true)
 , _temporal_smooth(true)
-, _dbg_print(true)
+, _dbg_print(false)
 {
 }
 
@@ -362,13 +364,10 @@ void Softkinetic_tof::onNodeRemoved(Device device, Node node)
 	}
 }
 
-#define HMAP_SPOT_SIZE 40
-#define HMAP_YSPOTS 36
-#define HMAP_YMIDDLE 18
-#define HMAP_XSPOTS 30
 #define HMAP_TEMPO 6
 
-static int16_t hmap_calib[HMAP_XSPOTS][HMAP_YSPOTS];
+static int16_t hmap_calib[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+int8_t tof3d_objmap[TOF3D_HMAP_XSPOTS*TOF3D_HMAP_YSPOTS];
 
 void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, DepthSense::DepthNode::NewSampleReceivedData data)
 {
@@ -381,16 +380,15 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 		return;
 	}
 
-	int32_t hmap_accum[HMAP_XSPOTS][HMAP_YSPOTS];
-	int16_t hmap_nsamples[HMAP_XSPOTS][HMAP_YSPOTS];
-	int16_t hmap[HMAP_XSPOTS][HMAP_YSPOTS];
-	static int32_t hmap_temporal_acc[HMAP_XSPOTS][HMAP_YSPOTS];
+	int32_t hmap_accum[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+	int16_t hmap_nsamples[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+	int16_t hmap[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+	static int32_t hmap_temporal_acc[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
 	static int hmap_temporal_idx = 0;
-	static int32_t hmap_calib_accum[HMAP_XSPOTS][HMAP_YSPOTS];
-	static int16_t hmap_calib_cnt[HMAP_XSPOTS][HMAP_YSPOTS];
-	int16_t hmap_avgd[HMAP_XSPOTS][HMAP_YSPOTS];
-	static int8_t objmap[HMAP_XSPOTS][HMAP_YSPOTS];
-	for(int xx=0; xx < HMAP_XSPOTS; xx++) { for(int yy=0; yy < HMAP_YSPOTS; yy++)
+	static int32_t hmap_calib_accum[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+	static int16_t hmap_calib_cnt[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+	int16_t hmap_avgd[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+	for(int xx=0; xx < TOF3D_HMAP_XSPOTS; xx++) { for(int yy=0; yy < TOF3D_HMAP_YSPOTS; yy++)
 		{hmap_accum[xx][yy] = -9999; hmap_nsamples[xx][yy] = 0; hmap_avgd[xx][yy] = 0;} }
 
 	const float ang_per_pixel = (72.44/*deg horizontal fov*/ /320.0)/360.0*2.0*M_PI;
@@ -435,10 +433,10 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 			float y = d * sin(pxang);
 			float z = -1.0 * d * (1.0/cos(pyang)) * cos(pyang+top_cam_ang) + 900.0;
 
-			int xspot = (int)(x / (float)HMAP_SPOT_SIZE);
-			int yspot = (int)(y / (float)HMAP_SPOT_SIZE) + HMAP_YMIDDLE;
+			int xspot = (int)(x / (float)TOF3D_HMAP_SPOT_SIZE);
+			int yspot = (int)(y / (float)TOF3D_HMAP_SPOT_SIZE) + TOF3D_HMAP_YMIDDLE;
 
-			if(xspot < 0 || xspot >= HMAP_XSPOTS || yspot < 0 || yspot >= HMAP_YSPOTS)
+			if(xspot < 0 || xspot >= TOF3D_HMAP_XSPOTS || yspot < 0 || yspot >= TOF3D_HMAP_YSPOTS)
 			{
 				ignored++;
 				continue;
@@ -450,9 +448,9 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 		}
 	}
 
-	for(int sx = 0; sx < HMAP_XSPOTS; sx++)
+	for(int sx = 0; sx < TOF3D_HMAP_XSPOTS; sx++)
 	{
-		for(int sy = 0; sy < HMAP_YSPOTS; sy++)
+		for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
 		{
 			if(hmap_nsamples[sx][sy] > 0)
 			{
@@ -481,9 +479,9 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 		if(calib_cnt > 500)
 		{
 			FILE* floor = fopen("tof_zcalib.raw", "w");
-			for(int sx = 0; sx < HMAP_XSPOTS; sx++)
+			for(int sx = 0; sx < TOF3D_HMAP_XSPOTS; sx++)
 			{
-				for(int sy = 0; sy < HMAP_YSPOTS; sy++)
+				for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
 				{
 					if(hmap_calib_cnt[sx][sy] < 50)
 						hmap_calib[sx][sy] = 0;
@@ -491,7 +489,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 						hmap_calib[sx][sy] = hmap_calib_accum[sx][sy] / hmap_calib_cnt[sx][sy];
 				}
 			}
-			fwrite(hmap_calib, 2, HMAP_XSPOTS*HMAP_YSPOTS, floor);
+			fwrite(hmap_calib, 2, TOF3D_HMAP_XSPOTS*TOF3D_HMAP_YSPOTS, floor);
 			fclose(floor);
 			printf("------------------------------------------------------------------------\n");
 			printf("------------------------- CALIBRATION FINISHED -------------------------\n");
@@ -502,9 +500,9 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 	if(_temporal_smooth)
 	{
-		for(int sx = 0; sx < HMAP_XSPOTS; sx++)
+		for(int sx = 0; sx < TOF3D_HMAP_XSPOTS; sx++)
 		{
-			for(int sy = 0; sy < HMAP_YSPOTS; sy++)
+			for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
 			{
 				hmap_temporal_acc[sx][sy] += hmap[sx][sy];
 			}
@@ -513,9 +511,9 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 		if(hmap_temporal_idx >= HMAP_TEMPO)
 		{
-			for(int sx = 0; sx < HMAP_XSPOTS; sx++)
+			for(int sx = 0; sx < TOF3D_HMAP_XSPOTS; sx++)
 			{
-				for(int sy = 0; sy < HMAP_YSPOTS; sy++)
+				for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
 				{
 					hmap[sx][sy] = hmap_temporal_acc[sx][sy] / hmap_temporal_idx;
 					hmap_temporal_acc[sx][sy] = 0;
@@ -531,9 +529,9 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 	// ------------ GENERATE SOFT AVGD MAP ---------
 
-	for(int sx = 3; sx < HMAP_XSPOTS-3; sx++)
+	for(int sx = 3; sx < TOF3D_HMAP_XSPOTS-3; sx++)
 	{
-		for(int sy = 3; sy < HMAP_YSPOTS-3; sy++)
+		for(int sy = 3; sy < TOF3D_HMAP_YSPOTS-3; sy++)
 		{
 			int nsamp = 0;
 			int acc = 0;
@@ -542,7 +540,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 			{
 				for(int iy=-6; iy<=6; iy++)
 				{
-					if(sx+ix < 0 || sx+ix > HMAP_XSPOTS-1 || sy+iy < 0 || sy+iy > HMAP_YSPOTS-1)
+					if(sx+ix < 0 || sx+ix > TOF3D_HMAP_XSPOTS-1 || sy+iy < 0 || sy+iy > TOF3D_HMAP_YSPOTS-1)
 						continue;
 
 					if(hmap[sx+ix][sy+iy] > -50 && hmap[sx+ix][sy+iy] < 50)
@@ -562,37 +560,36 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 	// ------------ GENERATE OBJMAP BASED ON AVGD -------------
 
-	for(int sx = 2; sx < HMAP_XSPOTS-2; sx++)
+	for(int sx = 1; sx < TOF3D_HMAP_XSPOTS-1; sx++)
 	{
-		for(int sy = 2; sy < HMAP_YSPOTS-2; sy++)
+		for(int sy = 1; sy < TOF3D_HMAP_YSPOTS-1; sy++)
 		{
-
+			int8_t val;
 			if(hmap[sx][sy] < -998 || hmap_avgd[sx][sy] < -998)
-				continue;
-
-			if(hmap[sx][sy] < -200 || hmap_avgd[sx][sy] < -100)
+				val = 0;
+			else if(hmap[sx][sy] < -200 || hmap_avgd[sx][sy] < -110)
 			{
-				objmap[sx][sy] = -2;
+				val = -2;
 			}
-			else if(hmap[sx][sy] < -150 || hmap_avgd[sx][sy] < -60)
+			else if(hmap[sx][sy] < -170 || hmap_avgd[sx][sy] < -80)
 			{
-				objmap[sx][sy] = -1;
+				val = -1;
 			}
 			else if(hmap[sx][sy] > 250 || hmap_avgd[sx][sy] > 150)
 			{
-				objmap[sx][sy] = 4;
+				val = 4;
 			}
 			else if(hmap[sx][sy] > 150 || hmap_avgd[sx][sy] > 50)
 			{
-				objmap[sx][sy] = 3;
+				val = 3;
 			}
 			else if(hmap[sx][sy] > 120 || hmap_avgd[sx][sy] > 30)
 			{
-				objmap[sx][sy] = 2;
+				val = 2;
 			}
 			else if(hmap[sx][sy] > 100 || hmap_avgd[sx][sy] > 15)
 			{
-				objmap[sx][sy] = 1;
+				val = 1;
 			}
 			else
 			{
@@ -608,27 +605,29 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 				}
 
 				if(diffsum > 100)
-					objmap[sx][sy] = 2;
+					val = 2;
 				else if(diffsum > 80)
-					objmap[sx][sy] = 1;
+					val = 1;
 			}
+
+			tof3d_objmap[sy*TOF3D_HMAP_XSPOTS+sx] = val;
 		}
 	}
 
 	if(_dbg_print)
 	{
 		//  --------------- PRINT ---------------------------
-		for(int sx = HMAP_XSPOTS-1; sx >= 0; sx--)
+		for(int sx = TOF3D_HMAP_XSPOTS-1; sx >= 0; sx--)
 		{
-			printf("%4d ", sx*HMAP_SPOT_SIZE);
+			printf("%4d ", sx*TOF3D_HMAP_SPOT_SIZE);
 
-			for(int sy = 0; sy < HMAP_YSPOTS; sy++)
+			for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
 			{
 				if(hmap[sx][sy] < -1000)
 				{
-					if(sy == HMAP_YSPOTS/2-260/HMAP_SPOT_SIZE || sy == HMAP_YSPOTS/2+260/HMAP_SPOT_SIZE)
+					if(sy == TOF3D_HMAP_YSPOTS/2-260/TOF3D_HMAP_SPOT_SIZE || sy == TOF3D_HMAP_YSPOTS/2+260/TOF3D_HMAP_SPOT_SIZE)
 						putchar('\'');
-					else if(sy == HMAP_YSPOTS/2)
+					else if(sy == TOF3D_HMAP_YSPOTS/2)
 						putchar('\'');
 					else
 						putchar(' ');
@@ -649,13 +648,13 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 			printf(" | ");
 
-			for(int sy = 0; sy < HMAP_YSPOTS; sy++)
+			for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
 			{
 				if(hmap_avgd[sx][sy] == -9999)
 				{
-					if(sy == HMAP_YSPOTS/2-260/HMAP_SPOT_SIZE || sy == HMAP_YSPOTS/2+260/HMAP_SPOT_SIZE)
+					if(sy == TOF3D_HMAP_YSPOTS/2-260/TOF3D_HMAP_SPOT_SIZE || sy == TOF3D_HMAP_YSPOTS/2+260/TOF3D_HMAP_SPOT_SIZE)
 						putchar('\'');
-					else if(sy == HMAP_YSPOTS/2)
+					else if(sy == TOF3D_HMAP_YSPOTS/2)
 						putchar('\'');
 					else
 						putchar(' ');
@@ -676,23 +675,24 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 			printf(" | ");
 
-			for(int sy = 0; sy < HMAP_YSPOTS; sy++)
+			for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
 			{
-				if(objmap[sx][sy] == -2)
+				int8_t val = tof3d_objmap[sy*TOF3D_HMAP_XSPOTS+sx];
+				if(val == -2)
 					putchar('X');
-				else if(objmap[sx][sy] == -1)
+				else if(val == -1)
 					putchar('x');
-				else if(objmap[sx][sy] == 4)
+				else if(val == 4)
 					putchar('#');
-				else if(objmap[sx][sy] == 3)
+				else if(val == 3)
 					putchar('O');
-				else if(objmap[sx][sy] == 2)
+				else if(val == 2)
 					putchar('o');
-				else if(objmap[sx][sy] == 1)
+				else if(val == 1)
 					putchar('-');
-				else if(sy == HMAP_YSPOTS/2-260/HMAP_SPOT_SIZE || sy == HMAP_YSPOTS/2+260/HMAP_SPOT_SIZE)
+				else if(sy == TOF3D_HMAP_YSPOTS/2-260/TOF3D_HMAP_SPOT_SIZE || sy == TOF3D_HMAP_YSPOTS/2+260/TOF3D_HMAP_SPOT_SIZE)
 					putchar('\'');
-				else if(sy == HMAP_YSPOTS/2)
+				else if(sy == TOF3D_HMAP_YSPOTS/2)
 					putchar('\'');
 				else
 					putchar(' ');
@@ -719,7 +719,7 @@ void* start_tof(void* calibrate)
 		}
 		else
 		{
-			fread(hmap_calib, 2, HMAP_XSPOTS*HMAP_YSPOTS, floor);
+			fread(hmap_calib, 2, TOF3D_HMAP_XSPOTS*TOF3D_HMAP_YSPOTS, floor);
 			fclose(floor);
 		}
 	}

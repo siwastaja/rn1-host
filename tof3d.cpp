@@ -92,7 +92,7 @@ Softkinetic_tof::Softkinetic_tof()
 , _calibrating(false)
 , _mode30(true)
 , _temporal_smooth(true)
-, _dbg_print(true)
+, _dbg_print(false)
 {
 }
 
@@ -363,10 +363,10 @@ void Softkinetic_tof::onNodeRemoved(Device device, Node node)
 }
 
 #define HMAP_SPOT_SIZE 40
-#define HMAP_YSPOTS 40
-#define HMAP_YMIDDLE 20
+#define HMAP_YSPOTS 36
+#define HMAP_YMIDDLE 18
 #define HMAP_XSPOTS 30
-#define HMAP_TEMPO 30
+#define HMAP_TEMPO 6
 
 static int16_t hmap_calib[HMAP_XSPOTS][HMAP_YSPOTS];
 
@@ -374,7 +374,6 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 {
 	const int16_t* depthMap = (const int16_t*) data.depthMap;
 	const int16_t* confiMap = (const int16_t*) data.confidenceMap;
-
 
 	if (!depthMap || !confiMap)
 	{
@@ -494,6 +493,9 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 			}
 			fwrite(hmap_calib, 2, HMAP_XSPOTS*HMAP_YSPOTS, floor);
 			fclose(floor);
+			printf("------------------------------------------------------------------------\n");
+			printf("------------------------- CALIBRATION FINISHED -------------------------\n");
+			printf("------------------------------------------------------------------------\n");
 			CONTEXT_QUIT(_context);
 		}
 	}

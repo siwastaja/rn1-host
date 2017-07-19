@@ -940,6 +940,8 @@ int main(int argc, char** argv)
 		return -1;
 	}
 	uint8_t calib_tof = 0;
+	if(argc == 2 && argv[1][0] == 'c')
+		calib_tof = 1;
 	if( (ret = pthread_create(&thread_tof, NULL, start_tof, (void*)&calib_tof)) )
 	{
 		printf("ERROR: main thread creation, ret = %d\n", ret);

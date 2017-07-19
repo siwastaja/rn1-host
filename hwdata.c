@@ -210,7 +210,7 @@ int parse_uart_msg(uint8_t* buf, int len)
 				float ang = atan2(y, x) - M_PI/2.0;
 				if(ang < 0.0) ang += 2.0*M_PI;
 				if(ang < 0.0) ang += 2.0*M_PI;
-				printf("Stop vector (reason %d): x=%d, y=%d, ang=%.1f deg\n", cur_xymove.feedback_stop_flags, x, y, RADTODEG(ang));
+//				printf("Stop vector (reason %d): x=%d, y=%d, ang=%.1f deg\n", cur_xymove.feedback_stop_flags, x, y, RADTODEG(ang));
 				cur_xymove.stop_xcel_vector_ang_rad = ang;
 			}
 		}

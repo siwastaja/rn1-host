@@ -193,18 +193,9 @@ void Softkinetic_tof::onDeviceAdded(Context context, Device device)
 	if (_error) return;
 
 	DepthSense::Device::Model model = device.getModel();
-	DepthSense::Device::Capabilities caps = device.getCapabilities();
-	
-	printf("--- Device added ----------------------------------\n");
-	printf( " Model:		%s\n"
-			" Capabilities: %s\n"
-			" Serial:	   %s\n"
-			, DepthSense::Device::Model_toString(model).c_str()
-			, DepthSense::Device::Capabilities_toString(caps).c_str()
-			, device.getSerialNumber().c_str()
-			);
-	printf("---------------------------------------------------\n\n");
 
+	printf("  TOF3D MODULE INFO: Found device model %s with serial %s\n", DepthSense::Device::Model_toString(model).c_str(),
+		device.getSerialNumber().c_str());
 	device.nodeAddedEvent().connect(this, &Softkinetic_tof::onNodeAdded);
 	device.nodeRemovedEvent().connect(this, &Softkinetic_tof::onNodeRemoved);
 	
@@ -214,7 +205,7 @@ void Softkinetic_tof::onDeviceAdded(Context context, Device device)
 
 void Softkinetic_tof::onDeviceRemoved(Context context, Device device)
 {
-	printf("Device removed\n");
+	printf("  TOF3D MODULE ERROR: Device removed\n");
 	_devices.remove(device);
 }
 
@@ -225,45 +216,29 @@ void Softkinetic_tof::onNodeAdded(Device device, Node node)
 	int32_t width = 0;
 	int32_t height = 0;
 	
-	printf("--- Node found ------------------------------------\n");
-	
-	printf( " Node type: %s\n"
-			" VID:	   %04x\n"
-			" PID:	   %04x\n"
-			" Revision:  %04d\n"
-			, node.getType().name().c_str()
-			, node.getVID()
-			, node.getPID()
-			, node.getRevision()
-	);
-
 	if (node.is<DepthNode>())
 	{
-		printf(" is DepthNode\n");
 		DepthNode n = node.as<DepthNode>(); 
 
 		DepthNode::Configuration configuration = n.getConfiguration();
 
-			printf("\n Available configurations:\n");
 			std::vector<DepthNode::Configuration> configurations = n.getConfigurations();
 			bool doSetConfiguration = false;
 			for (unsigned int i = 0; i < configurations.size(); i++)
 			{
-				printf("	%s - %d fps - %s - saturation %s", DepthSense::FrameFormat_toString(configurations[i].frameFormat).c_str(),
-															   configurations[i].framerate,
-															   DepthNode::CameraMode_toString(configurations[i].mode).c_str(),
-															   configurations[i].saturation ? "enabled" : "disabled");
-
 				if(configurations[i].framerate == (_mode30?30:6) && strcmp(DepthNode::CameraMode_toString(configurations[i].mode).c_str(), "LongRange") == 0)
 				{
-					printf(" MATCHING CONFIG!\n");
+					printf("  TOF3D MODULE INFO:  Found requested config\n");
 					configuration = configurations[i];
 					doSetConfiguration = true;
 				}
 
-				printf("\n");
 			}
-			printf("\n");
+
+			if(!doSetConfiguration)
+			{
+				printf("  TOF3D MODULE WARN:  Requested config not found; using the default. This may not work with the floor calibration.\n");
+			}
 
 			n.setEnableDepthMap(true);
 			n.setEnableConfidenceMap(true);
@@ -276,8 +251,7 @@ void Softkinetic_tof::onNodeAdded(Device device, Node node)
 
 				catch (Exception&)
 				{
-					printf("---------------------------------------------------\n\n");
-					printf("Error : Could not take control\n");
+					printf("  TOF3D MODULE ERROR: Control request failed.\n");
 					_error = true;
 					CONTEXT_QUIT(_context);
 					return;
@@ -289,12 +263,7 @@ void Softkinetic_tof::onNodeAdded(Device device, Node node)
 				}
 				catch (std::exception&)
 				{
-					printf("---------------------------------------------------\n\n");
-					printf("Incorrect configuration :\n");
-					printf(" - Frame format: %s\n", DepthSense::FrameFormat_toString(configuration.frameFormat).c_str());
-					printf(" - Frame rate: %d fps\n", configuration.framerate);
-					printf(" - Mode: %s\n", DepthNode::CameraMode_toString(configuration.mode).c_str());
-					printf(" - Saturation: %s\n", configuration.saturation ? "enabled" : "disabled");
+					printf("  TOF3D MODULE ERROR: Configuration setup failed.\n");
 
 					_error = true;
 					CONTEXT_QUIT(_context);
@@ -302,19 +271,10 @@ void Softkinetic_tof::onNodeAdded(Device device, Node node)
 				}
 			}
 
-			printf("\n Depth node streaming enabled - current configuration:\n");
-			printf("	%s - %d fps - %s - saturation %s", DepthSense::FrameFormat_toString(configuration.frameFormat).c_str(),
-														   configuration.framerate,
-														   DepthNode::CameraMode_toString(configuration.mode).c_str(),
-														   configuration.saturation ? "enabled" : "disabled");
-			printf("\n");
-
 			n.newSampleReceivedEvent().connect
 				(this, &Softkinetic_tof::onNewDepthNodeSampleReceived);
 
 		DepthSense::FrameFormat_toResolution(configuration.frameFormat, &width, &height);
-
-		printf("---------------------------------------------------\n\n");
 	
 		try
 		{
@@ -322,8 +282,10 @@ void Softkinetic_tof::onNodeAdded(Device device, Node node)
 		}
 		catch(Exception& e)
 		{
-			fprintf(stderr, "Could not register node : %s", e.what());
-			exit(-1);
+			printf("  TOF3D MODULE ERROR: Node registration failed.\n");
+			_error = true;
+			CONTEXT_QUIT(_context);
+			return;
 		}
 
 		try
@@ -333,8 +295,10 @@ void Softkinetic_tof::onNodeAdded(Device device, Node node)
 		}
 		catch(Exception& e)
 		{
-			fprintf(stderr, "Couldn't start streaming : %s", e.what());
-			exit(-1);
+			printf("  TOF3D MODULE ERROR: Streaming startup failed.\n");
+			_error = true;
+			CONTEXT_QUIT(_context);
+			return;
 		}
 		if (!node.is<UnsupportedNode>())
 		{
@@ -350,7 +314,7 @@ void Softkinetic_tof::onNodeAdded(Device device, Node node)
 
 void Softkinetic_tof::onNodeRemoved(Device device, Node node)
 {
-	printf("Node removed\n");
+	printf("  TOF3D MODULE ERROR: Node removed\n");
 	std::list<NodeInfo*>::iterator it;
 	for (it = _nodeInfos.begin(); it != _nodeInfos.end(); it++)
 	{
@@ -384,7 +348,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 	if (!depthMap || !confiMap)
 	{
-		printf("ERROR: depthMap or confiMap NULL\n");
+		printf("  TOF3D MODULE ERROR: depthMap or confiMap NULL\n");
 		return;
 	}
 
@@ -437,8 +401,8 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 			if(d < 0 || d > 1800) continue;
 
-			float x = (d * sin(pyang+top_cam_ang))*1.1 /*experimentally found*/ + 50.0;
-			float y = d * sin(pxang);
+			float x = (d * sin(pyang+top_cam_ang))*1.125 /*experimentally found*/ + 40.0;
+			float y = (d * sin(pxang))*1.125;
 			float z = -1.0 * d * (1.0/cos(pyang)) * cos(pyang+top_cam_ang) + 900.0;
 
 			int xspot = (int)(x / (float)TOF3D_HMAP_SPOT_SIZE);

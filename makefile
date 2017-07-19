@@ -1,6 +1,3 @@
-CC = gcc
-LD = gcc
-
 CFLAGS = -Wall -Winline -std=c99
 LDFLAGS = 
 
@@ -9,11 +6,14 @@ OBJ = rn1host.o mapping.o map_memdisk.o uart.o hwdata.o tcp_comm.o tcp_parser.o 
 
 all: rn1host
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+tof3d.o: tof3d.cpp tof3d.h
+	c++ -c -o tof3d.o -Wall -I/opt/softkinetic/DepthSenseSDK/include tof3d.cpp
 
-rn1host: $(OBJ)
-	$(LD) $(LDFLAGS) -o rn1host $^ -lm
+%.o: %.c $(DEPS)
+	gcc -c -o $@ $< $(CFLAGS)
+
+rn1host: $(OBJ) tof3d.o
+	c++ $(LDFLAGS) -o rn1host $^ -lm -L/opt/softkinetic/DepthSenseSDK/lib -lDepthSense
 
 e:
-	gedit --new-window rn1host.c datatypes.h mapping.h mapping.c hwdata.h hwdata.c tcp_parser.h tcp_parser.c routing.c routing.h map_opers.h map_opers.c &
+	gedit --new-window rn1host.c datatypes.h mapping.h mapping.c hwdata.h hwdata.c tcp_parser.h tcp_parser.c routing.c routing.h tof3d.h tof3d.cpp &

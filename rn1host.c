@@ -23,6 +23,7 @@
 #include "tcp_parser.h"
 #include "routing.h"
 #include "utlist.h"
+#include "tof3d.h"
 
 #include "mcu_micronavi_docu.c"
 
@@ -299,6 +300,14 @@ void read_charger_pos()
 
 int main(int argc, char** argv)
 {
+
+	start_tof(0);
+	while(1)
+	{
+		sleep(1);
+		printf("main thread\n");
+	}
+
 	int find_charger_state = 0;
 	if(init_uart())
 	{

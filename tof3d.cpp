@@ -712,12 +712,13 @@ int start_tof(int calibrate)
 		FILE* floor = fopen("/home/hrst/rn1-host/tof_zcalib.raw", "r");
 		if(!floor)
 		{
-			printf("ERR: Couldn't open tof_zcalib.raw for read\n");
-			return -1;
+			printf("ERR: Couldn't open tof_zcalib.raw for read. Floor calibration is disabled.\n");
 		}
-		fread(hmap_calib, 2, HMAP_XSPOTS*HMAP_YSPOTS, floor);
-		fclose(floor);
-
+		else
+		{
+			fread(hmap_calib, 2, HMAP_XSPOTS*HMAP_YSPOTS, floor);
+			fclose(floor);
+		}
 	}
 
 	Softkinetic_tof tof_instance;

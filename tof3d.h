@@ -8,6 +8,4 @@
 
 extern int8_t tof3d_objmap[TOF3D_HMAP_XSPOTS*TOF3D_HMAP_YSPOTS];
 
-extern "C" void* start_tof(void*);
-
 #endif

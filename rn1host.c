@@ -926,6 +926,8 @@ void* main_thread()
 }
 
 
+void* start_tof(void*);
+
 int main(int argc, char** argv)
 {
 	pthread_t thread_main, thread_tof;

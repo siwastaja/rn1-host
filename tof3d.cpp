@@ -92,7 +92,7 @@ Softkinetic_tof::Softkinetic_tof()
 , _calibrating(false)
 , _mode30(true)
 , _temporal_smooth(true)
-, _dbg_print(false)
+, _dbg_print(true)
 {
 }
 
@@ -480,7 +480,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 		calib_cnt++;
 		if(calib_cnt > 500)
 		{
-			FILE* floor = fopen("floor.raw", "w");
+			FILE* floor = fopen("tof_zcalib.raw", "w");
 			for(int sx = 0; sx < HMAP_XSPOTS; sx++)
 			{
 				for(int sy = 0; sy < HMAP_YSPOTS; sy++)

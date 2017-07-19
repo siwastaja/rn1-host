@@ -366,7 +366,7 @@ void Softkinetic_tof::onNodeRemoved(Device device, Node node)
 #define HMAP_YSPOTS 40
 #define HMAP_YMIDDLE 20
 #define HMAP_XSPOTS 30
-#define HMAP_TEMPO 4
+#define HMAP_TEMPO 30
 
 static int16_t hmap_calib[HMAP_XSPOTS][HMAP_YSPOTS];
 

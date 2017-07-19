@@ -437,7 +437,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 			if(d < 0 || d > 1800) continue;
 
-			float x = d * sin(pyang+top_cam_ang) + 70.0;
+			float x = (d * sin(pyang+top_cam_ang))*1.1 /*experimentally found*/ + 50.0;
 			float y = d * sin(pxang);
 			float z = -1.0 * d * (1.0/cos(pyang)) * cos(pyang+top_cam_ang) + 900.0;
 

@@ -938,22 +938,29 @@ int main(int argc, char** argv)
 {
 	pthread_t thread_main, thread_tof;
 
-	int ret;
-	if( (ret = pthread_create(&thread_main, NULL, main_thread, NULL)) )
-	{
-		printf("ERROR: main thread creation, ret = %d\n", ret);
-		return -1;
-	}
 	uint8_t calib_tof = 0;
 	if(argc == 2 && argv[1][0] == 'c')
 		calib_tof = 1;
+
+	int ret;
+
+	if(!calib_tof)
+	{
+		if( (ret = pthread_create(&thread_main, NULL, main_thread, NULL)) )
+		{
+			printf("ERROR: main thread creation, ret = %d\n", ret);
+			return -1;
+		}
+	}
 	if( (ret = pthread_create(&thread_tof, NULL, start_tof, (void*)&calib_tof)) )
 	{
-		printf("ERROR: main thread creation, ret = %d\n", ret);
+		printf("ERROR: tof3d thread creation, ret = %d\n", ret);
 		return -1;
 	}
 
-	pthread_join(thread_main, NULL);
+	if(!calib_tof)
+		pthread_join(thread_main, NULL);
+
 	pthread_join(thread_tof, NULL);
 
 	return 0;

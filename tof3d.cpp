@@ -703,10 +703,11 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 }
 
-extern "C" int start_tof(int);
-int start_tof(int calibrate)
+extern "C" void* start_tof(void*);
+void* start_tof(void* calibrate)
 {
-	if(!calibrate)
+	int calib = *(uint8_t*)calibrate;
+	if(!calib)
 	{
 		printf("INFO: tof3d: opening tof_zcalib.raw Z axis calibration file for read.\n");
 		FILE* floor = fopen("/home/hrst/rn1-host/tof_zcalib.raw", "r");
@@ -722,7 +723,7 @@ int start_tof(int calibrate)
 	}
 
 	Softkinetic_tof tof_instance;
-	tof_instance.init(calibrate);
+	tof_instance.init(calib);
 	tof_instance.run();
-	return 0;
+	return NULL;
 }

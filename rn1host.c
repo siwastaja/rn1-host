@@ -299,7 +299,7 @@ void read_charger_pos()
 }
 
 
-int main_thread()
+void* main_thread()
 {
 	while(1)
 	{
@@ -311,13 +311,13 @@ int main_thread()
 	if(init_uart())
 	{
 		fprintf(stderr, "uart initialization failed.\n");
-		return 1;
+		return NULL;
 	}
 
 	if(init_tcp_comm())
 	{
 		fprintf(stderr, "TCP communication initialization failed.\n");
-		return 1;
+		return NULL;
 	}
 
 	srand(time(NULL));
@@ -351,7 +351,7 @@ int main_thread()
 		if(select(fds_size, &fds, NULL, NULL, &select_time) < 0)
 		{
 			fprintf(stderr, "select() error %d", errno);
-			return 1;
+			return NULL;
 		}
 
 		if(FD_ISSET(STDIN_FILENO, &fds))
@@ -925,7 +925,7 @@ int main_thread()
 		}
 	}
 
-	return 0;
+	return NULL;
 }
 
 
@@ -936,12 +936,13 @@ int main(int argc, char** argv)
 	int ret;
 	if( (ret = pthread_create(&thread_main, NULL, main_thread, NULL)) )
 	{
-		printf("ERROR: main thread creatio, ret = %d\n", ret);
+		printf("ERROR: main thread creation, ret = %d\n", ret);
 		return -1;
 	}
-	if( (ret = pthread_create(&thread_tof, NULL, start_tof, 0)) )
+	uint8_t calib_tof = 0;
+	if( (ret = pthread_create(&thread_tof, NULL, start_tof, (void*)&calib_tof)) )
 	{
-		printf("ERROR: main thread creatio, ret = %d\n", ret);
+		printf("ERROR: main thread creation, ret = %d\n", ret);
 		return -1;
 	}
 

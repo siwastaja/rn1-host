@@ -366,11 +366,19 @@ void Softkinetic_tof::onNodeRemoved(Device device, Node node)
 
 #define HMAP_TEMPO 6
 
+static bool quit = false;
+
 static int16_t hmap_calib[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
 int8_t tof3d_objmap[TOF3D_HMAP_XSPOTS*TOF3D_HMAP_YSPOTS];
 
 void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, DepthSense::DepthNode::NewSampleReceivedData data)
 {
+	if(quit)
+	{
+		CONTEXT_QUIT(_context);
+		return;
+	}
+
 	const int16_t* depthMap = (const int16_t*) data.depthMap;
 	const int16_t* confiMap = (const int16_t*) data.confidenceMap;
 
@@ -729,3 +737,10 @@ void* start_tof(void* calibrate)
 	tof_instance.run();
 	return NULL;
 }
+
+extern "C" void request_tof_quit(void);
+void request_tof_quit(void)
+{
+	quit = true;
+}
+

@@ -299,6 +299,8 @@ void read_charger_pos()
 }
 
 
+void request_tof_quit(void);
+
 void* main_thread()
 {
 	int find_charger_state = 0;
@@ -923,8 +925,12 @@ void* main_thread()
 		}
 	}
 
+
+	request_tof_quit();
+
 	return NULL;
 }
+
 
 
 void* start_tof(void*);

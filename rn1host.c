@@ -13,6 +13,7 @@
 #include <netdb.h>
 #include <string.h>
 #include <time.h>
+#include <pthread.h>
 
 #include "datatypes.h"
 #include "hwdata.h"
@@ -298,10 +299,8 @@ void read_charger_pos()
 }
 
 
-int main(int argc, char** argv)
+int main_thread()
 {
-
-	start_tof(0);
 	while(1)
 	{
 		sleep(1);
@@ -930,4 +929,24 @@ int main(int argc, char** argv)
 }
 
 
+int main(int argc, char** argv)
+{
+	pthread_t thread_main, thread_tof;
 
+	int ret;
+	if( (ret = pthread_create(&thread_main, NULL, main_thread, NULL)) )
+	{
+		printf("ERROR: main thread creatio, ret = %d\n", ret);
+		return -1;
+	}
+	if( (ret = pthread_create(&thread_tof, NULL, start_tof, 0)) )
+	{
+		printf("ERROR: main thread creatio, ret = %d\n", ret);
+		return -1;
+	}
+
+	pthread_join(thread_main, NULL);
+	pthread_join(thread_tof, NULL);
+
+	return 0;
+}

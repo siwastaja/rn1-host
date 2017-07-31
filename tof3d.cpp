@@ -49,6 +49,8 @@ public:
 	void init(bool calibrate);
 	void release();
 	void run();
+
+	void do_quit();
 	
 	void onDeviceAdded(DepthSense::Context context, DepthSense::Device device);
 	void onDeviceRemoved(DepthSense::Context context, DepthSense::Device device);
@@ -334,6 +336,12 @@ static bool quit = false;
 
 static int16_t hmap_calib[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
 int8_t tof3d_objmap[TOF3D_HMAP_XSPOTS*TOF3D_HMAP_YSPOTS];
+
+
+void Softkinetic_tof::do_quit()
+{
+	CONTEXT_QUIT(_context);
+}
 
 void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, DepthSense::DepthNode::NewSampleReceivedData data)
 {
@@ -722,6 +730,8 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 }
 
+Softkinetic_tof tof_instance;
+
 extern "C" void* start_tof(void*);
 void* start_tof(void* calibrate)
 {
@@ -741,7 +751,6 @@ void* start_tof(void* calibrate)
 		}
 	}
 
-	Softkinetic_tof tof_instance;
 	tof_instance.init(calib);
 	tof_instance.run();
 	return NULL;
@@ -751,5 +760,6 @@ extern "C" void request_tof_quit(void);
 void request_tof_quit(void)
 {
 	quit = true;
+	tof_instance.do_quit();	
 }
 

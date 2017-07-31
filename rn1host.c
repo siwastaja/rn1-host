@@ -798,9 +798,16 @@ void* main_thread()
 						msg_rc_pos.y = cur_y;
 						tcp_send_msg(&msgmeta_rc_pos, &msg_rc_pos);
 
-						printf("Sending the map\n");
-						tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, cur_ang, cur_x, cur_y, TOF3D_HMAP_SPOT_SIZE, tof3d_objmap);
-						printf("Done\n");
+						static int hmap_cnt = 0;
+						hmap_cnt++;
+
+						if(hmap_cnt > 2)
+						{
+							printf("Send hmap\n");
+							tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, cur_ang, cur_x, cur_y, TOF3D_HMAP_SPOT_SIZE, tof3d_objmap);
+							printf("Done\n");
+							hmap_cnt = 0;
+						}
 
 					}
 					curpos_send_cnt = 0;

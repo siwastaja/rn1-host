@@ -1216,15 +1216,17 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 	page_coords(mid_x, mid_y, &mid_px, &mid_py, &mid_ox, &mid_oy);
 	load_9pages(&world, mid_px, mid_py);
 
-	int px, py, ox, oy;
-	page_coords(mid_x-TOF_TEMP_MIDDLE*MAP_UNIT_W, mid_y-TOF_TEMP_MIDDLE*MAP_UNIT_W, &px, &py, &ox, &oy);
+	int start_px, start_py, start_ox, start_oy;
+	page_coords(mid_x-TOF_TEMP_MIDDLE*MAP_UNIT_W, mid_y-TOF_TEMP_MIDDLE*MAP_UNIT_W, &start_px, &start_py, &start_ox, &start_oy);
 
-	printf("DBG: mid (%d,%d)(%d,%d) start (%d,%d)(%d,%d)\n", mid_px, mid_py, mid_ox, mid_oy, px, py, ox, oy);
+	printf("DBG: mid (%d,%d)(%d,%d) start (%d,%d)(%d,%d)\n", mid_px, mid_py, mid_ox, mid_oy, start_px, start_py, start_ox, start_oy);
 
 	int cnt_drop = 0, cnt_item = 0, cnt_3dwall = 0, cnt_removal = 0, cnt_total_removal = 0;
 
+	int py = start_py; int oy = start_oy;
 	for(int iy=0; iy < MAP_PAGE_W; iy++)
 	{
+		int px = start_px; int ox = start_ox;
 		for(int ix=0; ix < MAP_PAGE_W; ix++)
 		{
 			if(ox < 0 || ox >= MAP_PAGE_W || oy < 0 || oy >= MAP_PAGE_W || px < 0 || px >= MAP_W || py < 0 || py >= MAP_W)

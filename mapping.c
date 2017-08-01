@@ -1173,13 +1173,14 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 	for(int t=0; t < n_tofs; t++)
 	{
 		tof3d_scan_t* tof = tof_list[t];
+		float ang = ANG32TORAD(tof->robot_pos.ang);
+		printf("DBG: ang = %f rad (%f deg)\n", ang, RADTODEG(ang));
 		for(int iy=0; iy < TOF3D_HMAP_YSPOTS; iy++)
 		{
 			for(int ix=0; ix < TOF3D_HMAP_XSPOTS; ix++)
 			{
 				float pre_x = (float)tof->robot_pos.x + (float)ix*(float)TOF3D_HMAP_SPOT_SIZE - (float)mid_x;
 				float pre_y = (float)tof->robot_pos.y + (float)(iy-TOF3D_HMAP_YMIDDLE)*(float)TOF3D_HMAP_SPOT_SIZE - (float)mid_y;
-				float ang = ANG32TORAD(tof->robot_pos.ang);
 				int rotax = pre_x*cos(ang) + pre_y*sin(ang);
 				int rotay = -1*pre_x*sin(ang) + pre_y*cos(ang);
 

@@ -28,6 +28,9 @@
 
 #include "mcu_micronavi_docu.c"
 
+tof3d_scan_t* get_tof3d(void);
+
+
 double subsec_timestamp()
 {
 	struct timespec spec;
@@ -49,6 +52,8 @@ uint32_t robot_id = 0xacdcabba; // Hopefully unique identifier for the robot.
 
 extern world_t world;
 #define BUFLEN 2048
+
+pthread_mutex_t cur_pos_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int32_t cur_ang;
 int32_t cur_compass_ang;
@@ -737,6 +742,43 @@ void* main_thread()
 		route_fsm();
 		autofsm();
 
+		tof3d_scan_t *p_tof;
+		if( (p_tof = get_tof3d()) )
+		{
+
+			if(tcp_client_sock >= 0)
+			{
+				static int hmap_cnt = 0;
+				hmap_cnt++;
+
+				if(hmap_cnt >= 10)
+				{
+					printf("Send hmap\n");
+					tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, cur_ang, cur_x, cur_y, TOF3D_HMAP_SPOT_SIZE, p_tof->objmap);
+					printf("Done\n");
+					hmap_cnt = 0;
+				}
+			}
+
+			if(mapping_on)
+			{
+				static int n_tofs_to_map = 0;
+				static tof3d_scan_t* tofs_to_map[20];
+
+				tofs_to_map[n_tofs_to_map] = p_tof;
+				n_tofs_to_map++;
+
+				if(n_tofs_to_map > 10)
+				{
+					printf("INFO: Mapping %d 3D TOF objmaps.\n", n_tofs_to_map);
+					map_3dtof(&world, n_tofs_to_map, tofs_to_map);
+					n_tofs_to_map = 0;
+				}
+
+			}
+
+		}
+
 		lidar_scan_t* p_lid;
 
 		if( (p_lid = get_significant_lidar()) || (p_lid = get_basic_lidar()) )
@@ -784,7 +826,9 @@ void* main_thread()
 				int idx_x, idx_y, offs_x, offs_y;
 	//			printf("INFO: Got lidar scan.\n");
 
+				pthread_mutex_lock(&cur_pos_mutex);
 				cur_ang = p_lid->robot_pos.ang; cur_x = p_lid->robot_pos.x; cur_y = p_lid->robot_pos.y;
+				pthread_mutex_unlock(&cur_pos_mutex);
 //				printf("INFO: cur_ang = %6.1fdeg\n", ANG32TOFDEG(cur_ang));
 
 				static int curpos_send_cnt = 0;
@@ -797,18 +841,6 @@ void* main_thread()
 						msg_rc_pos.x = cur_x;
 						msg_rc_pos.y = cur_y;
 						tcp_send_msg(&msgmeta_rc_pos, &msg_rc_pos);
-
-						static int hmap_cnt = 0;
-						hmap_cnt++;
-
-						if(hmap_cnt > 2)
-						{
-							printf("Send hmap\n");
-							tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, cur_ang, cur_x, cur_y, TOF3D_HMAP_SPOT_SIZE, tof3d_objmap);
-							printf("Done\n");
-							hmap_cnt = 0;
-						}
-
 					}
 					curpos_send_cnt = 0;
 				}

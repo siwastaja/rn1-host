@@ -1,11 +1,10 @@
 #ifndef DATATYPES_H
 #define DATATYPES_H
 
-#include "math.h"
+#include <math.h>
 #ifndef M_PI
 #define M_PI 3.141592653589793238
 #endif
-
 
 #include <stdint.h>
 

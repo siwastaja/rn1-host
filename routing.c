@@ -1121,7 +1121,7 @@ void gen_routing_page(world_t *w, int xpage, int ypage)
 			{
 				tmp<<=1;
 				uint8_t res = w->pages[xpage][ypage]->units[xx][yy*32+i].result;
-				tmp |= (res & UNIT_FREE) || (res & UNIT_WALL);
+				tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (res & UNIT_3D_WALL) || (res & UNIT_ITEM) || (res & UNIT_DROP);
 			}
 			w->rpages[xpage][ypage]->obst_u32[xx][yy] = tmp;
 		}
@@ -1132,7 +1132,7 @@ void gen_routing_page(world_t *w, int xpage, int ypage)
 			{
 				tmp<<=1;
 				uint8_t res = w->pages[xpage][ypage+1]->units[xx][0*32+i].result;
-				tmp |= (res & UNIT_FREE) || (res & UNIT_WALL);
+				tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (res & UNIT_3D_WALL) || (res & UNIT_ITEM) || (res & UNIT_DROP);
 			}
 			w->rpages[xpage][ypage]->obst_u32[xx][MAP_PAGE_W/32] = tmp;
 		}

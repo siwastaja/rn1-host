@@ -33,6 +33,8 @@
 
 #include "tof3d.h"
 
+#include "datatypes.h" // for tof3d_scan_t
+
 class Softkinetic_tof
 {	
 
@@ -330,18 +332,39 @@ void Softkinetic_tof::onNodeRemoved(Device device, Node node)
 	}
 }
 
-#define HMAP_TEMPO 6
-
-static bool quit = false;
-
-static int16_t hmap_calib[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
-int8_t tof3d_objmap[TOF3D_HMAP_XSPOTS*TOF3D_HMAP_YSPOTS];
-
-
 void Softkinetic_tof::do_quit()
 {
 	CONTEXT_QUIT(_context);
 }
+
+
+#define HMAP_TEMPO 3
+
+static bool quit = false;
+
+static int16_t hmap_calib[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+//int8_t tof3d_objmap[TOF3D_HMAP_XSPOTS*TOF3D_HMAP_YSPOTS];
+
+tof3d_scan_t tof3ds[TOF3D_RING_BUF_LEN];
+int tof3d_wr;
+int tof3d_rd;
+
+extern "C" tof3d_scan_t* get_tof3d(void);
+
+tof3d_scan_t* get_tof3d(void)
+{
+	if(tof3d_wr == tof3d_rd)
+	{
+		return 0;
+	}
+	
+	tof3d_scan_t* ret = &tof3ds[tof3d_rd];
+	tof3d_rd++; if(tof3d_rd >= TOF3D_RING_BUF_LEN) tof3d_rd = 0;
+	return ret;
+}
+
+extern pthread_mutex_t cur_pos_mutex;
+extern int32_t cur_ang, cur_x, cur_y;
 
 void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, DepthSense::DepthNode::NewSampleReceivedData data)
 {
@@ -349,6 +372,16 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 	{
 		CONTEXT_QUIT(_context);
 		return;
+	}
+
+
+	{
+		int next = tof3d_wr+1; if(next >= TOF3D_RING_BUF_LEN) next = 0;
+		if(next == tof3d_rd)
+		{
+			printf("  TOF3D MODULE WARNING: tof3d ring buffer overrun prevented by ignoring a scan.\n");
+			return;
+		}
 	}
 
 	const int16_t* depthMap = (const int16_t*) data.depthMap;
@@ -359,6 +392,12 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 		printf("  TOF3D MODULE ERROR: depthMap or confiMap NULL\n");
 		return;
 	}
+
+	pthread_mutex_lock(&cur_pos_mutex);
+	tof3ds[tof3d_wr].robot_pos.ang = cur_ang;
+	tof3ds[tof3d_wr].robot_pos.x = cur_x;
+	tof3ds[tof3d_wr].robot_pos.y = cur_y;
+	pthread_mutex_unlock(&cur_pos_mutex);
 
 	int32_t hmap_accum[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
 	int16_t hmap_nsamples[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
@@ -635,7 +674,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 					val = 1;
 			}
 
-			tof3d_objmap[sy*TOF3D_HMAP_XSPOTS+sx] = val;
+			tof3ds[tof3d_wr].objmap[sy*TOF3D_HMAP_XSPOTS+sx] = val;
 		}
 	}
 
@@ -702,7 +741,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 			for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
 			{
-				int8_t val = tof3d_objmap[sy*TOF3D_HMAP_XSPOTS+sx];
+				int8_t val = tof3ds[tof3d_wr].objmap[sy*TOF3D_HMAP_XSPOTS+sx];
 				if(val == -2)
 					putchar('X');
 				else if(val == -1)
@@ -727,6 +766,8 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 		}
 		printf("out-of-area ignored %d	confidence ignored %d\n", ignored, confi_ignored);
 	}
+
+	tof3d_wr++; if(tof3d_wr >= TOF3D_RING_BUF_LEN) tof3d_wr = 0;
 
 }
 

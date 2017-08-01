@@ -6,6 +6,15 @@
 #define TOF3D_HMAP_YMIDDLE 18
 #define TOF3D_HMAP_XSPOTS 30
 
-extern int8_t tof3d_objmap[TOF3D_HMAP_XSPOTS*TOF3D_HMAP_YSPOTS];
+
+#define TOF3D_RING_BUF_LEN 32
+
+#include "datatypes.h" // for pos_t
+
+typedef struct
+{
+	pos_t  robot_pos;
+	int8_t objmap[TOF3D_HMAP_YSPOTS*TOF3D_HMAP_XSPOTS];
+} tof3d_scan_t;
 
 #endif

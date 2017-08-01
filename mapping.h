@@ -3,13 +3,16 @@
 
 #include <stdint.h>
 #include "datatypes.h"
+#include "tof3d.h"
 
 #define UNIT_FREE	0
-#define UNIT_ITEM	(1<<0)	// Small obstacle, detected by sonars or bumping into it
-#define UNIT_WALL	(1<<1)	// Obstacle seen by the lidar.
-#define UNIT_DO_NOT_REMOVE_BY_LIDAR (1<<2)
-#define UNIT_DBG	(1<<6)
-#define UNIT_MAPPED     (1<<7)  // We have seen this area.
+#define UNIT_ITEM           (1<<0)	// Small obstacle, detected by sonars or bumping into it
+#define UNIT_WALL           (1<<1)	// Obstacle seen by the lidar.
+#define UNIT_INVISIBLE_WALL (1<<2)  // Only found out by collision
+#define UNIT_3D_WALL        (1<<3)  // Wall seen by 3DTOF, can't be removed by lidar.
+#define UNIT_DROP           (1<<4)
+#define UNIT_DBG            (1<<6)
+#define UNIT_MAPPED         (1<<7)  // We have seen this area.
 
 #define CONSTRAINT_FORBIDDEN 	(1<<0)	// "Don't go here" unit
 
@@ -128,6 +131,9 @@ void map_next_with_larger_search_area();
 
 void map_sonar(world_t* w, sonar_scan_t* p_son);
 void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, int stop_reason, int vect_valid, float vect_ang_rad);
+
+int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list);
+
 
 void start_automapping_from_compass();
 void start_automapping_skip_compass();

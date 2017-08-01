@@ -1152,20 +1152,24 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 	// Rotate and move 3DTOF points to absolute world coordinates, insert them into temporary (composite) map.
 	// Filter moving / unsure objects by using value closest to 0 at each point.
 
-	int8_t *temp_map = malloc(MAP_PAGE_W*MAP_PAGE_W*sizeof(int8_t));
+	int8_t *drops =  calloc(MAP_PAGE_W*MAP_PAGE_W, sizeof(int8_t));
+	int8_t *items =  calloc(MAP_PAGE_W*MAP_PAGE_W, sizeof(int8_t));
+	int8_t *walls =  calloc(MAP_PAGE_W*MAP_PAGE_W, sizeof(int8_t));
+	int8_t *maybes = calloc(MAP_PAGE_W*MAP_PAGE_W, sizeof(int8_t));
 
-	if(!temp_map)
+	if(!drops || !items || !walls || !maybes)
 	{
 		printf("ERROR: Out of memory in map_3dtof. Not mapping.\n");
+		if(drops) free(drops);
+		if(items) free(items);
+		if(walls) free(walls);
+		if(maybes) free(maybes);
 		return -1;
 	}
-
-	for(int i = 0; i < MAP_PAGE_W*MAP_PAGE_W; i++) temp_map[i] = -100;
 
 	#define TOF_TEMP_MIDDLE (MAP_PAGE_W/2)
 
 	int out_of_area_ignores = 0;
-	int filtered_to_lower_cnt = 0;
 	for(int t=0; t < n_tofs; t++)
 	{
 		tof3d_scan_t* tof = tof_list[t];
@@ -1188,28 +1192,28 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 					continue;
 				}
 
-				if(temp_map[tm_y*MAP_PAGE_W+tm_x] == -100)
-					temp_map[tm_y*MAP_PAGE_W+tm_x] = tof->objmap[iy*TOF3D_HMAP_XSPOTS+ix];
-				else
+				switch(tof->objmap[iy*TOF3D_HMAP_XSPOTS+ix])
 				{
-					if(abs(tof->objmap[iy*TOF3D_HMAP_XSPOTS+ix]) < abs(temp_map[tm_y*MAP_PAGE_W+tm_x]))
-					{
-						temp_map[tm_y*MAP_PAGE_W+tm_x] = tof->objmap[iy*TOF3D_HMAP_XSPOTS+ix];						
-						filtered_to_lower_cnt++;
-					}
+					case -2: drops[tm_y*MAP_PAGE_W+tm_x]++; break;
+					case -1:
+					case  1: maybes[tm_y*MAP_PAGE_W+tm_x]++; break;
+					case  2:
+					case  3: items[tm_y*MAP_PAGE_W+tm_x]++; break;
+					case  4: walls[tm_y*MAP_PAGE_W+tm_x]++; break;
+					default: break;
 				}
-
 			}
 		}
 	}
 
-	printf("INFO: Filtered %d spots to lower abs value. Ignored %d far-away points not fitting to tempmap.\n", filtered_to_lower_cnt, out_of_area_ignores);
+	if(out_of_area_ignores)
+		printf("INFO: Ignored %d far-away points not fitting to tempmap.\n", out_of_area_ignores);
 
 	int mid_px, mid_py, mid_ox, mid_oy;
 	page_coords(mid_x, mid_y, &mid_px, &mid_py, &mid_ox, &mid_oy);
 	load_9pages(&world, mid_px, mid_py);
 
-	int cnt_drop = 0, cnt_item = 0, cnt_3dwall = 0;
+	int cnt_drop = 0, cnt_item = 0, cnt_3dwall = 0, cnt_removal = 0, cnt_total_removal = 0;
 
 	for(int iy=2; iy < MAP_PAGE_W-2; iy++)
 	{
@@ -1239,46 +1243,50 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 				printf("ERROR: map_3dtof: page (%d, %d) unallocated!\n", px, py);
 				continue;
 			}
-			switch(temp_map[iy*MAP_PAGE_W+ix])
+
+			if(walls[iy*MAP_PAGE_W+ix] > 0) printf("DBG: at (%d, %d), walls=%d\n", ix, iy, walls[iy*MAP_PAGE_W+ix]);
+			if(items[iy*MAP_PAGE_W+ix] > 0) printf("DBG: at (%d, %d), items=%d\n", ix, iy, items[iy*MAP_PAGE_W+ix]);
+
+			if(walls[iy*MAP_PAGE_W+ix] > n_tofs/2)
 			{
-				case -2:
-				w->pages[px][py]->units[ox][oy].result |= UNIT_DROP;
-				w->pages[px][py]->units[ox][oy].latest |= UNIT_DROP;
-				cnt_drop++;
-				break;
-
-				case 0: // Also remove collision-based obstacles if we have no slightest hint of an obstacle
-				w->pages[px][py]->units[ox][oy].result &= ~(UNIT_INVISIBLE_WALL);
-				w->pages[px][py]->units[ox][oy].latest &= ~(UNIT_INVISIBLE_WALL);
-				case -1:
-				case 1:
-				w->pages[px][py]->units[ox][oy].result &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
-				w->pages[px][py]->units[ox][oy].latest &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
-				break;
-
-				case 2:
-				case 3:
-				w->pages[px][py]->units[ox][oy].result |= UNIT_ITEM;
-				w->pages[px][py]->units[ox][oy].latest |= UNIT_ITEM;
-				cnt_item++;
-				break;
-
-				case 4:
 				w->pages[px][py]->units[ox][oy].result |= UNIT_3D_WALL;
 				w->pages[px][py]->units[ox][oy].latest |= UNIT_3D_WALL;
 				cnt_3dwall++;
-				break;
-
-				case -100:
-				default:
-				break;
+			}
+			else if(items[iy*MAP_PAGE_W+ix] > n_tofs/2)
+			{
+				w->pages[px][py]->units[ox][oy].result |= UNIT_ITEM;
+				w->pages[px][py]->units[ox][oy].latest |= UNIT_ITEM;
+				cnt_item++;
+			}
+			else if(drops[iy*MAP_PAGE_W+ix] > 2)
+			{
+				w->pages[px][py]->units[ox][oy].result |= UNIT_DROP;
+				w->pages[px][py]->units[ox][oy].latest |= UNIT_DROP;
+				cnt_drop++;
+			}
+			else if(maybes[iy*MAP_PAGE_W+ix] == 0 && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
+			{
+				w->pages[px][py]->units[ox][oy].result &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL | UNIT_INVISIBLE_WALL);
+				w->pages[px][py]->units[ox][oy].latest &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL | UNIT_INVISIBLE_WALL);
+				cnt_total_removal++;
+			}
+			else if(drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
+			{
+				w->pages[px][py]->units[ox][oy].result &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
+				w->pages[px][py]->units[ox][oy].latest &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
+				cnt_removal++;
 			}
 			w->changed[px][py] = 1;
 		}
 	}
 
-	free(temp_map);
-	printf("INFO: 3D TOF objmap insertion finished, added %d drops, %d items and %d 3dwalls.\n", cnt_drop, cnt_item, cnt_3dwall);
+	free(drops);
+	free(items);
+	free(walls);
+	free(maybes);
+	printf("INFO: 3D TOF objmap insertion finished, added %d drops, %d items and %d 3dwalls. Cleared %d units; of which %d including invisibles\n", 
+		cnt_drop, cnt_item, cnt_3dwall, cnt_removal+cnt_total_removal, cnt_total_removal);
 
 	return 0;
 }

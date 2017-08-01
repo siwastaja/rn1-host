@@ -1209,6 +1209,8 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 	page_coords(mid_x, mid_y, &mid_px, &mid_py, &mid_ox, &mid_oy);
 	load_9pages(&world, mid_px, mid_py);
 
+	int cnt_drop = 0, cnt_item = 0, cnt_3dwall = 0;
+
 	for(int iy=2; iy < MAP_PAGE_W-2; iy++)
 	{
 		for(int ix=2; ix < MAP_PAGE_W-2; ix++)
@@ -1237,12 +1239,12 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 				printf("ERROR: map_3dtof: page (%d, %d) unallocated!\n", px, py);
 				continue;
 			}
-
 			switch(temp_map[iy*MAP_PAGE_W+ix])
 			{
 				case -2:
 				w->pages[px][py]->units[ox][oy].result |= UNIT_DROP;
 				w->pages[px][py]->units[ox][oy].latest |= UNIT_DROP;
+				cnt_drop++;
 				break;
 
 				case 0: // Also remove collision-based obstacles if we have no slightest hint of an obstacle
@@ -1258,11 +1260,13 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 				case 3:
 				w->pages[px][py]->units[ox][oy].result |= UNIT_ITEM;
 				w->pages[px][py]->units[ox][oy].latest |= UNIT_ITEM;
+				cnt_item++;
 				break;
 
 				case 4:
 				w->pages[px][py]->units[ox][oy].result |= UNIT_3D_WALL;
 				w->pages[px][py]->units[ox][oy].latest |= UNIT_3D_WALL;
+				cnt_3dwall++;
 				break;
 
 				case -100:
@@ -1274,7 +1278,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 	}
 
 	free(temp_map);
-	printf("INFO: 3D TOF objmap insertion finished.\n");
+	printf("INFO: 3D TOF objmap insertion finished, added %d drops, %d items and %d 3dwalls.\n", cnt_drop, cnt_item, cnt_3dwall);
 
 	return 0;
 }

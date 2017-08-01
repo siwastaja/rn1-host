@@ -783,7 +783,7 @@ void* main_thread()
 				tofs_to_map[n_tofs_to_map] = p_tof;
 				n_tofs_to_map++;
 
-				if(n_tofs_to_map > 10)
+				if(n_tofs_to_map >= 15)
 				{
 					printf("INFO: Mapping %d 3D TOF objmaps.\n", n_tofs_to_map);
 					map_3dtof(&world, n_tofs_to_map, tofs_to_map);

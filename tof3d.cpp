@@ -338,7 +338,7 @@ void Softkinetic_tof::do_quit()
 }
 
 
-#define HMAP_TEMPO 3
+#define HMAP_TEMPO 4
 
 static bool quit = false;
 

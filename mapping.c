@@ -1226,12 +1226,16 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 			int px = mid_px;
 			int ox = x_reltomid - mid_ox;
 			if(ox < 0) { px--; ox += MAP_PAGE_W; }
-			else if(ox >= MAP_PAGE_W) { px++; ox -= MAP_PAGE_W; }
+			if(ox < 0) { px--; ox += MAP_PAGE_W; }
+			if(ox >= MAP_PAGE_W) { px++; ox -= MAP_PAGE_W; }
+			if(ox >= MAP_PAGE_W) { px++; ox -= MAP_PAGE_W; }
 
 			int py = mid_py;
 			int oy = y_reltomid - mid_oy;
 			if(oy < 0) { py--; oy += MAP_PAGE_W; }
-			else if(oy >= MAP_PAGE_W) { py++; oy -= MAP_PAGE_W; }
+			if(oy < 0) { py--; oy += MAP_PAGE_W; }
+			if(oy >= MAP_PAGE_W) { py++; oy -= MAP_PAGE_W; }
+			if(oy >= MAP_PAGE_W) { py++; oy -= MAP_PAGE_W; }
 
 			if(ox < 0 || ox >= MAP_PAGE_W || oy < 0 || oy >= MAP_PAGE_W || px < 0 || px >= MAP_W || py < 0 || py >= MAP_W)
 			{

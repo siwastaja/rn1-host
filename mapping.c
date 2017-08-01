@@ -1224,12 +1224,12 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 			int y_reltomid = iy - TOF_TEMP_MIDDLE;
 
 			int px = mid_px;
-			int ox = mid_ox - x_reltomid;
+			int ox = x_reltomid - mid_ox;
 			if(ox < 0) { px--; ox += MAP_PAGE_W; }
 			else if(ox >= MAP_PAGE_W) { px++; ox -= MAP_PAGE_W; }
 
 			int py = mid_py;
-			int oy = mid_oy - y_reltomid;
+			int oy = y_reltomid - mid_oy;
 			if(oy < 0) { py--; oy += MAP_PAGE_W; }
 			else if(oy >= MAP_PAGE_W) { py++; oy -= MAP_PAGE_W; }
 

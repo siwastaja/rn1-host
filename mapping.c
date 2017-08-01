@@ -1210,33 +1210,21 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 	if(out_of_area_ignores)
 		printf("INFO: Ignored %d far-away points not fitting to tempmap.\n", out_of_area_ignores);
 
+	// Copy tempmaps to actual map
+
 	int mid_px, mid_py, mid_ox, mid_oy;
 	page_coords(mid_x, mid_y, &mid_px, &mid_py, &mid_ox, &mid_oy);
 	load_9pages(&world, mid_px, mid_py);
 
+	int px, py, ox, oy;
+	page_coords(mid_x-TOF_TEMP_MIDDLE*MAP_UNIT_W, mid_y-TOF_TEMP_MIDDLE*MAP_UNIT_W, &px, &py, &ox, &oy);
+
 	int cnt_drop = 0, cnt_item = 0, cnt_3dwall = 0, cnt_removal = 0, cnt_total_removal = 0;
 
-	for(int iy=2; iy < MAP_PAGE_W-2; iy++)
+	for(int iy=0; iy < MAP_PAGE_W; iy++)
 	{
-		for(int ix=2; ix < MAP_PAGE_W-2; ix++)
+		for(int ix=0; ix < MAP_PAGE_W; ix++)
 		{
-			int x_reltomid = ix - TOF_TEMP_MIDDLE;
-			int y_reltomid = iy - TOF_TEMP_MIDDLE;
-
-			int px = mid_px;
-			int ox = x_reltomid - mid_ox;
-			if(ox < 0) { px--; ox += MAP_PAGE_W; }
-			if(ox < 0) { px--; ox += MAP_PAGE_W; }
-			if(ox >= MAP_PAGE_W) { px++; ox -= MAP_PAGE_W; }
-			if(ox >= MAP_PAGE_W) { px++; ox -= MAP_PAGE_W; }
-
-			int py = mid_py;
-			int oy = y_reltomid - mid_oy;
-			if(oy < 0) { py--; oy += MAP_PAGE_W; }
-			if(oy < 0) { py--; oy += MAP_PAGE_W; }
-			if(oy >= MAP_PAGE_W) { py++; oy -= MAP_PAGE_W; }
-			if(oy >= MAP_PAGE_W) { py++; oy -= MAP_PAGE_W; }
-
 			if(ox < 0 || ox >= MAP_PAGE_W || oy < 0 || oy >= MAP_PAGE_W || px < 0 || px >= MAP_W || py < 0 || py >= MAP_W)
 			{
 				printf("ERROR: map_3dtof: invalid page coords (page (%d, %d), offs (%d, %d))\n", px, py, ox, oy);
@@ -1249,8 +1237,8 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 				continue;
 			}
 
-			if(walls[iy*MAP_PAGE_W+ix] > 0) printf("DBG: at (%d, %d), walls=%d\n", ix, iy, walls[iy*MAP_PAGE_W+ix]);
-			if(items[iy*MAP_PAGE_W+ix] > 0) printf("DBG: at (%d, %d), items=%d\n", ix, iy, items[iy*MAP_PAGE_W+ix]);
+			if(walls[iy*MAP_PAGE_W+ix] > 0) printf("DBG: at (%d, %d), walls=%d, putting to (%d,%d)(%d,%d)\n", ix, iy, walls[iy*MAP_PAGE_W+ix], px,py,ox,oy);
+			if(items[iy*MAP_PAGE_W+ix] > 0) printf("DBG: at (%d, %d), items=%d, putting to (%d,%d)(%d,%d)\n", ix, iy, items[iy*MAP_PAGE_W+ix], px,py,ox,oy);
 
 			if(walls[iy*MAP_PAGE_W+ix] > n_tofs/2)
 			{
@@ -1283,7 +1271,13 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 				cnt_removal++;
 			}
 			w->changed[px][py] = 1;
+
+			ox++;
+			if(ox >= MAP_PAGE_W) { ox=0; px++;}
 		}
+
+		oy++;
+		if(oy >= MAP_PAGE_W) { oy=0; py++;}
 	}
 
 	free(drops);

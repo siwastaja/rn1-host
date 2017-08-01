@@ -1245,8 +1245,10 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 				w->pages[px][py]->units[ox][oy].latest |= UNIT_DROP;
 				break;
 
+				case 0: // Also remove collision-based obstacles if we have no slightest hint of an obstacle
+				w->pages[px][py]->units[ox][oy].result &= ~(UNIT_INVISIBLE_WALL);
+				w->pages[px][py]->units[ox][oy].latest &= ~(UNIT_INVISIBLE_WALL);
 				case -1:
-				case 0:
 				case 1:
 				w->pages[px][py]->units[ox][oy].result &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
 				w->pages[px][py]->units[ox][oy].latest &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
@@ -1267,6 +1269,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 				default:
 				break;
 			}
+			w->changed[px][py] = 1;
 		}
 	}
 

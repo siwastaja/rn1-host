@@ -1156,14 +1156,16 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 	int8_t *items =  calloc(MAP_PAGE_W*MAP_PAGE_W, sizeof(int8_t));
 	int8_t *walls =  calloc(MAP_PAGE_W*MAP_PAGE_W, sizeof(int8_t));
 	int8_t *maybes = calloc(MAP_PAGE_W*MAP_PAGE_W, sizeof(int8_t));
+	int8_t *seens = calloc(MAP_PAGE_W*MAP_PAGE_W, sizeof(int8_t));
 
-	if(!drops || !items || !walls || !maybes)
+	if(!drops || !items || !walls || !maybes || !seens)
 	{
 		printf("ERROR: Out of memory in map_3dtof. Not mapping.\n");
 		if(drops) free(drops);
 		if(items) free(items);
 		if(walls) free(walls);
 		if(maybes) free(maybes);
+		if(seens) free(seens);
 		return -1;
 	}
 
@@ -1195,12 +1197,17 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 
 				switch(tof->objmap[iy*TOF3D_HMAP_XSPOTS+ix])
 				{
-					case -2: drops[tm_y*MAP_PAGE_W+tm_x]++; break;
-					case -1:
-					case  1: maybes[tm_y*MAP_PAGE_W+tm_x]++; break;
-					case  2:
-					case  3: items[tm_y*MAP_PAGE_W+tm_x]++; break;
-					case  4: walls[tm_y*MAP_PAGE_W+tm_x]++; break;
+					case TOF3D_DROP         : drops[tm_y*MAP_PAGE_W+tm_x]++; break;
+
+					case TOF3D_POSSIBLE_DROP:
+					case TOF3D_POSSIBLE_ITEM: maybes[tm_y*MAP_PAGE_W+tm_x]++; break;
+
+					case TOF3D_SMALL_ITEM   :
+					case TOF3D_BIG_ITEM     : items[tm_y*MAP_PAGE_W+tm_x]++; break;
+
+					case TOF3D_WALL         : walls[tm_y*MAP_PAGE_W+tm_x]++; break;
+
+					case TOF3D_SEEN         : seens[tm_y*MAP_PAGE_W+tm_x]++; break;
 					default: break;
 				}
 			}
@@ -1219,7 +1226,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 	int start_px, start_py, start_ox, start_oy;
 	page_coords(mid_x-TOF_TEMP_MIDDLE*MAP_UNIT_W, mid_y-TOF_TEMP_MIDDLE*MAP_UNIT_W, &start_px, &start_py, &start_ox, &start_oy);
 
-	printf("DBG: mid (%d,%d)(%d,%d) start (%d,%d)(%d,%d)\n", mid_px, mid_py, mid_ox, mid_oy, start_px, start_py, start_ox, start_oy);
+//	printf("DBG: mid (%d,%d)(%d,%d) start (%d,%d)(%d,%d)\n", mid_px, mid_py, mid_ox, mid_oy, start_px, start_py, start_ox, start_oy);
 
 	int cnt_drop = 0, cnt_item = 0, cnt_3dwall = 0, cnt_removal = 0, cnt_total_removal = 0;
 
@@ -1242,12 +1249,13 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 				free(items);
 				free(walls);
 				free(maybes);
+				free(seens);
 
 				return -1;
 			}
 
-			if(walls[iy*MAP_PAGE_W+ix] > 0) printf("DBG: at (%d, %d), walls=%d, putting to (%d,%d)(%d,%d)\n", ix, iy, walls[iy*MAP_PAGE_W+ix], px,py,ox,oy);
-			if(items[iy*MAP_PAGE_W+ix] > 0) printf("DBG: at (%d, %d), items=%d, putting to (%d,%d)(%d,%d)\n", ix, iy, items[iy*MAP_PAGE_W+ix], px,py,ox,oy);
+//			if(walls[iy*MAP_PAGE_W+ix] > 0) printf("DBG: at (%d, %d), walls=%d, putting to (%d,%d)(%d,%d)\n", ix, iy, walls[iy*MAP_PAGE_W+ix], px,py,ox,oy);
+//			if(items[iy*MAP_PAGE_W+ix] > 0) printf("DBG: at (%d, %d), items=%d, putting to (%d,%d)(%d,%d)\n", ix, iy, items[iy*MAP_PAGE_W+ix], px,py,ox,oy);
 
 			if(walls[iy*MAP_PAGE_W+ix] > n_tofs/2)
 			{
@@ -1267,13 +1275,13 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 				w->pages[px][py]->units[ox][oy].latest |= UNIT_DROP;
 				cnt_drop++;
 			}
-			else if(maybes[iy*MAP_PAGE_W+ix] == 0 && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
+			else if(seens[iy*MAP_PAGE_W+ix] > (2*n_tofs/3) && maybes[iy*MAP_PAGE_W+ix] == 0 && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
 			{
 				w->pages[px][py]->units[ox][oy].result &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL | UNIT_INVISIBLE_WALL);
 				w->pages[px][py]->units[ox][oy].latest &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL | UNIT_INVISIBLE_WALL);
 				cnt_total_removal++;
 			}
-			else if(drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
+			else if(seens[iy*MAP_PAGE_W+ix] > n_tofs/2 && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
 			{
 				w->pages[px][py]->units[ox][oy].result &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
 				w->pages[px][py]->units[ox][oy].latest &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
@@ -1293,7 +1301,8 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 	free(items);
 	free(walls);
 	free(maybes);
-	printf("INFO: 3D TOF objmap insertion finished, added %d drops, %d items and %d 3dwalls. Cleared %d units; of which %d including invisibles\n", 
+	free(seens);
+	printf("INFO: 3D TOF objmap insertion finished, added %d drops, %d items and %d 3dwalls. Cleared %d units; of which %d very confidently, including invisibles\n", 
 		cnt_drop, cnt_item, cnt_3dwall, cnt_removal+cnt_total_removal, cnt_total_removal);
 
 	return 0;

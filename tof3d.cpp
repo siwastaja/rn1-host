@@ -1,20 +1,15 @@
 /*
 	This module connects to a SoftKinetic DS325 camera, processes the depthmap and forms an object map.
 
-	Object map values:
-	4	Tall obstacle, count as wall
-	3	Large obstacle
-	2	Small object. Could be a step, but most likely something to be avoided.
-	1	Possibility of a small step; could be a false positive, too.
-	0	Nothing special
-	-1	Small hole or drop. Could be a false positive, too.
-	-2	Significant hole or drop.
+	Object map values defined in tof3d.h.
 
 	The camera is expected to be mounted on the top of the robot, looking downwards, slightly tilted to
 	show the front area of the robot.
 
 	DS325 cannot be used as a forward-looking camera since it lacks dealiasing functionality, so that
-	longer distances than the measurement range are aliased as short distances.
+	longer distances than the measurement range are aliased as short distances. (For a downward-looking
+	camera, it's acceptable that a long distance (a huge pit!) is aliased as a short distance (so it
+	appears like a wall or a tabletop), as it will be avoided anyway.
 
 	Once our own 3D TOF camera (with powerful light source to provide long range, + dealiasing)
 	is developed, the DS325 and lidar will be both replaced with a few of those.
@@ -343,7 +338,6 @@ void Softkinetic_tof::do_quit()
 static bool quit = false;
 
 static int16_t hmap_calib[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
-//int8_t tof3d_objmap[TOF3D_HMAP_XSPOTS*TOF3D_HMAP_YSPOTS];
 
 tof3d_scan_t tof3ds[TOF3D_RING_BUF_LEN];
 int tof3d_wr;
@@ -628,32 +622,32 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 	{
 		for(int sy = 1; sy < TOF3D_HMAP_YSPOTS-1; sy++)
 		{
-			int8_t val = 0;
+			int8_t val = TOF3D_SEEN;
 			if(hmap[sx][sy] < -998 || hmap_avgd[sx][sy] < -998)
-				val = 0;
+				val = TOF3D_UNSEEN;
 			else if(hmap[sx][sy] < -200 || hmap_avgd[sx][sy] < -110)
 			{
-				val = -2;
+				val = TOF3D_DROP;
 			}
 			else if(hmap[sx][sy] < -170 || hmap_avgd[sx][sy] < -80)
 			{
-				val = -1;
+				val = TOF3D_POSSIBLE_DROP;
 			}
 			else if(hmap[sx][sy] > 250 || hmap_avgd[sx][sy] > 150)
 			{
-				val = 4;
+				val = TOF3D_WALL;
 			}
 			else if(hmap[sx][sy] > 150 || hmap_avgd[sx][sy] > 50)
 			{
-				val = 3;
+				val = TOF3D_BIG_ITEM;
 			}
 			else if(hmap[sx][sy] > 120 || hmap_avgd[sx][sy] > 30)
 			{
-				val = 2;
+				val = TOF3D_SMALL_ITEM;
 			}
 			else if(hmap[sx][sy] > 100 || hmap_avgd[sx][sy] > 15)
 			{
-				val = 1;
+				val = TOF3D_POSSIBLE_ITEM;
 			}
 			else
 			{
@@ -669,9 +663,9 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 				}
 
 				if(diffsum > 100)
-					val = 2;
+					val = TOF3D_SMALL_ITEM;
 				else if(diffsum > 80)
-					val = 1;
+					val = TOF3D_POSSIBLE_ITEM;
 			}
 
 			tof3ds[tof3d_wr].objmap[sy*TOF3D_HMAP_XSPOTS+sx] = val;
@@ -742,25 +736,26 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 			for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
 			{
 				int8_t val = tof3ds[tof3d_wr].objmap[sy*TOF3D_HMAP_XSPOTS+sx];
-				if(val == -2)
+				if(val == TOF3D_DROP)
 					putchar('X');
-				else if(val == -1)
+				else if(val == TOF3D_POSSIBLE_DROP)
 					putchar('x');
-				else if(val == 4)
+				else if(val == TOF3D_WALL)
 					putchar('#');
-				else if(val == 3)
+				else if(val == TOF3D_BIG_ITEM)
 					putchar('O');
-				else if(val == 2)
+				else if(val == TOF3D_SMALL_ITEM)
 					putchar('o');
-				else if(val == 1)
+				else if(val == TOF3D_POSSIBLE_ITEM)
 					putchar('-');
 				else if(sy == TOF3D_HMAP_YSPOTS/2-260/TOF3D_HMAP_SPOT_SIZE || sy == TOF3D_HMAP_YSPOTS/2+260/TOF3D_HMAP_SPOT_SIZE)
 					putchar('\'');
 				else if(sy == TOF3D_HMAP_YSPOTS/2)
 					putchar('\'');
+				else if(val == TOF3D_UNSEEN)
+					putchar('.');
 				else
 					putchar(' ');
-
 			}
 			printf("\n");
 		}

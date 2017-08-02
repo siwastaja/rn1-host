@@ -75,7 +75,7 @@ pwr_status_t pwr_status;
 
 extern int32_t cur_ang, cur_x, cur_y;
 pthread_mutex_t cur_pos_mutex = PTHREAD_MUTEX_INITIALIZER;
-void update_robot_pos(int32_t ang, int32_t x, int32_t y)
+int update_robot_pos(int32_t ang, int32_t x, int32_t y)
 {
 	static int error_cnt = 0;
 	if(   x <= -1*(MAP_PAGE_W_MM*(MAP_W/2-1)) || x >= MAP_PAGE_W_MM*(MAP_W/2-1)
@@ -90,7 +90,7 @@ void update_robot_pos(int32_t ang, int32_t x, int32_t y)
 			exit(1);
 		}
 
-		return;
+		return -1;
 	}
 	if(error_cnt) error_cnt--;
 
@@ -99,6 +99,8 @@ void update_robot_pos(int32_t ang, int32_t x, int32_t y)
 	pthread_mutex_lock(&cur_pos_mutex);
 	cur_ang = ang; cur_x = x; cur_y = y;
 	pthread_mutex_unlock(&cur_pos_mutex);
+
+	return 0;
 }
 
 int parse_uart_msg(uint8_t* buf, int len)
@@ -159,7 +161,7 @@ int parse_uart_msg(uint8_t* buf, int len)
 			int mid_x = lid->robot_pos.x = I7x5_I32(buf[5],buf[6],buf[7],buf[8],buf[9]);
 			int mid_y = lid->robot_pos.y = I7x5_I32(buf[10],buf[11],buf[12],buf[13],buf[14]);
 
-			update_robot_pos(lid->robot_pos.ang, mid_x, mid_y);
+			if(update_robot_pos(lid->robot_pos.ang, mid_x, mid_y) < 0) break;
 
 			for(int i = 0; i < 360; i++)
 			{

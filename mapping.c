@@ -1142,7 +1142,7 @@ void tofs_avg_midpoint(int n_tofs, tof3d_scan_t** tof_list, int32_t* mid_x, int3
 
 int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int32_t *my)
 {
-	printf("INFO: Mapping %d  3DTOF scans\n", n_tofs);
+//	printf("INFO: Mapping %d  3DTOF scans\n", n_tofs);
 	int32_t mid_x, mid_y;
 	tofs_avg_midpoint(n_tofs, tof_list, &mid_x, &mid_y);
 	*mx = mid_x;
@@ -1295,7 +1295,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 	free(walls);
 	free(maybes);
 	free(seens);
-	printf("INFO: 3D TOF objmap insertion finished, added %d drops, %d items and %d 3dwalls. Cleared %d units; of which %d very confidently, including invisibles\n", 
+	printf("INFO: 3D TOF objmap inserted: added %d drops, %d items and %d 3dwalls. Cleared %d units; of which %d confidently\n", 
 		cnt_drop, cnt_item, cnt_3dwall, cnt_removal+cnt_total_removal, cnt_total_removal);
 
 	return 0;

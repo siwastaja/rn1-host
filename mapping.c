@@ -1176,7 +1176,6 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 	{
 		tof3d_scan_t* tof = tof_list[t];
 		float ang = -1*ANG32TORAD(tof->robot_pos.ang);
-		printf("DBG: ang = %f rad (%f deg)\n", ang, RADTODEG(ang));
 		for(int iy=0; iy < TOF3D_HMAP_YSPOTS; iy++)
 		{
 			for(int ix=0; ix < TOF3D_HMAP_XSPOTS; ix++)
@@ -1226,8 +1225,6 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 	int start_px, start_py, start_ox, start_oy;
 	page_coords(mid_x-TOF_TEMP_MIDDLE*MAP_UNIT_W, mid_y-TOF_TEMP_MIDDLE*MAP_UNIT_W, &start_px, &start_py, &start_ox, &start_oy);
 
-//	printf("DBG: mid (%d,%d)(%d,%d) start (%d,%d)(%d,%d)\n", mid_px, mid_py, mid_ox, mid_oy, start_px, start_py, start_ox, start_oy);
-
 	int cnt_drop = 0, cnt_item = 0, cnt_3dwall = 0, cnt_removal = 0, cnt_total_removal = 0;
 
 	int py = start_py; int oy = start_oy;
@@ -1253,9 +1250,6 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 
 				return -1;
 			}
-
-//			if(walls[iy*MAP_PAGE_W+ix] > 0) printf("DBG: at (%d, %d), walls=%d, putting to (%d,%d)(%d,%d)\n", ix, iy, walls[iy*MAP_PAGE_W+ix], px,py,ox,oy);
-//			if(items[iy*MAP_PAGE_W+ix] > 0) printf("DBG: at (%d, %d), items=%d, putting to (%d,%d)(%d,%d)\n", ix, iy, items[iy*MAP_PAGE_W+ix], px,py,ox,oy);
 
 			if(walls[iy*MAP_PAGE_W+ix] > n_tofs/2)
 			{

@@ -845,6 +845,8 @@ void* main_thread()
 				{
 					if(tcp_client_sock >= 0)
 					{
+						printf("DBG: coords %d, %d, %d\n", cur_ang, cur_x, cur_y);
+						
 						msg_rc_pos.ang = cur_ang>>16;
 						msg_rc_pos.x = cur_x;
 						msg_rc_pos.y = cur_y;

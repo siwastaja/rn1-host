@@ -30,6 +30,8 @@
 
 tof3d_scan_t* get_tof3d(void);
 
+int max_speedlim = 30;
+int cur_speedlim = 30;
 
 double subsec_timestamp()
 {
@@ -151,7 +153,7 @@ void route_fsm()
 	if(start_route && route_pos == 0)
 	{
 		printf("Start going id=%d!\n", id_cnt<<4);
-		move_to(the_route[0].x, the_route[0].y, the_route[0].backmode, (id_cnt<<4), (mapping_on==1)?30:50, 0);
+		move_to(the_route[0].x, the_route[0].y, the_route[0].backmode, (id_cnt<<4), cur_speedlim, 0);
 		start_route = 0;
 		first_fail = 1;
 	}
@@ -208,7 +210,7 @@ void route_fsm()
 							}
 						}
 						printf("Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
-						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), (mapping_on==1)?30:50, 0);
+						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), cur_speedlim, 0);
 						first_fail = 1;
 					}
 					else
@@ -220,7 +222,7 @@ void route_fsm()
 				else
 				{
 					// Check if obstacles have appeared in the map.
-					if(!check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), MM_TO_UNIT(the_route[route_pos].x), MM_TO_UNIT(the_route[route_pos].y)))
+					if(the_route[route_pos].backmode == 0 && !check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), MM_TO_UNIT(the_route[route_pos].x), MM_TO_UNIT(the_route[route_pos].y)))
 					{
 						printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Rerouting.\n");
 						stop_movement();
@@ -483,7 +485,7 @@ void* main_thread()
 				daiju_mode(0);
 
 				printf("  ---> DEST params: X=%d Y=%d backmode=%d\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
-				move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode, 0, (mapping_on==1)?30:50, 1);
+				move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode, 0, cur_speedlim, 1);
 				do_follow_route = 0;
 			}
 			else if(ret == TCP_CR_ROUTE_MID)
@@ -770,6 +772,37 @@ void* main_thread()
 
 		route_fsm();
 		autofsm();
+
+		{
+			extern int32_t tof3d_obstacle_level;
+			extern pthread_mutex_t cur_pos_mutex;
+			int obstacle_level;
+			pthread_mutex_lock(&cur_pos_mutex);
+			obstacle_level = tof3d_obstacle_level;
+			pthread_mutex_unlock(&cur_pos_mutex);
+			if(obstacle_level > 80)
+			{
+				printf("INFO: 3DTOF: Limiting speed a lot!\n");
+				cur_speedlim = 12;
+				limit_speed(cur_speedlim);
+			}
+			else if(obstacle_level > 30)
+			{
+				printf("INFO: 3DTOF: Limiting speed a little!\n");
+				cur_speedlim = 18;
+				limit_speed(cur_speedlim);
+			}
+			else
+			{
+				static double prev_incr = 0;
+				double stamp;
+				if( (stamp=subsec_timestamp()) > prev_incr+0.1)
+				{
+					prev_incr = stamp;
+					if(cur_speedlim < max_speedlim) cur_speedlim++;
+				}
+			}
+		}
 
 		tof3d_scan_t *p_tof;
 		if( (p_tof = get_tof3d()) )

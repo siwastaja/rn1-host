@@ -348,6 +348,18 @@ void turn_and_go(int32_t ang_abs, int fwd_rel, int speedlimit, int accurate_turn
 	send_uart(buf, 8);
 }
 
+void limit_speed(int speedlimit)
+{
+	uint8_t buf[3];
+
+	printf("INFO: limit_speed(%d)\n", speedlimit);
+
+	buf[0] = 0x83;
+	buf[1] = speedlimit&0x7f;
+	buf[2] = 0xff;
+	send_uart(buf, 3);
+}
+
 void stop_movement()
 {
 	uint8_t buf[3];

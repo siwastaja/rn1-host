@@ -360,6 +360,8 @@ tof3d_scan_t* get_tof3d(void)
 extern pthread_mutex_t cur_pos_mutex;
 extern int32_t cur_ang, cur_x, cur_y;
 
+int32_t tof3d_obstacle_level;
+
 void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, DepthSense::DepthNode::NewSampleReceivedData data)
 {
 	if(quit)
@@ -619,6 +621,9 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 	// ------------ GENERATE OBJMAP BASED ON HMAP and AVGD -------------
 
+
+	int obst_cnt = 0;
+
 	for(int sx = 1; sx < TOF3D_HMAP_XSPOTS-1; sx++)
 	{
 		for(int sy = 1; sy < TOF3D_HMAP_YSPOTS-1; sy++)
@@ -629,26 +634,32 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 			else if(hmap[sx][sy] < -200 || hmap_avgd[sx][sy] < -110)
 			{
 				val = TOF3D_DROP;
+				obst_cnt+=8;
 			}
 			else if(hmap[sx][sy] < -170 || hmap_avgd[sx][sy] < -80)
 			{
 				val = TOF3D_POSSIBLE_DROP;
+				obst_cnt+=1;
 			}
 			else if(hmap[sx][sy] > 250 || hmap_avgd[sx][sy] > 150)
 			{
 				val = TOF3D_WALL;
+				obst_cnt+=8;
 			}
 			else if(hmap[sx][sy] > 150 || hmap_avgd[sx][sy] > 50)
 			{
 				val = TOF3D_BIG_ITEM;
+				obst_cnt+=8;
 			}
 			else if(hmap[sx][sy] > 120 || hmap_avgd[sx][sy] > 30)
 			{
 				val = TOF3D_SMALL_ITEM;
+				obst_cnt+=4;
 			}
 			else if(hmap[sx][sy] > 100 || hmap_avgd[sx][sy] > 15)
 			{
 				val = TOF3D_POSSIBLE_ITEM;
+				obst_cnt+=1;
 			}
 			else
 			{
@@ -664,14 +675,25 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 				}
 
 				if(diffsum > 100)
+				{
 					val = TOF3D_SMALL_ITEM;
+					obst_cnt+=4;
+				}
 				else if(diffsum > 80)
+				{
 					val = TOF3D_POSSIBLE_ITEM;
+					obst_cnt+=1;
+				}
 			}
 
 			tof3ds[tof3d_wr].objmap[sy*TOF3D_HMAP_XSPOTS+sx] = val;
 		}
 	}
+
+	pthread_mutex_lock(&cur_pos_mutex);
+	tof3d_obstacle_level = obst_cnt;
+	pthread_mutex_unlock(&cur_pos_mutex);
+
 
 	if(_dbg_print)
 	{

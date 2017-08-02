@@ -225,12 +225,12 @@ void route_fsm()
 						printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Rerouting.\n");
 						stop_movement();
 						do_follow_route = 0;
-//						daiju_mode(0);
-//						if(run_search() == 1)
-//						{
-//							printf("Routing failed in start, going to daiju mode.\n");
-//							daiju_mode(1);
-//						}
+						daiju_mode(0);
+						if(run_search() == 1)
+						{
+							printf("Routing failed in start, going to daiju mode.\n");
+							daiju_mode(1);
+						}
 					}
 
 				}
@@ -797,18 +797,22 @@ void* main_thread()
 				tofs_to_map[n_tofs_to_map] = p_tof;
 				n_tofs_to_map++;
 
-				if(n_tofs_to_map >= 12)
+				if(n_tofs_to_map >= 10)
 				{
 					int32_t mid_x, mid_y;
 					map_3dtof(&world, n_tofs_to_map, tofs_to_map, &mid_x, &mid_y);
-					int px, py, ox, oy;
-					page_coords(mid_x, mid_y, &px, &py, &ox, &oy);
 
-					for(int ix=-1; ix<=1; ix++)
+					if(do_follow_route)
 					{
-						for(int iy=-1; iy<=1; iy++)
+						int px, py, ox, oy;
+						page_coords(mid_x, mid_y, &px, &py, &ox, &oy);
+
+						for(int ix=-1; ix<=1; ix++)
 						{
-							gen_routing_page(&world, px+ix, py+iy);
+							for(int iy=-1; iy<=1; iy++)
+							{
+								gen_routing_page(&world, px+ix, py+iy);
+							}
 						}
 					}
 
@@ -973,6 +977,7 @@ void* main_thread()
 		double stamp;
 		if( (stamp=subsec_timestamp()) > prev_sync+5.0)
 		{
+			printf("timestamp = %f\n", stamp);
 			prev_sync = stamp;
 
 			int idx_x, idx_y, offs_x, offs_y;

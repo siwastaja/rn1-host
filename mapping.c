@@ -1487,18 +1487,18 @@ void map_collision_obstacle(world_t* w, int32_t now_ang, int now_x, int now_y, i
 void clear_within_robot(world_t* w, pos_t pos)
 {
 	int idx_x, idx_y, offs_x, offs_y;
-	for(int stripe = 0; stripe < robot_xs/20 - 3; stripe++)
+	for(int stripe = 0; stripe < robot_xs/20 - 1; stripe++)
 	{
-		float x = (float)pos.x + cos(ANG32TORAD(pos.ang))*(float)(ORIGIN_TO_ROBOT_FRONT-20-stripe*20);
-		float y = (float)pos.y + sin(ANG32TORAD(pos.ang))*(float)(ORIGIN_TO_ROBOT_FRONT-20-stripe*20);
+		float x = (float)pos.x + cos(ANG32TORAD(pos.ang))*(float)(ORIGIN_TO_ROBOT_FRONT-stripe*20);
+		float y = (float)pos.y + sin(ANG32TORAD(pos.ang))*(float)(ORIGIN_TO_ROBOT_FRONT-stripe*20);
 
 		// Shift the result in robot_y direction
 		int32_t angle = pos.ang + (uint32_t)(90*ANG_1_DEG);
 
-		x += cos(ANG32TORAD(angle))*((float)robot_ys/-2.0+30);
-		y += sin(ANG32TORAD(angle))*((float)robot_ys/-2.0+30);
+		x += cos(ANG32TORAD(angle))*((float)robot_ys/-2.0+10);
+		y += sin(ANG32TORAD(angle))*((float)robot_ys/-2.0+10);
 
-		for(int i = 0; i < robot_ys/20 - 3; i++)
+		for(int i = 0; i < robot_ys/20 - 1; i++)
 		{
 			x += cos(ANG32TORAD(angle))*(float)20.0;
 			y += sin(ANG32TORAD(angle))*(float)20.0;

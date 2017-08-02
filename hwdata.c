@@ -96,6 +96,7 @@ int update_robot_pos(int32_t ang, int32_t x, int32_t y)
 
 	//printf("."); fflush(stdout);
 
+	printf("write %d, %d, %d\n", ang, x, y);
 	pthread_mutex_lock(&cur_pos_mutex);
 	cur_ang = ang; cur_x = x; cur_y = y;
 	pthread_mutex_unlock(&cur_pos_mutex);

@@ -220,7 +220,7 @@ void route_fsm()
 				else
 				{
 					// Check if obstacles have appeared in the map.
-					if(!check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), the_route[route_pos+1].x, the_route[route_pos+1].y))
+					if(!check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), the_route[route_pos].x, the_route[route_pos].y))
 					{
 						printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Rerouting.\n");
 						stop_movement();

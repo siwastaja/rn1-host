@@ -30,9 +30,10 @@ extern uint32_t minimap[MINIMAP_SIZE][MINIMAP_SIZE/32 + 1];
 int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, int32_t desired_x, int32_t desired_y, int* back);
 
 int check_direct_route(int32_t start_ang, int start_x, int start_y, int end_x, int end_y);
+int check_direct_route_non_turning(int start_x, int start_y, int end_x, int end_y);
 void routing_set_world(world_t *w);
-void gen_all_routing_pages(world_t *w);
-void gen_routing_page(world_t *w, int xpage, int ypage);
+void gen_all_routing_pages(world_t *w, int forgiveness);
+void gen_routing_page(world_t *w, int xpage, int ypage, int forgiveness);
 
 
 #endif

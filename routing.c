@@ -337,7 +337,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 	int backs[MAX_CANGOS];
 	int disagrees = 0;
 
-	gen_all_routing_pages(w);
+	gen_all_routing_pages(w, 0);
 
 	int in_tight_spot = 0;
 
@@ -1097,7 +1097,7 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 }
 
 
-void gen_routing_page(world_t *w, int xpage, int ypage)
+void gen_routing_page(world_t *w, int xpage, int ypage, int forgiveness)
 {
 //	if((xpage > 124 && xpage < 130) && (ypage > 124 && ypage < 130)) printf("gen_routing_page (%d, %d)\n", xpage, ypage);
 	if(!w->pages[xpage][ypage])
@@ -1112,44 +1112,80 @@ void gen_routing_page(world_t *w, int xpage, int ypage)
 		w->rpages[xpage][ypage] = malloc(sizeof(routing_page_t));
 	}
 
-	for(int xx=0; xx < MAP_PAGE_W; xx++)
+	if(forgiveness == 0)
 	{
-		for(int yy=0; yy < MAP_PAGE_W/32; yy++)
+		for(int xx=0; xx < MAP_PAGE_W; xx++)
 		{
-			uint32_t tmp = 0;
-			for(int i = 0; i < 32; i++)
+			for(int yy=0; yy < MAP_PAGE_W/32; yy++)
 			{
-				tmp<<=1;
-				uint8_t res = w->pages[xpage][ypage]->units[xx][yy*32+i].result;
-				tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (res & UNIT_3D_WALL) || (res & UNIT_ITEM) || (res & UNIT_DROP);
+				uint32_t tmp = 0;
+				for(int i = 0; i < 32; i++)
+				{
+					tmp<<=1;
+					uint8_t res = w->pages[xpage][ypage]->units[xx][yy*32+i].result;
+					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (res & UNIT_3D_WALL) || (res & UNIT_ITEM) || (res & UNIT_DROP);
+				}
+				w->rpages[xpage][ypage]->obst_u32[xx][yy] = tmp;
 			}
-			w->rpages[xpage][ypage]->obst_u32[xx][yy] = tmp;
-		}
-		if(w->pages[xpage][ypage+1])
-		{
-			uint32_t tmp = 0;
-			for(int i = 0; i < 32; i++)
+			if(w->pages[xpage][ypage+1])
 			{
-				tmp<<=1;
-				uint8_t res = w->pages[xpage][ypage+1]->units[xx][0*32+i].result;
-				tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (res & UNIT_3D_WALL) || (res & UNIT_ITEM) || (res & UNIT_DROP);
+				uint32_t tmp = 0;
+				for(int i = 0; i < 32; i++)
+				{
+					tmp<<=1;
+					uint8_t res = w->pages[xpage][ypage+1]->units[xx][0*32+i].result;
+					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (res & UNIT_3D_WALL) || (res & UNIT_ITEM) || (res & UNIT_DROP);
+				}
+				w->rpages[xpage][ypage]->obst_u32[xx][MAP_PAGE_W/32] = tmp;
 			}
-			w->rpages[xpage][ypage]->obst_u32[xx][MAP_PAGE_W/32] = tmp;
-		}
-		else
-		{
-			w->rpages[xpage][ypage]->obst_u32[xx][MAP_PAGE_W/32] = 0xffffffff;
+			else
+			{
+				w->rpages[xpage][ypage]->obst_u32[xx][MAP_PAGE_W/32] = 0xffffffff;
+			}
 		}
 	}
+	else
+	{
+		for(int xx=0; xx < MAP_PAGE_W; xx++)
+		{
+			for(int yy=0; yy < MAP_PAGE_W/32; yy++)
+			{
+				uint32_t tmp = 0;
+				for(int i = 0; i < 32; i++)
+				{
+					tmp<<=1;
+					uint8_t res = w->pages[xpage][ypage]->units[xx][yy*32+i].result;
+					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (w->pages[xpage][ypage]->units[xx][yy*32+i].num_3d_obstacles < forgiveness);
+				}
+				w->rpages[xpage][ypage]->obst_u32[xx][yy] = tmp;
+			}
+			if(w->pages[xpage][ypage+1])
+			{
+				uint32_t tmp = 0;
+				for(int i = 0; i < 32; i++)
+				{
+					tmp<<=1;
+					uint8_t res = w->pages[xpage][ypage+1]->units[xx][0*32+i].result;
+					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (w->pages[xpage][ypage+1]->units[xx][0*32+i].num_3d_obstacles < forgiveness);
+				}
+				w->rpages[xpage][ypage]->obst_u32[xx][MAP_PAGE_W/32] = tmp;
+			}
+			else
+			{
+				w->rpages[xpage][ypage]->obst_u32[xx][MAP_PAGE_W/32] = 0xffffffff;
+			}
+		}
+	}
+	
 }
 
-void gen_all_routing_pages(world_t *w)
+void gen_all_routing_pages(world_t *w, int forgiveness)
 {
 	for(int xpage = 0; xpage < MAP_W; xpage++)
 	{
 		for(int ypage = 0; ypage < MAP_W; ypage++)
 		{
-			gen_routing_page(w, xpage, ypage);
+			gen_routing_page(w, xpage, ypage, forgiveness);
 		}
 	}
 }
@@ -1159,7 +1195,7 @@ int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_
 	routing_world = w;
 
 	printf("Generating routing pages... "); fflush(stdout);
-	gen_all_routing_pages(w);
+	gen_all_routing_pages(w, 0);
 	printf("done.\n");
 
 	normal_search_mode();
@@ -1240,6 +1276,19 @@ int check_direct_route(int32_t start_ang, int start_x, int start_y, int end_x, i
 			//printf("INFO: check_direct_route(): there is line of sight\n");
 			return 1;
 		}
+	}
+	return 0;
+}
+
+int check_direct_route_non_turning(int start_x, int start_y, int end_x, int end_y)
+{
+	route_xy_t start = {start_x, start_y};
+	route_xy_t end = {end_x, end_y};
+	//printf(" start = (%d, %d)  end = (%d, %d)\n", start_x, start_y, end_x, end_y);
+	if(line_of_sight(start, end))
+	{
+		//printf("INFO: check_direct_route(): there is line of sight\n");
+		return 1;
 	}
 	return 0;
 }

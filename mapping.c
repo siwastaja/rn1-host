@@ -1255,6 +1255,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 				if(!(w->pages[px][py]->units[ox][oy].result & UNIT_3D_WALL)) w->changed[px][py] = 1;
 				w->pages[px][py]->units[ox][oy].result |= UNIT_3D_WALL;
 				w->pages[px][py]->units[ox][oy].latest |= UNIT_3D_WALL;
+				PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_3d_obstacles);
 				cnt_3dwall++;
 			}
 			else if(items[iy*MAP_PAGE_W+ix] > n_tofs/2)
@@ -1262,6 +1263,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 				if(!(w->pages[px][py]->units[ox][oy].result & UNIT_ITEM)) w->changed[px][py] = 1;
 				w->pages[px][py]->units[ox][oy].result |= UNIT_ITEM;
 				w->pages[px][py]->units[ox][oy].latest |= UNIT_ITEM;
+				PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_3d_obstacles);
 				cnt_item++;
 			}
 			else if(drops[iy*MAP_PAGE_W+ix] > n_tofs/3)
@@ -1269,6 +1271,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 				if(!(w->pages[px][py]->units[ox][oy].result & UNIT_DROP)) w->changed[px][py] = 1;
 				w->pages[px][py]->units[ox][oy].result |= UNIT_DROP;
 				w->pages[px][py]->units[ox][oy].latest |= UNIT_DROP;
+				PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_3d_obstacles);
 				cnt_drop++;
 			}
 			else if(seens[iy*MAP_PAGE_W+ix] > (2*n_tofs/3) && maybes[iy*MAP_PAGE_W+ix] == 0 && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
@@ -1276,6 +1279,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 				if(w->pages[px][py]->units[ox][oy].result & (UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL | UNIT_INVISIBLE_WALL)) w->changed[px][py] = 1;
 				w->pages[px][py]->units[ox][oy].result &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL | UNIT_INVISIBLE_WALL);
 				w->pages[px][py]->units[ox][oy].latest &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL | UNIT_INVISIBLE_WALL);
+				w->pages[px][py]->units[ox][oy].num_3d_obstacles = 0;
 				cnt_total_removal++;
 			}
 			else if(seens[iy*MAP_PAGE_W+ix] > n_tofs/3 && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
@@ -1283,6 +1287,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 				if(w->pages[px][py]->units[ox][oy].result & (UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL)) w->changed[px][py] = 1;
 				w->pages[px][py]->units[ox][oy].result &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
 				w->pages[px][py]->units[ox][oy].latest &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
+				w->pages[px][py]->units[ox][oy].num_3d_obstacles = 0;
 				cnt_removal++;
 			}
 
@@ -1299,8 +1304,8 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 	free(walls);
 	free(maybes);
 	free(seens);
-	printf("INFO: 3D TOF objmap inserted: added %d drops, %d items and %d 3dwalls. Cleared %d units; of which %d confidently\n", 
-		cnt_drop, cnt_item, cnt_3dwall, cnt_removal+cnt_total_removal, cnt_total_removal);
+//	printf("INFO: 3D TOF objmap inserted: added %d drops, %d items and %d 3dwalls. Cleared %d units; of which %d confidently\n", 
+//		cnt_drop, cnt_item, cnt_3dwall, cnt_removal+cnt_total_removal, cnt_total_removal);
 
 	return 0;
 }
@@ -1517,6 +1522,7 @@ void clear_within_robot(world_t* w, pos_t pos)
 			   (world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_ITEM) )
 			{
 				MINUS_SAT_0(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
+				world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_3d_obstacles = 0;
 				world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = UNIT_MAPPED;
 				world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest = UNIT_MAPPED;
 				w->changed[idx_x][idx_y] = 1;

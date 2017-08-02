@@ -37,10 +37,10 @@ typedef struct __attribute__ ((packed))
 	uint8_t num_visited;    // Incremented when lidar is mapped with this robot coord. Saturated at 255.
 
 	uint8_t num_seen;  	// Number of times mapped. Saturated at 255.
-	uint8_t num_obstacles;  // "is an obstacle" counter. Every time mapped, ++ if obstacle, -- if not. Saturated at 255.
+	uint8_t num_obstacles;  // "is an obstacle" BY LIDAR counter. Every time mapped, ++ if obstacle, -- if not. Saturated at 255.
 
 	uint8_t constraints;
-	uint8_t reserved;
+	uint8_t num_3d_obstacles; // ++ if 3D_WALL, DROP, or ITEM. Set to 0 if those are removed.
 } map_unit_t;
 
 

@@ -222,7 +222,7 @@ void route_fsm()
 				else
 				{
 					// Check if obstacles have appeared in the map.
-					if(the_route[route_pos].backmode == 0 && !check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), MM_TO_UNIT(the_route[route_pos].x), MM_TO_UNIT(the_route[route_pos].y)))
+					if(the_route[route_pos].backmode == 0 && !check_direct_route_non_turning(/*cur_ang,*/ MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), MM_TO_UNIT(the_route[route_pos].x), MM_TO_UNIT(the_route[route_pos].y)))
 					{
 						printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Rerouting.\n");
 						stop_movement();
@@ -844,7 +844,7 @@ void* main_thread()
 						{
 							for(int iy=-1; iy<=1; iy++)
 							{
-								gen_routing_page(&world, px+ix, py+iy);
+								gen_routing_page(&world, px+ix, py+iy, 0);
 							}
 						}
 					}
@@ -1008,9 +1008,13 @@ void* main_thread()
 
 		static double prev_sync = 0;
 		double stamp;
-		if( (stamp=subsec_timestamp()) > prev_sync+5.0)
+
+		double write_interval = 30.0;
+		if(tcp_client_sock >= 0)
+			write_interval = 7.0;
+
+		if( (stamp=subsec_timestamp()) > prev_sync+write_interval)
 		{
-			printf("timestamp = %f\n", stamp);
 			prev_sync = stamp;
 
 			int idx_x, idx_y, offs_x, offs_y;

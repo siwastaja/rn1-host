@@ -936,8 +936,8 @@ void* main_thread()
 				if(tcp_client_sock >= 0) tcp_send_sonar(p_son);
 				sonar_send_cnt = 0;
 			}
-			if(mapping_on)
-				map_sonar(&world, p_son);
+//			if(mapping_on)
+//				map_sonar(&world, p_son);
 		}
 
 		static double prev_sync = 0;

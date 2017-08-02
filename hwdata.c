@@ -161,7 +161,13 @@ int parse_uart_msg(uint8_t* buf, int len)
 			int mid_x = lid->robot_pos.x = I7x5_I32(buf[5],buf[6],buf[7],buf[8],buf[9]);
 			int mid_y = lid->robot_pos.y = I7x5_I32(buf[10],buf[11],buf[12],buf[13],buf[14]);
 
-			if(update_robot_pos(lid->robot_pos.ang, mid_x, mid_y) < 0) break;
+			if(update_robot_pos(lid->robot_pos.ang, mid_x, mid_y) < 0)
+			{
+				printf("UART frame:");
+				for(int i = 0; i < len; i++) printf(" %02x", buf[i]);
+				printf("\n");
+				break;
+			}
 
 			for(int i = 0; i < 360; i++)
 			{
@@ -212,9 +218,16 @@ int parse_uart_msg(uint8_t* buf, int len)
 
 		case 0xa0: // current coords without lidar image
 		{
-			update_robot_pos((I7I7_U16_lossy(buf[2], buf[3]))<<16, 
+			if(update_robot_pos((I7I7_U16_lossy(buf[2], buf[3]))<<16, 
 				I7x5_I32(buf[4],buf[5],buf[6],buf[7],buf[8]),
-				I7x5_I32(buf[9],buf[10],buf[11],buf[12],buf[13]));
+				I7x5_I32(buf[9],buf[10],buf[11],buf[12],buf[13])) < 0)
+			{
+				printf("UART frame:");
+				for(int i = 0; i < len; i++) printf(" %02x", buf[i]);
+				printf("\n");
+				break;
+			}
+
 		}
 		break;
 

@@ -224,12 +224,13 @@ void route_fsm()
 					{
 						printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Rerouting.\n");
 						stop_movement();
-						daiju_mode(0);
-						if(run_search() == 1)
-						{
-							printf("Routing failed in start, going to daiju mode.\n");
-							daiju_mode(1);
-						}
+						do_follow_route = 0;
+//						daiju_mode(0);
+//						if(run_search() == 1)
+//						{
+//							printf("Routing failed in start, going to daiju mode.\n");
+//							daiju_mode(1);
+//						}
 					}
 
 				}

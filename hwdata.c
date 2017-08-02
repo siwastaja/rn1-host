@@ -94,7 +94,7 @@ int update_robot_pos(int32_t ang, int32_t x, int32_t y)
 	}
 	if(error_cnt) error_cnt--;
 
-	printf("."); fflush(stdout);
+	//printf("."); fflush(stdout);
 
 	pthread_mutex_lock(&cur_pos_mutex);
 	cur_ang = ang; cur_x = x; cur_y = y;

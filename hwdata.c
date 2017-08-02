@@ -96,12 +96,12 @@ int update_robot_pos(int32_t ang, int32_t x, int32_t y)
 
 	//printf("."); fflush(stdout);
 
-	printf("write %d, %d, %d\n", ang, x, y);
+	//printf("write %d, %d, %d\n", ang, x, y);
 	pthread_mutex_lock(&cur_pos_mutex);
 	cur_ang = ang; cur_x = x; cur_y = y;
 	pthread_mutex_unlock(&cur_pos_mutex);
 
-	return -2;
+	return 0;
 }
 
 int parse_uart_msg(uint8_t* buf, int len)
@@ -165,9 +165,9 @@ int parse_uart_msg(uint8_t* buf, int len)
 
 			if(update_robot_pos(lid->robot_pos.ang, mid_x, mid_y) < 0)
 			{
-				printf("UART frame:");
-				for(int i = 0; i < len; i++) printf(" %02x", buf[i]);
-				printf("\n");
+//				printf("UART frame:");
+//				for(int i = 0; i < len; i++) printf(" %02x", buf[i]);
+//				printf("\n");
 				break;
 			}
 
@@ -224,9 +224,9 @@ int parse_uart_msg(uint8_t* buf, int len)
 				I7x5_I32(buf[4],buf[5],buf[6],buf[7],buf[8]),
 				I7x5_I32(buf[9],buf[10],buf[11],buf[12],buf[13])) < 0)
 			{
-				printf("UART frame:");
-				for(int i = 0; i < len; i++) printf(" %02x", buf[i]);
-				printf("\n");
+//				printf("UART frame:");
+//				for(int i = 0; i < len; i++) printf(" %02x", buf[i]);
+//				printf("\n");
 				break;
 			}
 

@@ -31,6 +31,8 @@ lidar_scan_t significant_lidars[SIGNIFICANT_LIDAR_RING_BUF_LEN];
 sonar_scan_t sonars[SONAR_RING_BUF_LEN];
 xymove_t cur_xymove;
 
+int32_t cur_pos_invalid_for_3dtof = 0;
+
 int32_t hwdbg[10];
 
 lidar_scan_t* get_basic_lidar()
@@ -99,9 +101,17 @@ int update_robot_pos(int32_t ang, int32_t x, int32_t y)
 	//printf("write %d, %d, %d\n", ang, x, y);
 	pthread_mutex_lock(&cur_pos_mutex);
 	cur_ang = ang; cur_x = x; cur_y = y;
+	cur_pos_invalid_for_3dtof = 0;
 	pthread_mutex_unlock(&cur_pos_mutex);
 
 	return 0;
+}
+
+void prevent_3dtoffing()
+{
+	pthread_mutex_lock(&cur_pos_mutex);
+	cur_pos_invalid_for_3dtof = 1;
+	pthread_mutex_unlock(&cur_pos_mutex);
 }
 
 int parse_uart_msg(uint8_t* buf, int len)

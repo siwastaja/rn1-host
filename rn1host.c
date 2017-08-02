@@ -954,9 +954,11 @@ void* main_thread()
 							{
 								printf("INFO: Got DISTORTED significant lidar scan, running mapping early on previous images\n");
 								int32_t da, dx, dy;
+								prevent_3dtoffing();
 								map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
 								INCR_POS_CORR_ID();
 								correct_robot_pos(da, dx, dy, pos_corr_id);
+
 								n_lidars_to_map = 0;
 							}
 						}
@@ -970,6 +972,7 @@ void* main_thread()
 							{
 								if(good_time_for_lidar_mapping) good_time_for_lidar_mapping = 0;
 								int32_t da, dx, dy;
+								prevent_3dtoffing();
 								map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
 								INCR_POS_CORR_ID();
 								correct_robot_pos(da, dx, dy, pos_corr_id);

@@ -370,6 +370,15 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 		return;
 	}
 
+	extern int32_t cur_pos_invalid_for_3dtof;
+	int32_t is_invalid;
+	pthread_mutex_lock(&cur_pos_mutex);
+	is_invalid = cur_pos_invalid_for_3dtof;
+	pthread_mutex_unlock(&cur_pos_mutex);
+
+	if(is_invalid)
+		return;
+
 
 	{
 		int next = tof3d_wr+1; if(next >= TOF3D_RING_BUF_LEN) next = 0;
@@ -445,8 +454,8 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 			if(d < 0 || d > 1800) continue;
 
 //			float x = (d * sin(pyang+top_cam_ang))*1.125 /*experimentally found*/ + 40.0;
-			float x = ((d+150.0) * sin(pyang+top_cam_ang))*1.100 /*experimentally found*/ + 40.0;
-			float y = (d * sin(pxang))*1.125;
+			float x = ((d+150.0) * sin(pyang+top_cam_ang))*1.125 /*experimentally found*/ + 40.0;
+			float y = ((d+50.0) * sin(pxang))*1.125;
 			float z = -1.0 * d * (1.0/cos(pyang)) * cos(pyang+top_cam_ang) + 900.0;
 
 			int xspot = (int)(x / (float)TOF3D_HMAP_SPOT_SIZE);

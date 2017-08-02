@@ -1505,10 +1505,14 @@ void clear_within_robot(world_t* w, pos_t pos)
 			load_1page(&world, idx_x, idx_y);
 			if((world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_WALL) ||
 			   (world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_ITEM))
+			   (world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_INVISIBLE_WALL) ||
+			   (world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_3D_WALL) ||
+			   (world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_DROP) ||
+			   (world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_ITEM) ||
 			{
+				MINUS_SAT_0(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
 				world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = UNIT_MAPPED;
 				world.pages[idx_x][idx_y]->units[offs_x][offs_y].latest = UNIT_MAPPED;
-				MINUS_SAT_0(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
 				w->changed[idx_x][idx_y] = 1;
 			}
 		}

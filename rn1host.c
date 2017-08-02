@@ -909,7 +909,7 @@ void* main_thread()
 							lidars_to_map[n_lidars_to_map] = p_lid;
 
 							n_lidars_to_map++;
-							if((good_time_for_lidar_mapping && n_lidars_to_map > 10) || n_lidars_to_map > 19)
+							if((good_time_for_lidar_mapping && n_lidars_to_map > 8) || n_lidars_to_map > 15)
 							{
 								if(good_time_for_lidar_mapping) good_time_for_lidar_mapping = 0;
 								int32_t da, dx, dy;

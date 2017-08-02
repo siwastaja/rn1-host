@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Winline -std=c99
+CFLAGS = -Wall -Winline -std=c99 -g
 LDFLAGS = 
 
 DEPS = mapping.h uart.h map_memdisk.h datatypes.h hwdata.h tcp_comm.h tcp_parser.h routing.h map_opers.h

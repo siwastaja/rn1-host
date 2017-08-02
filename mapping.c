@@ -549,9 +549,9 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 					float dy_per_step = (float)dy/(float)dx;
 					for(int ix = 0; ix < dx; ix++)
 					{
-						int cur_y = robot_y + dy_per_step*(float)ix;
-						int cur_x = robot_x + ix;
-						temp_map[cur_y*TEMP_MAP_W + cur_x].seen |= 1UL<<l;
+						int now_y = robot_y + dy_per_step*(float)ix;
+						int now_x = robot_x + ix;
+						temp_map[now_y*TEMP_MAP_W + now_x].seen |= 1UL<<l;
 					}
 				}
 				else // dx < 0
@@ -559,9 +559,9 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 					float dy_per_step = (float)dy/(float)dx;
 					for(int ix = 0; ix < -1*dx; ix++)
 					{
-						int cur_y = robot_y - dy_per_step*(float)ix;
-						int cur_x = robot_x - ix;
-						temp_map[cur_y*TEMP_MAP_W + cur_x].seen |= 1UL<<l;
+						int now_y = robot_y - dy_per_step*(float)ix;
+						int now_x = robot_x - ix;
+						temp_map[now_y*TEMP_MAP_W + now_x].seen |= 1UL<<l;
 					}
 				}
 
@@ -573,9 +573,9 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 					float dx_per_step = (float)dx/(float)dy;
 					for(int iy = 0; iy < dy; iy++)
 					{
-						int cur_x = robot_x + dx_per_step*(float)iy;
-						int cur_y = robot_y + iy;
-						temp_map[cur_y*TEMP_MAP_W + cur_x].seen |= 1UL<<l;
+						int now_x = robot_x + dx_per_step*(float)iy;
+						int now_y = robot_y + iy;
+						temp_map[now_y*TEMP_MAP_W + now_x].seen |= 1UL<<l;
 					}
 				}
 				else // dy < 0
@@ -583,9 +583,9 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 					float dx_per_step = (float)dx/(float)dy;
 					for(int iy = 0; iy < -1*dy; iy++)
 					{
-						int cur_x = robot_x - dx_per_step*(float)iy;
-						int cur_y = robot_y - iy;
-						temp_map[cur_y*TEMP_MAP_W + cur_x].seen |= 1UL<<l;
+						int now_x = robot_x - dx_per_step*(float)iy;
+						int now_y = robot_y - iy;
+						temp_map[now_y*TEMP_MAP_W + now_x].seen |= 1UL<<l;
 					}
 				}
 
@@ -1393,7 +1393,7 @@ const int robot_outline[32] =
 };
 
 
-void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, int stop_reason, int vect_valid, float vect_ang_rad)
+void map_collision_obstacle(world_t* w, int32_t now_ang, int now_x, int now_y, int stop_reason, int vect_valid, float vect_ang_rad)
 {
 	int idx_x, idx_y, offs_x, offs_y;
 	if(stop_reason == STOP_REASON_OBSTACLE_FRONT_LEFT || stop_reason == STOP_REASON_OBSTACLE_FRONT_RIGHT)
@@ -1401,11 +1401,11 @@ void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, i
 		printf("Mapping FRONT obstacle due to wheel slip.\n");
 		for(int deep=0; deep<2; deep++)
 		{
-			float x = (float)cur_x + cos(ANG32TORAD(cur_ang))*(float)(ORIGIN_TO_ROBOT_FRONT+20.0 + deep*40.0);
-			float y = (float)cur_y + sin(ANG32TORAD(cur_ang))*(float)(ORIGIN_TO_ROBOT_FRONT+20.0 + deep*40.0);
+			float x = (float)now_x + cos(ANG32TORAD(now_ang))*(float)(ORIGIN_TO_ROBOT_FRONT+20.0 + deep*40.0);
+			float y = (float)now_y + sin(ANG32TORAD(now_ang))*(float)(ORIGIN_TO_ROBOT_FRONT+20.0 + deep*40.0);
 
 			// Shift the result to the right or left:
-			int32_t angle = cur_ang + (uint32_t)( ((stop_reason==STOP_REASON_OBSTACLE_FRONT_RIGHT)?90:-90) *ANG_1_DEG);
+			int32_t angle = now_ang + (uint32_t)( ((stop_reason==STOP_REASON_OBSTACLE_FRONT_RIGHT)?90:-90) *ANG_1_DEG);
 
 			x += cos(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE_START;
 			y += sin(ANG32TORAD(angle))*(float)ASSUMED_ITEM_POS_FROM_MIDDLE_START;
@@ -1427,11 +1427,11 @@ void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, i
 	else if(stop_reason == STOP_REASON_OBSTACLE_BACK_LEFT || stop_reason == STOP_REASON_OBSTACLE_BACK_RIGHT)
 	{
 		printf("Mapping BACK (ARSE) obstacle due to wheel slip.\n");
-		float x = (float)cur_x + cos(ANG32TORAD(cur_ang))*(float)-300.0;
-		float y = (float)cur_y + sin(ANG32TORAD(cur_ang))*(float)-300.0;
+		float x = (float)now_x + cos(ANG32TORAD(now_ang))*(float)-300.0;
+		float y = (float)now_y + sin(ANG32TORAD(now_ang))*(float)-300.0;
 
 		// Shift the result to the right or left:
-		int32_t angle = cur_ang + (uint32_t)( ((stop_reason==STOP_REASON_OBSTACLE_BACK_RIGHT)?90:-90) *ANG_1_DEG);
+		int32_t angle = now_ang + (uint32_t)( ((stop_reason==STOP_REASON_OBSTACLE_BACK_RIGHT)?90:-90) *ANG_1_DEG);
 
 		x += cos(ANG32TORAD(angle))*(float)robot_ys/2.0;
 		y += sin(ANG32TORAD(angle))*(float)robot_ys/2.0;
@@ -1461,8 +1461,8 @@ void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, i
 			for(int o = 0; o < 2; o++)
 			{
 				int dist_to_outline = robot_outline[idx] + 30 + o*40;
-				float x = (float)cur_x + cos( ANG32TORAD(cur_ang) + vect_ang_rad+((float)i*2.0*M_PI/32.0) )*(float)dist_to_outline;
-				float y = (float)cur_y + sin( ANG32TORAD(cur_ang) + vect_ang_rad+((float)i*2.0*M_PI/32.0) )*(float)dist_to_outline;
+				float x = (float)now_x + cos( ANG32TORAD(now_ang) + vect_ang_rad+((float)i*2.0*M_PI/32.0) )*(float)dist_to_outline;
+				float y = (float)now_y + sin( ANG32TORAD(now_ang) + vect_ang_rad+((float)i*2.0*M_PI/32.0) )*(float)dist_to_outline;
 
 				page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
 				load_9pages(&world, idx_x, idx_y);

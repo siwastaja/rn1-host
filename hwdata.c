@@ -101,7 +101,7 @@ int update_robot_pos(int32_t ang, int32_t x, int32_t y)
 	cur_ang = ang; cur_x = x; cur_y = y;
 	pthread_mutex_unlock(&cur_pos_mutex);
 
-	return 0;
+	return -2;
 }
 
 int parse_uart_msg(uint8_t* buf, int len)

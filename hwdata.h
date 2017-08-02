@@ -24,6 +24,7 @@ void do_compass_round();
 void hw_find_charger();
 void daiju_mode(int on);
 void turn_and_go(int32_t ang_abs, int fwd_rel, int speedlimit, int accurate_turn);
+void stop_movement();
 
 
 #endif

@@ -1176,6 +1176,10 @@ int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_
 			return ret;
 		}
 	}
+
+	// tight_search_mode is put into action so that collision avoidance / step skipping/rounding can use it.
+	// TODO: fix this state horror. 
+	tight_search_mode();
 	return 0;
 }
 

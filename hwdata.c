@@ -348,6 +348,18 @@ void turn_and_go(int32_t ang_abs, int fwd_rel, int speedlimit, int accurate_turn
 	send_uart(buf, 8);
 }
 
+void stop_movement()
+{
+	uint8_t buf[8];
+
+	printf("INFO: stop_movement()\n");
+
+	buf[0] = 0x84;
+	buf[1] = 0;
+	buf[2] = 0;
+	send_uart(buf, 3);
+}
+
 
 void correct_robot_pos(int32_t da, int32_t dx, int32_t dy, int id)
 {

@@ -1260,7 +1260,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 				w->pages[px][py]->units[ox][oy].latest |= UNIT_ITEM;
 				cnt_item++;
 			}
-			else if(drops[iy*MAP_PAGE_W+ix] > 2)
+			else if(drops[iy*MAP_PAGE_W+ix] > n_tofs/3)
 			{
 				w->pages[px][py]->units[ox][oy].result |= UNIT_DROP;
 				w->pages[px][py]->units[ox][oy].latest |= UNIT_DROP;
@@ -1272,7 +1272,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 				w->pages[px][py]->units[ox][oy].latest &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL | UNIT_INVISIBLE_WALL);
 				cnt_total_removal++;
 			}
-			else if(seens[iy*MAP_PAGE_W+ix] > n_tofs/2 && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
+			else if(seens[iy*MAP_PAGE_W+ix] > n_tofs/3 && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
 			{
 				w->pages[px][py]->units[ox][oy].result &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
 				w->pages[px][py]->units[ox][oy].latest &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);

@@ -198,7 +198,7 @@ void route_fsm()
 						{
 							if(check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), the_route[route_pos+1].x, the_route[route_pos+1].y))
 							{
-								printf("INFO: skipping point (%d, %d), going directly to (%d, %d)\n", the_route[route_pos].x,
+								printf("!!!!!!!!!!!  INFO: skipping point (%d, %d), going directly to (%d, %d)\n", the_route[route_pos].x,
 								       the_route[route_pos].y, the_route[route_pos+1].x, the_route[route_pos+1].y);
 								route_pos++;
 							}
@@ -216,6 +216,22 @@ void route_fsm()
 						printf("Done following the route.\n");
 						do_follow_route = 0;
 					}
+				}
+				else
+				{
+					// Check if obstacles have appeared in the map.
+					if(!check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), the_route[route_pos+1].x, the_route[route_pos+1].y))
+					{
+						printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Rerouting.\n");
+						stop_movement();
+						daiju_mode(0);
+						if(run_search() == 1)
+						{
+							printf("Routing failed in start, going to daiju mode.\n");
+							daiju_mode(1);
+						}
+					}
+
 				}
 			}
 		}
@@ -780,7 +796,7 @@ void* main_thread()
 				tofs_to_map[n_tofs_to_map] = p_tof;
 				n_tofs_to_map++;
 
-				if(n_tofs_to_map >= 15)
+				if(n_tofs_to_map >= 12)
 				{
 					map_3dtof(&world, n_tofs_to_map, tofs_to_map);
 					n_tofs_to_map = 0;

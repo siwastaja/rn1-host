@@ -1146,9 +1146,6 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
 	int32_t mid_x, mid_y;
 	tofs_avg_midpoint(n_tofs, tof_list, &mid_x, &mid_y);
 
-	printf("INFO: Avg robot midpoint is at (%d, %d)\n", mid_x, mid_y);
-
-
 	// Rotate and move 3DTOF points to absolute world coordinates, insert them into temporary (composite) map.
 	// Filter moving / unsure objects by using value closest to 0 at each point.
 

@@ -1140,11 +1140,13 @@ void tofs_avg_midpoint(int n_tofs, tof3d_scan_t** tof_list, int32_t* mid_x, int3
 }
 
 
-int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list)
+int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int32_t *my)
 {
 	printf("INFO: Mapping %d  3DTOF scans\n", n_tofs);
 	int32_t mid_x, mid_y;
 	tofs_avg_midpoint(n_tofs, tof_list, &mid_x, &mid_y);
+	*mx = mid_x;
+	*my = mid_y;
 
 	// Rotate and move 3DTOF points to absolute world coordinates, insert them into temporary (composite) map.
 	// Filter moving / unsure objects by using value closest to 0 at each point.
@@ -1504,11 +1506,11 @@ void clear_within_robot(world_t* w, pos_t pos)
 			page_coords(x,y, &idx_x, &idx_y, &offs_x, &offs_y);
 			load_1page(&world, idx_x, idx_y);
 			if((world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_WALL) ||
-			   (world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_ITEM))
+			   (world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_ITEM) ||
 			   (world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_INVISIBLE_WALL) ||
 			   (world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_3D_WALL) ||
 			   (world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_DROP) ||
-			   (world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_ITEM) ||
+			   (world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_ITEM) )
 			{
 				MINUS_SAT_0(world.pages[idx_x][idx_y]->units[offs_x][offs_y].num_obstacles);
 				world.pages[idx_x][idx_y]->units[offs_x][offs_y].result = UNIT_MAPPED;

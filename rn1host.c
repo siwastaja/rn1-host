@@ -799,7 +799,19 @@ void* main_thread()
 
 				if(n_tofs_to_map >= 12)
 				{
-					map_3dtof(&world, n_tofs_to_map, tofs_to_map);
+					int32_t mid_x, mid_y;
+					map_3dtof(&world, n_tofs_to_map, tofs_to_map, &mid_x, &mid_y);
+					int px, py, ox, oy;
+					page_coords(mid_x, mid_y, &px, &py, &ox, &oy);
+
+					for(int ix=-1; ix<=1; ix++)
+					{
+						for(int iy=-1; iy<=1; iy++)
+						{
+							gen_routing_page(&world, px+ix, py+iy);
+						}
+					}
+
 					n_tofs_to_map = 0;
 				}
 

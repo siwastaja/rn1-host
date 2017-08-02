@@ -132,7 +132,7 @@ void map_next_with_larger_search_area();
 void map_sonar(world_t* w, sonar_scan_t* p_son);
 void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, int stop_reason, int vect_valid, float vect_ang_rad);
 
-int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list);
+int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int32_t *my);
 
 
 void start_automapping_from_compass();

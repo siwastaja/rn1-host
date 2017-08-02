@@ -1252,35 +1252,39 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 
 			if(walls[iy*MAP_PAGE_W+ix] > n_tofs/2)
 			{
+				if(!(w->pages[px][py]->units[ox][oy].result & UNIT_3D_WALL)) w->changed[px][py] = 1;
 				w->pages[px][py]->units[ox][oy].result |= UNIT_3D_WALL;
 				w->pages[px][py]->units[ox][oy].latest |= UNIT_3D_WALL;
 				cnt_3dwall++;
 			}
 			else if(items[iy*MAP_PAGE_W+ix] > n_tofs/2)
 			{
+				if(!(w->pages[px][py]->units[ox][oy].result & UNIT_ITEM)) w->changed[px][py] = 1;
 				w->pages[px][py]->units[ox][oy].result |= UNIT_ITEM;
 				w->pages[px][py]->units[ox][oy].latest |= UNIT_ITEM;
 				cnt_item++;
 			}
 			else if(drops[iy*MAP_PAGE_W+ix] > n_tofs/3)
 			{
+				if(!(w->pages[px][py]->units[ox][oy].result & UNIT_DROP)) w->changed[px][py] = 1;
 				w->pages[px][py]->units[ox][oy].result |= UNIT_DROP;
 				w->pages[px][py]->units[ox][oy].latest |= UNIT_DROP;
 				cnt_drop++;
 			}
 			else if(seens[iy*MAP_PAGE_W+ix] > (2*n_tofs/3) && maybes[iy*MAP_PAGE_W+ix] == 0 && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
 			{
+				if(w->pages[px][py]->units[ox][oy].result & (UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL | UNIT_INVISIBLE_WALL)) w->changed[px][py] = 1;
 				w->pages[px][py]->units[ox][oy].result &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL | UNIT_INVISIBLE_WALL);
 				w->pages[px][py]->units[ox][oy].latest &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL | UNIT_INVISIBLE_WALL);
 				cnt_total_removal++;
 			}
 			else if(seens[iy*MAP_PAGE_W+ix] > n_tofs/3 && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
 			{
+				if(w->pages[px][py]->units[ox][oy].result & (UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL)) w->changed[px][py] = 1;
 				w->pages[px][py]->units[ox][oy].result &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
 				w->pages[px][py]->units[ox][oy].latest &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
 				cnt_removal++;
 			}
-			w->changed[px][py] = 1;
 
 			ox++;
 			if(ox >= MAP_PAGE_W) { ox=0; px++;}

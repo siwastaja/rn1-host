@@ -766,6 +766,8 @@ void* main_thread()
 				if(hmap_cnt >= 10)
 				{
 //					printf("Send hmap\n");
+					if(cur_x < -2000 || cur_x > 2000 || cur_y < -2000 || cur_y > 2000)
+						printf("DBG: illegal coords %d, %d, %d\n", cur_ang, cur_x, cur_y);
 					tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, cur_ang, cur_x, cur_y, TOF3D_HMAP_SPOT_SIZE, p_tof->objmap);
 //					printf("Done\n");
 					hmap_cnt = 0;

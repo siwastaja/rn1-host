@@ -81,7 +81,7 @@ int update_robot_pos(int32_t ang, int32_t x, int32_t y)
 	if(   x <= -1*(MAP_PAGE_W_MM*(MAP_W/2-1)) || x >= MAP_PAGE_W_MM*(MAP_W/2-1)
 	   || y <= -1*(MAP_PAGE_W_MM*(MAP_W/2-1)) || y >= MAP_PAGE_W_MM*(MAP_W/2-1) )
 	{
-		printf("ERROR: Illegal x,y mm coords (coming from HW) in update_robot_pos (%d, %d)\n", x, y);
+		printf("ERROR: Illegal x,y mm coords (coming from HW) in update_robot_pos (ang=%d, x=%d, y=%d)\n", ang, x, y);
 
 		error_cnt++;
 		if(error_cnt > 10)
@@ -115,6 +115,7 @@ int parse_uart_msg(uint8_t* buf, int len)
 			num_bytes
 			 1	uint8 start byte
 			 1	uint7 status
+			 1      uint7 id
 			 2	int14 cur_ang (at the middle point of the lidar scan)  (not used for turning the image, just to include robot coords)
 			 5	int32 cur_x   ( " " )
 			 5	int32 cur_y   ( " " )

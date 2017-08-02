@@ -152,6 +152,12 @@ int save_map_pages(world_t* w)  // returns number of changed pages
 
 void load_9pages(world_t* w, int pagex, int pagey)
 {
+	if(pagex < 1 || pagex >= MAP_W-1 || pagey < 1 || pagey >= MAP_W-1)
+	{
+		printf("ERROR: load_9pages invalid page number (%d,%d)\n", pagex, pagey);
+		return;
+	}
+
 	for(int x=-1; x<2; x++)
 	{
 		for(int y=-1; y<2; y++)

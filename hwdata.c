@@ -1,9 +1,12 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <unistd.h> // for sleep
+#include <pthread.h> // for mutexing current coords.
 
+#include "mapping.h"
 #include "datatypes.h"
 #include "uart.h"
 
@@ -69,6 +72,35 @@ sonar_scan_t* get_sonar()
 
 pwr_status_t pwr_status;
 
+
+extern int32_t cur_ang, cur_x, cur_y;
+pthread_mutex_t cur_pos_mutex = PTHREAD_MUTEX_INITIALIZER;
+void update_robot_pos(int32_t ang, int32_t x, int32_t y)
+{
+	static int error_cnt = 0;
+	if(   x <= -1*(MAP_PAGE_W_MM*(MAP_W/2-1)) || x >= MAP_PAGE_W_MM*(MAP_W/2-1)
+	   || y <= -1*(MAP_PAGE_W_MM*(MAP_W/2-1)) || y >= MAP_PAGE_W_MM*(MAP_W/2-1) )
+	{
+		printf("ERROR: Illegal x,y mm coords (coming from HW) in update_robot_pos (%d, %d)\n", x, y);
+
+		error_cnt++;
+		if(error_cnt > 10)
+		{
+			printf("ERROR: Illegal coords seem to be stuck. Giving up.\n");
+			exit(1);
+		}
+
+		return;
+	}
+	if(error_cnt) error_cnt--;
+
+	printf("."); fflush(stdout);
+
+	pthread_mutex_lock(&cur_pos_mutex);
+	cur_ang = ang; cur_x = x; cur_y = y;
+	pthread_mutex_unlock(&cur_pos_mutex);
+}
+
 int parse_uart_msg(uint8_t* buf, int len)
 {
 	switch(buf[0])
@@ -127,6 +159,8 @@ int parse_uart_msg(uint8_t* buf, int len)
 			int mid_x = lid->robot_pos.x = I7x5_I32(buf[5],buf[6],buf[7],buf[8],buf[9]);
 			int mid_y = lid->robot_pos.y = I7x5_I32(buf[10],buf[11],buf[12],buf[13],buf[14]);
 
+			update_robot_pos(lid->robot_pos.ang, mid_x, mid_y);
+
 			for(int i = 0; i < 360; i++)
 			{
 				int x = I14x2_I16(buf[22+4*i+0], buf[22+4*i+1])>>2;
@@ -171,6 +205,14 @@ int parse_uart_msg(uint8_t* buf, int len)
 
 			sonar_wr++; if(sonar_wr >= SONAR_RING_BUF_LEN) sonar_wr = 0;
 
+		}
+		break;
+
+		case 0xa0: // current coords without lidar image
+		{
+			update_robot_pos((I7I7_U16_lossy(buf[2], buf[3]))<<16, 
+				I7x5_I32(buf[4],buf[5],buf[6],buf[7],buf[8]),
+				I7x5_I32(buf[9],buf[10],buf[11],buf[12],buf[13]));
 		}
 		break;
 

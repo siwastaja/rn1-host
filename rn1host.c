@@ -54,12 +54,9 @@ uint32_t robot_id = 0xacdcabba; // Hopefully unique identifier for the robot.
 extern world_t world;
 #define BUFLEN 2048
 
-pthread_mutex_t cur_pos_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-int32_t cur_ang;
+int32_t cur_ang, cur_x, cur_y;
 int32_t cur_compass_ang;
 int compass_round_active;
-int32_t cur_x, cur_y;
 int32_t dest_x, dest_y;
 
 typedef struct
@@ -839,11 +836,6 @@ void* main_thread()
 
 				int idx_x, idx_y, offs_x, offs_y;
 	//			printf("INFO: Got lidar scan.\n");
-
-				pthread_mutex_lock(&cur_pos_mutex);
-				cur_ang = p_lid->robot_pos.ang; cur_x = p_lid->robot_pos.x; cur_y = p_lid->robot_pos.y;
-				pthread_mutex_unlock(&cur_pos_mutex);
-//				printf("INFO: cur_ang = %6.1fdeg\n", ANG32TOFDEG(cur_ang));
 
 				static int curpos_send_cnt = 0;
 				curpos_send_cnt++;

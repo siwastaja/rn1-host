@@ -383,6 +383,7 @@ void route_fsm()
 		{
 			if(cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags)
 			{
+				printf("INFO: Micronavi STOP, entering lookaround_creep_reroute\n");
 				lookaround_creep_reroute = 1;
 			}
 			else

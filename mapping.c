@@ -996,8 +996,8 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 	if(search_area_size == 0)
 	{
-		a_range = 4;
-		xy_range = 360;
+		a_range = 3; // was 4
+		xy_range = 320; // was 360
 		xy_step = 40;
 		a_step = 1*ANG_1_DEG;
 	}

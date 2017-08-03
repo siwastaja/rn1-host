@@ -529,14 +529,18 @@ void* main_thread()
 
 	srand(time(NULL));
 
+	send_keepalive();
 	daiju_mode(0);
 	correct_robot_pos(0,0,0, pos_corr_id); // To set the pos_corr_id.
 	turn_and_go_rel_rel(-5*ANG_1_DEG, 0, 25, 1);
 	sleep(1);
+	send_keepalive();
 	turn_and_go_rel_rel(10*ANG_1_DEG, 0, 25, 1);
 	sleep(1);
+	send_keepalive();
 	turn_and_go_rel_rel(-5*ANG_1_DEG, 40, 25, 1);
 	sleep(1);
+	send_keepalive();
 	turn_and_go_rel_rel(0, -40, 25, 1);
 	sleep(1);
 
@@ -1009,7 +1013,7 @@ void* main_thread()
 				static int hmap_cnt = 0;
 				hmap_cnt++;
 
-				if(hmap_cnt >= 10)
+				if(hmap_cnt >= 15)
 				{
 //					printf("Send hmap\n");
 					tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, cur_ang, cur_x, cur_y, TOF3D_HMAP_SPOT_SIZE, p_tof->objmap);

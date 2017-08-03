@@ -783,6 +783,7 @@ void* main_thread()
 
 				printf("  ---> DEST params: X=%d Y=%d backmode=%d\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
 				move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode, 0, cur_speedlim, 1);
+				find_charger_state = 0;
 				do_follow_route = 0;
 			}
 			else if(ret == TCP_CR_ROUTE_MID)
@@ -793,6 +794,7 @@ void* main_thread()
 
 				motors_on = 1;
 				daiju_mode(0);
+				find_charger_state = 0;
 
 				if(run_search() == 1)
 				{

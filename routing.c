@@ -141,12 +141,9 @@ static int test_robot_turn(int x, int y, float start, float end)
 
 	if(dir_cur < 0) dir_cur = 0; else if(dir_cur > 31) dir_cur = 31;
 	if(dir_end < 0) dir_end = 0; else if(dir_end > 31) dir_end = 31;
-//	printf("test_robot_turn()  start=%.4f  end=%.4f  da=%.4f,  cw=%d\n", start, end, da, cw);
 
 	while(dir_cur != dir_end)
 	{
-//		printf("test_robot_turn(): dir_cur = %d, dir_end=%d\n", dir_cur, dir_end);
-
 		if(check_hit(x, y, dir_cur))
 			return 0;
 
@@ -158,6 +155,52 @@ static int test_robot_turn(int x, int y, float start, float end)
 	}
 
 	return 1;
+}
+
+static int test_robot_turn_hitcnt(int x, int y, float start, float end)
+{
+	int cw = 0;
+
+	while(start >= 2.0*M_PI) start -= 2.0*M_PI;
+	while(start < 0.0) start += 2.0*M_PI;
+
+	while(end >= 2.0*M_PI) end -= 2.0*M_PI;
+	while(end < 0.0) end += 2.0*M_PI;
+
+	// Calc for CCW (positive angle):
+	float da = end - start;
+	while(da >= 2.0*M_PI) da -= 2.0*M_PI;
+	while(da < 0.0) da += 2.0*M_PI;
+
+	if(da > M_PI)
+	{
+		// CCW wasn't fine, turn CW
+		cw = 1;
+		da = start - end;
+		while(da >= 2.0*M_PI) da -= 2.0*M_PI;
+		while(da < 0.0) da += 2.0*M_PI;
+	}
+
+	int dir_cur = (start/(2.0*M_PI) * 32.0);
+	int dir_end = (end/(2.0*M_PI) * 32.0);
+
+	if(dir_cur < 0) dir_cur = 0; else if(dir_cur > 31) dir_cur = 31;
+	if(dir_end < 0) dir_end = 0; else if(dir_end > 31) dir_end = 31;
+
+	int hitcnt = 0;
+
+	while(dir_cur != dir_end)
+	{
+		hitcnt += check_hit_hitcnt(x, y, dir_cur);
+
+		if(cw) dir_cur--; else dir_cur++;
+
+		if(dir_cur < 0) dir_cur = 31;
+		else if(dir_cur > 31) dir_cur = 0;
+
+	}
+
+	return hitcnt;
 }
 
 static int line_of_sight(route_xy_t p1, route_xy_t p2)
@@ -1375,6 +1418,25 @@ int check_direct_route(int32_t start_ang, int start_x, int start_y, int end_x, i
 	return 0;
 }
 
+int check_direct_route_hitcnt(int32_t start_ang, int start_x, int start_y, int end_x, int end_y)
+{
+	int dx = end_x - start_x;
+	int dy = end_y - start_y;
+
+	float end_ang = atan2(dy, dx);
+	if(end_ang < 0.0) end_ang += 2.0*M_PI;
+
+	int hitcnt = 0;
+
+	hitcnt += test_robot_turn_hitcnt(start_x, start_y, ANG32TORAD(start_ang), end_ang);
+
+	route_xy_t start = {start_x, start_y};
+	route_xy_t end = {end_x, end_y};
+	hitcnt += line_of_sight(start, end);
+
+	return hitcnt;
+}
+
 
 int check_direct_route_non_turning(int start_x, int start_y, int end_x, int end_y)
 {
@@ -1410,24 +1472,25 @@ int check_turn(int32_t start_ang, int start_x, int start_y, int end_x, int end_y
 
 int test_robot_turn_mm(int start_x, int start_y, float start_ang_rad, float end_ang_rad)
 {
-//	printf("test_robot_turn_mm(%d, %d, %f, %f)\n", start_x, start_y, start_ang_rad, end_ang_rad);
-
 	return test_robot_turn(MM_TO_UNIT(start_x), MM_TO_UNIT(start_y), start_ang_rad, end_ang_rad);
 }
 
 
 int check_direct_route_mm(int32_t start_ang, int start_x, int start_y, int end_x, int end_y)
 {
-//	printf("check_direct_route_mm(%d, %d, %d, %d, %d)\n", start_ang, start_x, start_y, end_x, end_y);
-
 	return check_direct_route(start_ang, MM_TO_UNIT(start_x), MM_TO_UNIT(start_y), MM_TO_UNIT(end_x), MM_TO_UNIT(end_y));
 }
 
 int check_direct_route_non_turning_mm(int start_x, int start_y, int end_x, int end_y)
 {
-//	printf("check_direct_route_non_turning_mm(%d, %d, %d, %d)\n", start_x, start_y, end_x, end_y);
 	return check_direct_route_non_turning(MM_TO_UNIT(start_x), MM_TO_UNIT(start_y), MM_TO_UNIT(end_x), MM_TO_UNIT(end_y));
 }
+
+int check_direct_route_hitcnt_mm(int32_t start_ang, int start_x, int start_y, int end_x, int end_y)
+{
+	return check_direct_route_hitcnt(start_ang, MM_TO_UNIT(start_x), MM_TO_UNIT(start_y), MM_TO_UNIT(end_x), MM_TO_UNIT(end_y));
+}
+
 
 int check_direct_route_non_turning_hitcnt_mm(int start_x, int start_y, int end_x, int end_y)
 {

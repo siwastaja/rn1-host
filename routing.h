@@ -36,6 +36,7 @@ int check_direct_route_non_turning_mm(int start_x, int start_y, int end_x, int e
 int check_turn_mm(int32_t start_ang, int start_x, int start_y, int end_x, int end_y);
 int test_robot_turn_mm(int start_x, int start_y, float start_ang_rad, float end_ang_rad);
 int check_direct_route_non_turning_hitcnt_mm(int start_x, int start_y, int end_x, int end_y);
+int check_direct_route_hitcnt_mm(int32_t start_ang, int start_x, int start_y, int end_x, int end_y);
 
 
 void routing_set_world(world_t *w);

@@ -462,43 +462,50 @@ void route_fsm()
 
 							if(hitcnt > 0)
 							{
-								// See what happens if we steer left or right, doing a 45 degree maneuver.
+								// See what happens if we steer left or right
 
 								int best_hitcnt = 9999;
 								int best_drift_idx = 0;
+								int best_angle_idx = 0;
 								int best_new_x = 0, best_new_y = 0;
 
-								const int side_drifts[12] = {240,-240,200,-200,160,-160,120,-120,80,-80,40,-40};
-								for(int drift_idx=0; drift_idx<12; drift_idx++)
+								const int side_drifts[14] = {320,-320, 240,-240,200,-200,160,-160,120,-120,80,-80,40,-40};
+								const float drift_angles[5] = {M_PI/4.0, M_PI/6.0, M_PI/8.0, M_PI/12.0, M_PI/16.0};
+
+								for(int angle_idx=0; angle_idx<5; angle_idx++)
 								{
-									int new_x, new_y;
-									if(side_drifts[drift_idx] > 0)
+									for(int drift_idx=0; drift_idx<14; drift_idx++)
 									{
-										new_x = cur_x + cos(ANG32TORAD(cur_ang)+M_PI/4.0)*side_drifts[drift_idx];
-										new_y = cur_y + sin(ANG32TORAD(cur_ang)+M_PI/4.0)*side_drifts[drift_idx];
-									}
-									else
-									{
-										new_x = cur_x + cos(ANG32TORAD(cur_ang)-M_PI/4.0)*(-1*side_drifts[drift_idx]);
-										new_y = cur_y + sin(ANG32TORAD(cur_ang)-M_PI/4.0)*(-1*side_drifts[drift_idx]);
-									}
-									int drifted_hitcnt = check_direct_route_non_turning_hitcnt_mm(new_x, new_y, the_route[route_pos].x, the_route[route_pos].y);									
-									if(drifted_hitcnt <= best_hitcnt)
-									{
-										best_hitcnt = drifted_hitcnt;
-										best_drift_idx = drift_idx;
-										best_new_x = new_x; best_new_y = new_y;
+										int new_x, new_y;
+										if(side_drifts[drift_idx] > 0)
+										{
+											new_x = cur_x + cos(ANG32TORAD(cur_ang)+drift_angles[angle_idx])*side_drifts[drift_idx];
+											new_y = cur_y + sin(ANG32TORAD(cur_ang)+drift_angles[angle_idx])*side_drifts[drift_idx];
+										}
+										else
+										{
+											new_x = cur_x + cos(ANG32TORAD(cur_ang)-drift_angles[angle_idx])*(-1*side_drifts[drift_idx]);
+											new_y = cur_y + sin(ANG32TORAD(cur_ang)-drift_angles[angle_idx])*(-1*side_drifts[drift_idx]);
+										}
+										int drifted_hitcnt = check_direct_route_hitcnt_mm(cur_ang, new_x, new_y, the_route[route_pos].x, the_route[route_pos].y);
+										if(drifted_hitcnt <= best_hitcnt)
+										{
+											best_hitcnt = drifted_hitcnt;
+											best_drift_idx = drift_idx;
+											best_angle_idx = angle_idx;
+											best_new_x = new_x; best_new_y = new_y;
+										}
 									}
 								}
 
 								if(best_hitcnt < hitcnt)
 								{
-									printf("!!!!!!!!!!   INFO: Steering is needed to maintain line-of-sight, hitcnt now = %d, optimum 45 deg drift = %d mm (hitcnt=%d)\n", 
-										hitcnt, side_drifts[best_drift_idx], best_hitcnt);
+									printf("!!!!!!!!!!   INFO: Steering is needed to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d)\n", 
+										hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt);
 
-									// Do a 45 deg steer
-									id_cnt = 0;
-									move_to(best_new_x, best_new_y, 0, id_cnt, 12, 0);
+									// Do the steer
+									id_cnt = 0; // id0 is reserved for special maneuvers during route following.
+									move_to(best_new_x, best_new_y, 0, (id_cnt<<4) | ((route_pos)&0b1111), 12, 0);
 
 								}
 								else

@@ -289,8 +289,9 @@ void route_fsm()
 	}
 	else if(lookaround_creep_reroute == 7)
 	{
+		static double time_interval = 2.5;
 		double stamp;
-		if( (stamp=subsec_timestamp()) > timestamp+1.5)
+		if( (stamp=subsec_timestamp()) > timestamp+time_interval)
 		{
 			int dx = the_route[route_pos].x - cur_x;
 			int dy = the_route[route_pos].y - cur_y;
@@ -304,14 +305,17 @@ void route_fsm()
 
 				if(check_direct_route_non_turning_mm(cur_x, cur_y, dest_x, dest_y))
 				{
-					printf("INFO: Can creep %d mm towards the next waypoint, doing it", creep_amount);
-					turn_and_go_abs_rel(RADTOANG32(ang) + ((creep_cnt&1)?(5*ANG_1_DEG):(-5*ANG_1_DEG)), creep_amount, 18, 1);
+					printf("INFO: Can creep %d mm towards the next waypoint, doing it\n", creep_amount);
+					time_interval = 2.5;
+					turn_and_go_abs_rel(RADTOANG32(ang) + ((creep_cnt&1)?(5*ANG_1_DEG):(-5*ANG_1_DEG)), creep_amount, 15, 1);
 				}
 				else
 				{
-					printf("INFO: Can't creep %d mm towards the next waypoint, creeping 50 mm carefully", creep_amount);
-					turn_and_go_abs_rel(RADTOANG32(ang), 50, 10, 1);
+					printf("INFO: Can't creep %d mm towards the next waypoint, turning & creeping 25 mm carefully\n", creep_amount);
+					time_interval = 4.0;
+					turn_and_go_abs_rel(RADTOANG32(ang) + ((creep_cnt&1)?(10*ANG_1_DEG):(-10*ANG_1_DEG)), 25, 7, 1);
 				}
+				creep_cnt++;
 			}
 			else
 			{

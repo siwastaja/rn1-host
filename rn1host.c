@@ -160,9 +160,11 @@ void route_fsm()
 			printf("INFO: Direct line-of-sight to the next waypoint, we are done, resuming following the route.\n");
 			lookaround_creep_reroute = 0;
 			do_follow_route = 1;
+			id_cnt++; if(id_cnt > 7) id_cnt = 0;
 			move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), cur_speedlim, 0);
 		}
 	}
+
 	if(lookaround_creep_reroute == 1)
 	{
 		do_follow_route = 0;

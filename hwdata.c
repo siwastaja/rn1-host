@@ -379,7 +379,7 @@ void limit_speed(int speedlimit)
 {
 	uint8_t buf[3];
 
-	printf("INFO: limit_speed(%d)\n", speedlimit);
+//	printf("INFO: limit_speed(%d)\n", speedlimit);
 
 	buf[0] = 0x85;
 	buf[1] = speedlimit&0x7f;

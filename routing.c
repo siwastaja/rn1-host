@@ -74,6 +74,44 @@ static int check_hit(int x, int y, int direction)
 	return 0;
 }
 
+static int check_hit_hitcnt(int x, int y, int direction)
+{
+//	printf("check_hit(%d, %d, %d)\n", x, y, direction);
+
+	int hit_cnt = 0;
+
+	for(int chk_x=0; chk_x<ROBOT_SHAPE_WINDOW; chk_x++)
+	{
+		int pageidx_x, pageidx_y, pageoffs_x, pageoffs_y;
+		page_coords_from_unit_coords(x-ROBOT_SHAPE_WINDOW/2+chk_x, y-ROBOT_SHAPE_WINDOW/2, &pageidx_x, &pageidx_y, &pageoffs_x, &pageoffs_y);
+
+		int yoffs = pageoffs_y/32;
+		int yoffs_remain = pageoffs_y - yoffs*32;
+
+		if(!routing_world->rpages[pageidx_x][pageidx_y]) // out of bounds (not allocated) - give up instantly
+		{
+			printf("rpages[%d][%d] not allocated\n", pageidx_x, pageidx_y);
+			printf("x = %d  y = %d  direction = %d\n", x, y, direction);
+			exit(1);
+		}
+
+		// Now the quick comparison, which could be even faster, but we don't want to mess up the compatibility between
+		// big endian / little endian systems.
+
+		uint64_t shape = (uint64_t)robot_shapes[direction][chk_x] << (32-yoffs_remain);
+
+		if((((uint64_t)routing_world->rpages[pageidx_x][pageidx_y]->obst_u32[pageoffs_x][yoffs]<<32) |
+		   (uint64_t)routing_world->rpages[pageidx_x][pageidx_y]->obst_u32[pageoffs_x][yoffs+1])
+		      & shape)
+		{
+			hit_cnt++;
+		}
+	}
+
+	return hit_cnt;
+}
+
+
 static int test_robot_turn(int x, int y, float start, float end)
 {
 	int cw = 0;
@@ -166,6 +204,50 @@ static int line_of_sight(route_xy_t p1, route_xy_t p2)
 
 	return 1;
 }
+
+static int line_of_sight_hitcnt(route_xy_t p1, route_xy_t p2)
+{
+	int dx = p2.x - p1.x;
+	int dy = p2.y - p1.y;
+
+	float step = ((robot_shape_x_len-10.0)/MAP_UNIT_W);
+
+	float len = sqrt(sq(dx) + sq(dy));
+
+	float pos = 0.0;
+	int terminate = 0;
+
+	float ang = atan2(dy, dx);
+	if(ang < 0.0) ang += 2.0*M_PI;
+	int dir = (ang/(2.0*M_PI) * 32.0)+0.5;
+	if(dir < 0) dir = 0; else if(dir > 31) dir = 31;
+
+	int hit_cnt = 0;
+
+//	printf("ang = %.4f  dir = %d \n", ang, dir);
+
+	while(1)
+	{
+		int x = (cos(ang)*pos + (float)p1.x)+0.5;
+		int y = (sin(ang)*pos + (float)p1.y)+0.5;
+
+//		printf("check_hit(%d, %d, %d) = ", x, y, dir);
+
+		hit_cnt += check_hit_hitcnt(x, y, dir);
+//		printf("0\n");
+
+		if(terminate) break;
+		pos += step;
+		if(pos > len)
+		{
+			pos = len;
+			terminate = 1;
+		}
+	}
+
+	return hit_cnt;
+}
+
 
 uint32_t minimap[MINIMAP_SIZE][MINIMAP_SIZE/32 + 1];
 
@@ -581,7 +663,13 @@ static void draw_robot_shape(int a_idx, float ang)
 	float middle_xoffs; // from o_x, o_y to the robot middle point.
 	float middle_yoffs = -0.0;
 
-	if(tight_shapes == 1)
+	if(tight_shapes == 2)
+	{
+		robot_xs = (524.0 - 100.0);
+		robot_ys = (480.0 - 100.0);
+		middle_xoffs = -120.0;
+	}
+	else if(tight_shapes == 1)
 	{
 		robot_xs = (524.0 - 40.0);
 		robot_ys = (480.0 - 40.0);
@@ -710,6 +798,12 @@ static void normal_search_mode()
 static void tight_search_mode()
 {
 	tight_shapes = 1;
+	gen_robot_shapes();	
+}
+
+static void extra_tight_search_mode()
+{
+	tight_shapes = 2;
 	gen_robot_shapes();	
 }
 
@@ -1214,9 +1308,9 @@ int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_
 		}
 	}
 
-	// tight_search_mode is put into action so that collision avoidance / step skipping/rounding can use it.
+	// extra_tight_search_mode is put into action so that collision avoidance / step skipping/rounding can use it.
 	// TODO: fix this state horror. 
-	tight_search_mode();
+	extra_tight_search_mode();
 	return 0;
 }
 
@@ -1295,6 +1389,14 @@ int check_direct_route_non_turning(int start_x, int start_y, int end_x, int end_
 	return 0;
 }
 
+int check_direct_route_non_turning_hitcnt(int start_x, int start_y, int end_x, int end_y)
+{
+	route_xy_t start = {start_x, start_y};
+	route_xy_t end = {end_x, end_y};
+	return line_of_sight_hitcnt(start, end);
+}
+
+
 int check_turn(int32_t start_ang, int start_x, int start_y, int end_x, int end_y)
 {
 	int dx = end_x - start_x;
@@ -1325,6 +1427,11 @@ int check_direct_route_non_turning_mm(int start_x, int start_y, int end_x, int e
 {
 //	printf("check_direct_route_non_turning_mm(%d, %d, %d, %d)\n", start_x, start_y, end_x, end_y);
 	return check_direct_route_non_turning(MM_TO_UNIT(start_x), MM_TO_UNIT(start_y), MM_TO_UNIT(end_x), MM_TO_UNIT(end_y));
+}
+
+int check_direct_route_non_turning_hitcnt_mm(int start_x, int start_y, int end_x, int end_y)
+{
+	return check_direct_route_non_turning_hitcnt(MM_TO_UNIT(start_x), MM_TO_UNIT(start_y), MM_TO_UNIT(end_x), MM_TO_UNIT(end_y));
 }
 
 int check_turn_mm(int32_t start_ang, int start_x, int start_y, int end_x, int end_y)

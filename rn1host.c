@@ -160,6 +160,7 @@ void route_fsm()
 			printf("INFO: Direct line-of-sight to the next waypoint, we are done, resuming following the route.\n");
 			lookaround_creep_reroute = 0;
 			do_follow_route = 1;
+			move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), cur_speedlim, 0);
 		}
 	}
 	if(lookaround_creep_reroute == 1)
@@ -421,11 +422,22 @@ void route_fsm()
 				else
 				{
 					// Check if obstacles have appeared in the map.
-					if(the_route[route_pos].backmode == 0 && !check_direct_route_non_turning_mm(/*cur_ang,*/ cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y))
+					if(the_route[route_pos].backmode == 0)
 					{
-						printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Rerouting.\n");
-						stop_movement();
-						lookaround_creep_reroute = 1;
+						int hitcnt = check_direct_route_non_turning_hitcnt_mm(/*cur_ang,*/ cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y);
+
+						if(hitcnt > 0 && hitcnt < 4)
+						{
+							printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has 1..3 obstacles, slowing down.\n");
+							cur_speedlim = 12;
+							limit_speed(cur_speedlim);
+						}
+						else if(hitcnt > 3)
+						{
+							printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Trying to solve.\n");
+							stop_movement();
+							lookaround_creep_reroute = 1;
+						}
 					}
 
 				}

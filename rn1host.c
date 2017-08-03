@@ -30,8 +30,8 @@
 
 tof3d_scan_t* get_tof3d(void);
 
-int max_speedlim = 30;
-int cur_speedlim = 30;
+int max_speedlim = 35;
+int cur_speedlim = 35;
 
 double subsec_timestamp()
 {
@@ -155,7 +155,7 @@ void route_fsm()
 
 	if(lookaround_creep_reroute)
 	{
-		if(check_direct_route_non_turning(cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y))
+		if(check_direct_route_non_turning_mm(cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y))
 		{
 			printf("INFO: Direct line-of-sight to the next waypoint, we are done, resuming following the route.\n");
 			lookaround_creep_reroute = 0;
@@ -302,7 +302,7 @@ void route_fsm()
 				int dest_x = cur_x + cos(ang)*creep_amount;
 				int dest_y = cur_y + sin(ang)*creep_amount;
 
-				if(check_direct_route_non_turning(cur_x, cur_y, dest_x, dest_y))
+				if(check_direct_route_non_turning_mm(cur_x, cur_y, dest_x, dest_y))
 				{
 					printf("INFO: Can creep %d mm towards the next waypoint, doing it", creep_amount);
 					turn_and_go_abs_rel(RADTOANG32(ang) + ((creep_cnt&1)?(5*ANG_1_DEG):(-5*ANG_1_DEG)), creep_amount, 18, 1);
@@ -417,7 +417,7 @@ void route_fsm()
 				else
 				{
 					// Check if obstacles have appeared in the map.
-					if(the_route[route_pos].backmode == 0 && !check_direct_route_non_turning(/*cur_ang,*/ cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y))
+					if(the_route[route_pos].backmode == 0 && !check_direct_route_non_turning_mm(/*cur_ang,*/ cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y))
 					{
 						printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Rerouting.\n");
 						stop_movement();
@@ -990,33 +990,33 @@ void* main_thread()
 
 				if(obstacle_levels[2] > 100)
 				{
-					if(cur_speedlim > 10)
+					if(cur_speedlim > 12)
 					{
-						cur_speedlim = 10;
+						cur_speedlim = 12;
 						limit_speed(cur_speedlim);
 					}
 				}
 				else if(obstacle_levels[2] > 7)
 				{
-					if(cur_speedlim > 14)
+					if(cur_speedlim > 16)
 					{
-						cur_speedlim = 14;
+						cur_speedlim = 16;
 						limit_speed(cur_speedlim);
 					}
 				}
 				else if(obstacle_levels[1] > 70)
 				{
-					if(cur_speedlim > 20)
+					if(cur_speedlim > 22)
 					{
-						cur_speedlim = 20;
+						cur_speedlim = 22;
 						limit_speed(cur_speedlim);
 					}
 				}
 				else if(obstacle_levels[1] > 7)
 				{
-					if(cur_speedlim > 25)
+					if(cur_speedlim > 28)
 					{
-						cur_speedlim = 25;
+						cur_speedlim = 28;
 						limit_speed(cur_speedlim);
 					}
 				}

@@ -56,7 +56,6 @@ static int check_hit(int x, int y, int direction)
 			printf("rpages[%d][%d] not allocated\n", pageidx_x, pageidx_y);
 			printf("x = %d  y = %d  direction = %d\n", x, y, direction);
 			exit(1);
-			return 1;
 		}
 
 		// Now the quick comparison, which could be even faster, but we don't want to mess up the compatibility between
@@ -1309,21 +1308,27 @@ int check_turn(int32_t start_ang, int start_x, int start_y, int end_x, int end_y
 
 int test_robot_turn_mm(int start_x, int start_y, float start_ang_rad, float end_ang_rad)
 {
+//	printf("test_robot_turn_mm(%d, %d, %f, %f)\n", start_x, start_y, start_ang_rad, end_ang_rad);
+
 	return test_robot_turn(MM_TO_UNIT(start_x), MM_TO_UNIT(start_y), start_ang_rad, end_ang_rad);
 }
 
 
 int check_direct_route_mm(int32_t start_ang, int start_x, int start_y, int end_x, int end_y)
 {
+//	printf("check_direct_route_mm(%d, %d, %d, %d, %d)\n", start_ang, start_x, start_y, end_x, end_y);
+
 	return check_direct_route(start_ang, MM_TO_UNIT(start_x), MM_TO_UNIT(start_y), MM_TO_UNIT(end_x), MM_TO_UNIT(end_y));
 }
 
 int check_direct_route_non_turning_mm(int start_x, int start_y, int end_x, int end_y)
 {
+//	printf("check_direct_route_non_turning_mm(%d, %d, %d, %d)\n", start_x, start_y, end_x, end_y);
 	return check_direct_route_non_turning(MM_TO_UNIT(start_x), MM_TO_UNIT(start_y), MM_TO_UNIT(end_x), MM_TO_UNIT(end_y));
 }
 
 int check_turn_mm(int32_t start_ang, int start_x, int start_y, int end_x, int end_y)
 {
+//	printf("check_turn_mm(%d, %d, %d, %d, %d)\n", start_ang, start_x, start_y, end_x, end_y);
 	return check_turn(start_ang, MM_TO_UNIT(start_x), MM_TO_UNIT(start_y), MM_TO_UNIT(end_x), MM_TO_UNIT(end_y));
 }

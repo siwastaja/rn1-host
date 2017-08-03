@@ -677,7 +677,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 				val = TOF3D_SMALL_ITEM;
 				obst_cnts[nearness] += 4;
 			}
-			else if(hmap[sx][sy] > 100 || hmap_avgd[sx][sy] > 15)
+			else if(hmap[sx][sy] > 105 || hmap_avgd[sx][sy] > 20)
 			{
 				val = TOF3D_POSSIBLE_ITEM;
 				obst_cnts[nearness] += 1;
@@ -695,12 +695,12 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 					}
 				}
 
-				if(diffsum > 100)
+				if(diffsum > 120)
 				{
 					val = TOF3D_SMALL_ITEM;
 					obst_cnts[nearness] += 4;
 				}
-				else if(diffsum > 80)
+				else if(diffsum > 100)
 				{
 					val = TOF3D_POSSIBLE_ITEM;
 					obst_cnts[nearness] += 1;

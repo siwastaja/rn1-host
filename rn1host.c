@@ -988,34 +988,45 @@ void* main_thread()
 				obstacle_levels[2] = tof3d_obstacle_levels[0];
 				pthread_mutex_unlock(&cur_pos_mutex);
 
-				if(obstacle_levels[2] > 200 && cur_speedlim > 10)
+				if(obstacle_levels[2] > 100)
 				{
-					cur_speedlim = 10;
-					printf("INFO: 3DTOF: Limiting speed to %d!\n", cur_speedlim);
-					limit_speed(cur_speedlim);
+					if(cur_speedlim > 10)
+					{
+						cur_speedlim = 10;
+						limit_speed(cur_speedlim);
+					}
 				}
-				else if(obstacle_levels[2] > 30 && cur_speedlim > 14)
+				else if(obstacle_levels[2] > 7)
 				{
-					cur_speedlim = 14;
-					printf("INFO: 3DTOF: Limiting speed to %d!\n", cur_speedlim);
-					limit_speed(cur_speedlim);
+					if(cur_speedlim > 14)
+					{
+						cur_speedlim = 14;
+						limit_speed(cur_speedlim);
+					}
 				}
-				else if(obstacle_levels[1] > 70 && cur_speedlim > 20)
+				else if(obstacle_levels[1] > 70)
 				{
-					cur_speedlim = 20;
-					printf("INFO: 3DTOF: Limiting speed to %d!\n", cur_speedlim);
-					limit_speed(cur_speedlim);
+					if(cur_speedlim > 20)
+					{
+						cur_speedlim = 20;
+						limit_speed(cur_speedlim);
+					}
 				}
-				else if(obstacle_levels[1] > 30 && cur_speedlim > 25)
+				else if(obstacle_levels[1] > 7)
 				{
-					cur_speedlim = 25;
-					printf("INFO: 3DTOF: Limiting speed to %d!\n", cur_speedlim);
-					limit_speed(cur_speedlim);
+					if(cur_speedlim > 25)
+					{
+						cur_speedlim = 25;
+						limit_speed(cur_speedlim);
+					}
 				}
 				else
 				{
-					if(cur_speedlim < max_speedlim) cur_speedlim++;
-					limit_speed(cur_speedlim);
+					if(cur_speedlim < max_speedlim)
+					{
+						cur_speedlim++;
+						limit_speed(cur_speedlim);
+					}
 				}
 			}
 		}

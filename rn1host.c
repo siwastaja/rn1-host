@@ -296,7 +296,7 @@ void route_fsm()
 			int dx = the_route[route_pos].x - cur_x;
 			int dy = the_route[route_pos].y - cur_y;
 			int dist = sqrt(sq(dx)+sq(dy));
-			if(dist > 200 && creep_cnt < 10)
+			if(dist > 200 && creep_cnt < 7)
 			{
 				float ang = atan2(dy, dx) /*<- ang to dest*/;
 				int creep_amount = 150;
@@ -311,9 +311,9 @@ void route_fsm()
 				}
 				else
 				{
-					printf("INFO: Can't creep %d mm towards the next waypoint, turning & creeping 25 mm carefully\n", creep_amount);
+					printf("INFO: Can't creep %d mm towards the next waypoint, turning & creeping 50 mm carefully\n", creep_amount);
 					time_interval = 4.0;
-					turn_and_go_abs_rel(RADTOANG32(ang) + ((creep_cnt&1)?(10*ANG_1_DEG):(-10*ANG_1_DEG)), 25, 7, 1);
+					turn_and_go_abs_rel(RADTOANG32(ang) + ((creep_cnt&1)?(10*ANG_1_DEG):(-10*ANG_1_DEG)), 50, 7, 1);
 				}
 				creep_cnt++;
 			}

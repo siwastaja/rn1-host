@@ -78,7 +78,7 @@ int do_follow_route = 0;
 int lookaround_creep_reroute = 0;
 int route_pos = 0;
 int start_route = 0;
-int id_cnt = 0;
+int id_cnt = 1;
 int good_time_for_lidar_mapping = 0;
 
 #define sq(x) ((x)*(x))
@@ -140,7 +140,7 @@ int run_search()
 		do_follow_route = 1;
 		start_route = 1;
 		route_pos = 0;
-		id_cnt++; if(id_cnt > 7) id_cnt = 0;
+		id_cnt++; if(id_cnt > 7) id_cnt = 1;
 	}
 	else do_follow_route = 0;
 
@@ -160,7 +160,7 @@ void route_fsm()
 			printf("INFO: Direct line-of-sight to the next waypoint, we are done, resuming following the route.\n");
 			lookaround_creep_reroute = 0;
 			do_follow_route = 1;
-			id_cnt++; if(id_cnt > 7) id_cnt = 0;
+			id_cnt++; if(id_cnt > 7) id_cnt = 1;
 			move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), cur_speedlim, 0);
 		}
 	}
@@ -386,6 +386,27 @@ void route_fsm()
 				printf("INFO: Micronavi STOP, entering lookaround_creep_reroute\n");
 				lookaround_creep_reroute = 1;
 			}
+			else if(id_cnt == 0) // Zero id move is a special move during route following
+			{
+				if(cur_xymove.remaining < 30)
+				{
+					while(the_route[route_pos].backmode == 0 && route_pos < the_route_len-1)
+					{
+						if(check_direct_route_mm(cur_ang, cur_x, cur_y, the_route[route_pos+1].x, the_route[route_pos+1].y))
+						{
+							printf("!!!!!!!!!!!  INFO: Maneuver done; but skipping point (%d, %d), going directly to (%d, %d)\n", the_route[route_pos].x,
+							       the_route[route_pos].y, the_route[route_pos+1].x, the_route[route_pos+1].y);
+							route_pos++;
+						}
+						else
+						{
+							break;
+						}
+					}
+					printf("INFO: Maneuver done, redo the waypoint, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
+					move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), cur_speedlim, 0);
+				}
+			}
 			else
 			{
 				if(cur_xymove.remaining < 250)
@@ -413,12 +434,12 @@ void route_fsm()
 								break;
 							}
 						}
-						printf("Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
+						printf("INFO: Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
 						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), cur_speedlim, 0);
 					}
 					else
 					{
-						printf("Done following the route.\n");
+						printf("INFO: Done following the route.\n");
 						do_follow_route = 0;
 					}
 				}
@@ -436,17 +457,65 @@ void route_fsm()
 						{
 							int hitcnt = check_direct_route_non_turning_hitcnt_mm(/*cur_ang,*/ cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y);
 
-							if(hitcnt > 0 && hitcnt < 4)
+
+							if(hitcnt > 0)
 							{
-								printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has 1..3 obstacles, slowing down.\n");
-								cur_speedlim = 12;
-								limit_speed(cur_speedlim);
-							}
-							else if(hitcnt > 3)
-							{
-								printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Trying to solve.\n");
-								stop_movement();
-								lookaround_creep_reroute = 1;
+								// See what happens if we steer left or right, doing a 45 degree maneuver.
+
+								int best_hitcnt = 9999;
+								int best_drift_idx = 0;
+								int best_new_x = 0, best_new_y = 0;
+
+								const int side_drifts[12] = {240,-240,200,-200,160,-160,120,-120,80,-80,40,-40};
+								for(int drift_idx=0; drift_idx<12; drift_idx++)
+								{
+									int new_x, new_y;
+									if(side_drifts[drift_idx] > 0)
+									{
+										new_x = cur_x + cos(ANG32TORAD(cur_ang)+M_PI/4.0)*side_drifts[drift_idx];
+										new_y = cur_y + sin(ANG32TORAD(cur_ang)+M_PI/4.0)*side_drifts[drift_idx];
+									}
+									else
+									{
+										new_x = cur_x + cos(ANG32TORAD(cur_ang)-M_PI/4.0)*(-1*side_drifts[drift_idx]);
+										new_y = cur_y + sin(ANG32TORAD(cur_ang)-M_PI/4.0)*(-1*side_drifts[drift_idx]);
+									}
+									int drifted_hitcnt = check_direct_route_non_turning_hitcnt_mm(new_x, new_y, the_route[route_pos].x, the_route[route_pos].y);									
+									if(drifted_hitcnt <= best_hitcnt)
+									{
+										best_hitcnt = drifted_hitcnt;
+										best_drift_idx = drift_idx;
+										best_new_x = new_x; best_new_y = new_y;
+									}
+								}
+
+								if(best_hitcnt < hitcnt)
+								{
+									printf("!!!!!!!!!!   INFO: Steering is needed to maintain line-of-sight, hitcnt now = %d, optimum 45 deg drift = %d mm (hitcnt=%d)\n", 
+										hitcnt, side_drifts[best_drift_idx], best_hitcnt);
+
+									// Do a 45 deg steer
+									id_cnt = 0;
+									move_to(best_new_x, best_new_y, 0, id_cnt, 12, 0);
+
+								}
+								else
+								{
+									printf("!!!!!!!!  INFO: Steering cannot help in improving line-of-sight.\n");
+									if(hitcnt < 3)
+									{
+										printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has 1..2 obstacles, slowing down.\n");
+										cur_speedlim = 12;
+										limit_speed(cur_speedlim);
+									}
+									else
+									{
+										printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Trying to solve.\n");
+										stop_movement();
+										lookaround_creep_reroute = 1;
+									}
+
+								}
 							}
 						}
 					}

@@ -43,6 +43,7 @@ double subsec_timestamp()
 
 int mapping_on = 0;
 int mapping_on_3dtof = 0;
+int live_obstacle_checking_on = 1;
 int pos_corr_id = 42;
 #define INCR_POS_CORR_ID() {pos_corr_id++; if(pos_corr_id > 99) pos_corr_id = 0;}
 
@@ -403,6 +404,7 @@ void route_fsm()
 							break;
 						}
 					}
+					id_cnt = 1;
 					printf("INFO: Maneuver done, redo the waypoint, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
 					move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), cur_speedlim, 0);
 				}
@@ -443,7 +445,7 @@ void route_fsm()
 						do_follow_route = 0;
 					}
 				}
-				else
+				else if(live_obstacle_checking_on)
 				{
 					// Check if obstacles have appeared in the map.
 
@@ -966,6 +968,11 @@ void* main_thread()
 		}
 		else
 			feedback_stop_flags_processed = 0;
+
+		if(find_charger_state < 4)
+			live_obstacle_checking_on = 1;
+		else
+			live_obstacle_checking_on = 0;
 
 		if(find_charger_state == 1)
 		{

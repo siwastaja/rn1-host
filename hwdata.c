@@ -341,15 +341,32 @@ void move_to(int32_t x, int32_t y, int8_t backmode, int id, int speedlimit, int 
 	send_uart(buf, 16);
 }
 
-void turn_and_go(int32_t ang_abs, int fwd_rel, int speedlimit, int accurate_turn)
+void turn_and_go_abs_rel(int32_t ang_abs, int fwd_rel, int speedlimit, int accurate_turn)
 {
 	uint8_t buf[8];
 
-	printf("INFO: Turn & go %d, %d\n", ang_abs, fwd_rel);
+	printf("INFO: Turn & go abs %d, rel %d\n", ang_abs/ANG_1_DEG, fwd_rel);
 
 	buf[0] = 0x83;
 	buf[1] = I16_MS(ang_abs>>16);
 	buf[2] = I16_LS(ang_abs>>16);
+	buf[3] = I16_MS(fwd_rel);
+	buf[4] = I16_LS(fwd_rel);
+	buf[5] = speedlimit&0x7f;
+	buf[6] = accurate_turn;
+	buf[7] = 0xff;
+	send_uart(buf, 8);
+}
+
+void turn_and_go_rel_rel(int32_t ang_rel, int fwd_rel, int speedlimit, int accurate_turn)
+{
+	uint8_t buf[8];
+
+	printf("INFO: Turn & go rel %d, rel %d\n", ang_rel/ANG_1_DEG, fwd_rel);
+
+	buf[0] = 0x81;
+	buf[1] = I16_MS(ang_rel>>16);
+	buf[2] = I16_LS(ang_rel>>16);
 	buf[3] = I16_MS(fwd_rel);
 	buf[4] = I16_LS(fwd_rel);
 	buf[5] = speedlimit&0x7f;

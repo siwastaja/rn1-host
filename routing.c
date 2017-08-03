@@ -1280,6 +1280,7 @@ int check_direct_route(int32_t start_ang, int start_x, int start_y, int end_x, i
 	return 0;
 }
 
+
 int check_direct_route_non_turning(int start_x, int start_y, int end_x, int end_y)
 {
 	route_xy_t start = {start_x, start_y};
@@ -1293,3 +1294,34 @@ int check_direct_route_non_turning(int start_x, int start_y, int end_x, int end_
 	return 0;
 }
 
+int check_turn(int32_t start_ang, int start_x, int start_y, int end_x, int end_y)
+{
+	int dx = end_x - start_x;
+	int dy = end_y - start_y;
+
+	float end_ang = atan2(dy, dx);
+	if(end_ang < 0.0) end_ang += 2.0*M_PI;
+
+	return test_robot_turn(start_x, start_y, ANG32TORAD(start_ang), end_ang);
+}
+
+int test_robot_turn_mm(int start_x, int start_y, float start_ang_rad, float end_ang_rad)
+{
+	return test_robot_turn(MM_TO_UNIT(start_x), MM_TO_UNIT(start_y), start_ang_rad, end_ang_rad);
+}
+
+
+int check_direct_route_mm(int32_t start_ang, int start_x, int start_y, int end_x, int end_y)
+{
+	return check_direct_route(start_ang, MM_TO_UNIT(start_x), MM_TO_UNIT(start_y), MM_TO_UNIT(end_x), MM_TO_UNIT(end_y));
+}
+
+int check_direct_route_non_turning_mm(int start_x, int start_y, int end_x, int end_y)
+{
+	return check_direct_route_non_turning(MM_TO_UNIT(start_x), MM_TO_UNIT(start_y), MM_TO_UNIT(end_x), MM_TO_UNIT(end_y));
+}
+
+int check_turn_mm(int32_t start_ang, int start_x, int start_y, int end_x, int end_y)
+{
+	return check_turn(start_ang, MM_TO_UNIT(start_x), MM_TO_UNIT(start_y), MM_TO_UNIT(end_x), MM_TO_UNIT(end_y));
+}

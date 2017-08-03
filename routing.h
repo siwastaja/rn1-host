@@ -31,6 +31,12 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 
 int check_direct_route(int32_t start_ang, int start_x, int start_y, int end_x, int end_y);
 int check_direct_route_non_turning(int start_x, int start_y, int end_x, int end_y);
+int check_direct_route_mm(int32_t start_ang, int start_x, int start_y, int end_x, int end_y);
+int check_direct_route_non_turning_mm(int start_x, int start_y, int end_x, int end_y);
+int check_turn_mm(int32_t start_ang, int start_x, int start_y, int end_x, int end_y);
+int test_robot_turn_mm(int start_x, int start_y, float start_ang_rad, float end_ang_rad);
+
+
 void routing_set_world(world_t *w);
 void gen_all_routing_pages(world_t *w, int forgiveness);
 void gen_routing_page(world_t *w, int xpage, int ypage, int forgiveness);

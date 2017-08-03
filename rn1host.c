@@ -72,8 +72,10 @@ typedef struct
 
 #define THE_ROUTE_MAX 200
 route_point_t the_route[THE_ROUTE_MAX];
+int the_route_len = 0;
 
 int do_follow_route = 0;
+int lookaround_creep_reroute = 0;
 int route_pos = 0;
 int start_route = 0;
 int id_cnt = 0;
@@ -134,7 +136,8 @@ int run_search()
 
 	if(some_route)
 	{
-		do_follow_route = len;
+		the_route_len = len;
+		do_follow_route = 1;
 		start_route = 1;
 		route_pos = 0;
 		id_cnt++; if(id_cnt > 7) id_cnt = 0;
@@ -147,16 +150,224 @@ int run_search()
 
 void route_fsm()
 {
-	static int stop_flag_cnt = 0;
-	static int first_fail = 0;
+	static double timestamp;
+	static int creep_cnt;
 
-	if(start_route && route_pos == 0)
+	if(lookaround_creep_reroute)
+	{
+		if(check_direct_route_non_turning(cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y))
+		{
+			printf("INFO: Direct line-of-sight to the next waypoint, we are done, resuming following the route.\n");
+			lookaround_creep_reroute = 0;
+			do_follow_route = 1;
+		}
+	}
+	if(lookaround_creep_reroute == 1)
+	{
+		do_follow_route = 0;
+		start_route = 0;
+
+		printf("INFO: Lookaround, creep & reroute procedure started; backing off 50 mm.\n");
+		turn_and_go_abs_rel(cur_ang, -50, 13, 1);
+		timestamp = subsec_timestamp();
+		lookaround_creep_reroute++;
+	}
+	else if(lookaround_creep_reroute == 2)
+	{
+		double stamp;
+		if( (stamp=subsec_timestamp()) > timestamp+1.0)
+		{
+			int dx = the_route[route_pos].x - cur_x;
+			int dy = the_route[route_pos].y - cur_y;
+			float ang = atan2(dy, dx) /*<- ang to dest*/ - DEGTORAD(15.0);
+
+			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
+			{
+				printf("INFO: Can turn -15 deg, doing it.\n");
+				turn_and_go_abs_rel(RADTOANG32(ang), 0, 13, 1);
+			}
+			else
+			{
+				printf("INFO: Can't turn -15 deg, wiggling a bit.\n");
+				turn_and_go_abs_rel(cur_ang-5*ANG_1_DEG, 0, 13, 1);
+			}
+			timestamp = subsec_timestamp();
+			lookaround_creep_reroute++;
+		}
+	}
+	else if(lookaround_creep_reroute == 3)
+	{
+		double stamp;
+		if( (stamp=subsec_timestamp()) > timestamp+1.0)
+		{
+			int dx = the_route[route_pos].x - cur_x;
+			int dy = the_route[route_pos].y - cur_y;
+			float ang = atan2(dy, dx) /*<- ang to dest*/ - DEGTORAD(30.0);
+
+			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
+			{
+				printf("INFO: Can turn -30 deg, doing it.\n");
+				turn_and_go_abs_rel(RADTOANG32(ang), -20, 13, 1);
+			}
+			else
+			{
+				printf("INFO: Can't turn -30 deg, wiggling a bit.\n");
+				turn_and_go_abs_rel(cur_ang-5*ANG_1_DEG, 0, 13, 1);
+			}
+			timestamp = subsec_timestamp();
+			lookaround_creep_reroute++;
+		}
+	}
+	else if(lookaround_creep_reroute == 4)
+	{
+		double stamp;
+		if( (stamp=subsec_timestamp()) > timestamp+1.0)
+		{
+			int dx = the_route[route_pos].x - cur_x;
+			int dy = the_route[route_pos].y - cur_y;
+			float ang = atan2(dy, dx) /*<- ang to dest*/ + DEGTORAD(15.0);
+
+			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
+			{
+				printf("INFO: Can turn +15 deg, doing it.\n");
+				turn_and_go_abs_rel(RADTOANG32(ang), 0, 13, 1);
+			}
+			else
+			{
+				printf("INFO: Can't turn +15 deg, wiggling a bit.\n");
+				turn_and_go_abs_rel(cur_ang+10*ANG_1_DEG, 0, 13, 1);
+			}
+			timestamp = subsec_timestamp();
+			lookaround_creep_reroute++;
+		}
+	}
+	else if(lookaround_creep_reroute == 5)
+	{
+		double stamp;
+		if( (stamp=subsec_timestamp()) > timestamp+1.0)
+		{
+			int dx = the_route[route_pos].x - cur_x;
+			int dy = the_route[route_pos].y - cur_y;
+			float ang = atan2(dy, dx) /*<- ang to dest*/ + DEGTORAD(30.0);
+
+			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
+			{
+				printf("INFO: Can turn +30 deg, doing it.\n");
+				turn_and_go_abs_rel(RADTOANG32(ang), 0, 13, 1);
+			}
+			else
+			{
+				printf("INFO: Can't turn +30 deg, wiggling a bit.\n");
+				turn_and_go_abs_rel(cur_ang+5*ANG_1_DEG, 0, 13, 1);
+			}
+			timestamp = subsec_timestamp();
+			lookaround_creep_reroute++;
+		}
+	}
+	else if(lookaround_creep_reroute == 6)
+	{
+		creep_cnt = 0;
+		double stamp;
+		if( (stamp=subsec_timestamp()) > timestamp+1.0)
+		{
+			int dx = the_route[route_pos].x - cur_x;
+			int dy = the_route[route_pos].y - cur_y;
+			float ang = atan2(dy, dx) /*<- ang to dest*/;
+
+			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
+			{
+				printf("INFO: Can turn towards the dest, doing it.\n");
+				turn_and_go_abs_rel(RADTOANG32(ang), 50, 13, 1);
+			}
+			else
+			{
+				printf("INFO: Can't turn towards the dest, doing nothing.\n");
+			}
+			timestamp = subsec_timestamp();
+			lookaround_creep_reroute++;
+		}
+	}
+	else if(lookaround_creep_reroute == 7)
+	{
+		double stamp;
+		if( (stamp=subsec_timestamp()) > timestamp+1.5)
+		{
+			int dx = the_route[route_pos].x - cur_x;
+			int dy = the_route[route_pos].y - cur_y;
+			int dist = sqrt(sq(dx)+sq(dy));
+			if(dist > 200 && creep_cnt < 10)
+			{
+				float ang = atan2(dy, dx) /*<- ang to dest*/;
+				int creep_amount = 150;
+				int dest_x = cur_x + cos(ang)*creep_amount;
+				int dest_y = cur_y + sin(ang)*creep_amount;
+
+				if(check_direct_route_non_turning(cur_x, cur_y, dest_x, dest_y))
+				{
+					printf("INFO: Can creep %d mm towards the next waypoint, doing it", creep_amount);
+					turn_and_go_abs_rel(RADTOANG32(ang) + ((creep_cnt&1)?(5*ANG_1_DEG):(-5*ANG_1_DEG)), creep_amount, 18, 1);
+				}
+				else
+				{
+					printf("INFO: Can't creep %d mm towards the next waypoint, creeping 50 mm carefully", creep_amount);
+					turn_and_go_abs_rel(RADTOANG32(ang), 50, 10, 1);
+				}
+			}
+			else
+			{
+				printf("INFO: We have creeped enough (dist to waypoint=%d, creep_cnt=%d), no line of sight to the waypoint, trying to reroute\n",
+					dist, creep_cnt);
+				if(run_search() == 1)
+				{
+					printf("INFO: Routing failed in start, going to daiju mode for a while.\n");
+					daiju_mode(1);
+					lookaround_creep_reroute++;
+				}
+				else
+				{
+					printf("INFO: Routing succeeded, or failed later. Stopping lookaround, creep & reroute procedure.\n");
+					lookaround_creep_reroute = 0;
+				}
+
+			}
+			timestamp = subsec_timestamp();
+		}
+	}
+	else if(lookaround_creep_reroute >= 8 && lookaround_creep_reroute < 12)
+	{
+		double stamp;
+		if( (stamp=subsec_timestamp()) > timestamp+5.0)
+		{
+			printf("INFO: Daijued enough.\n");
+			daiju_mode(0);
+			if(run_search() == 1)
+			{
+				printf("INFO: Routing failed in start, going to daiju mode for a bit more...\n");
+				daiju_mode(1);
+				lookaround_creep_reroute++;
+				timestamp = subsec_timestamp();
+			}
+			else
+			{
+				printf("INFO: Routing succeeded, or failed later. Stopping lookaround, creep & reroute procedure.\n");
+				lookaround_creep_reroute = 0;
+			}
+
+		}
+	}
+	else if(lookaround_creep_reroute == 12)
+	{
+		printf("INFO: Giving up lookaround, creep & reroute procedure!\n");
+		lookaround_creep_reroute = 0;
+	}
+
+	if(start_route)
 	{
 		printf("Start going id=%d!\n", id_cnt<<4);
-		move_to(the_route[0].x, the_route[0].y, the_route[0].backmode, (id_cnt<<4), cur_speedlim, 0);
+		move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4), cur_speedlim, 0);
 		start_route = 0;
-		first_fail = 1;
 	}
+
 	if(do_follow_route)
 	{
 		int id = cur_xymove.id;
@@ -165,25 +376,10 @@ void route_fsm()
 		{
 			if(cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags)
 			{
-				stop_flag_cnt++;
-
-				if(stop_flag_cnt > first_fail?50000:150000) // todo: proper timing.
-				{
-					first_fail = 0;
-					stop_flag_cnt = 0;
-					printf("Robot stopped, retrying routing.\n");
-					daiju_mode(0);
-					if(run_search() == 1)
-					{
-						printf("Routing failed in start, going to daiju mode.\n");
-						daiju_mode(1);
-					}
-				}
+				lookaround_creep_reroute = 1;
 			}
 			else
 			{
-				stop_flag_cnt = 0;
-
 				if(cur_xymove.remaining < 250)
 				{
 					good_time_for_lidar_mapping = 1;
@@ -191,14 +387,14 @@ void route_fsm()
 
 				if(cur_xymove.remaining < the_route[route_pos].take_next_early)
 				{
-					if(route_pos < do_follow_route-1)
+					if(route_pos < the_route_len-1)
 					{
 						route_pos++;
 
 						// Check if we can skip some points:
-						while(the_route[route_pos].backmode == 0 && route_pos < do_follow_route-1)
+						while(the_route[route_pos].backmode == 0 && route_pos < the_route_len-1)
 						{
-							if(check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), MM_TO_UNIT(the_route[route_pos+1].x), MM_TO_UNIT(the_route[route_pos+1].y)))
+							if(check_direct_route_mm(cur_ang, cur_x, cur_y, the_route[route_pos+1].x, the_route[route_pos+1].y))
 							{
 								printf("!!!!!!!!!!!  INFO: skipping point (%d, %d), going directly to (%d, %d)\n", the_route[route_pos].x,
 								       the_route[route_pos].y, the_route[route_pos+1].x, the_route[route_pos+1].y);
@@ -211,7 +407,6 @@ void route_fsm()
 						}
 						printf("Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
 						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), cur_speedlim, 0);
-						first_fail = 1;
 					}
 					else
 					{
@@ -222,17 +417,11 @@ void route_fsm()
 				else
 				{
 					// Check if obstacles have appeared in the map.
-					if(the_route[route_pos].backmode == 0 && !check_direct_route_non_turning(/*cur_ang,*/ MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), MM_TO_UNIT(the_route[route_pos].x), MM_TO_UNIT(the_route[route_pos].y)))
+					if(the_route[route_pos].backmode == 0 && !check_direct_route_non_turning(/*cur_ang,*/ cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y))
 					{
 						printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Rerouting.\n");
 						stop_movement();
-						do_follow_route = 0;
-						daiju_mode(0);
-						if(run_search() == 1)
-						{
-							printf("Routing failed in start, going to daiju mode.\n");
-							daiju_mode(1);
-						}
+						lookaround_creep_reroute = 1;
 					}
 
 				}
@@ -341,8 +530,15 @@ void* main_thread()
 	srand(time(NULL));
 
 	daiju_mode(0);
-	correct_robot_pos(0,0,0, pos_corr_id);
-	turn_and_go(0, 40, 30, 1);
+	correct_robot_pos(0,0,0, pos_corr_id); // To set the pos_corr_id.
+	turn_and_go_rel_rel(-5*ANG_1_DEG, 0, 25, 1);
+	sleep(1);
+	turn_and_go_rel_rel(10*ANG_1_DEG, 0, 25, 1);
+	sleep(1);
+	turn_and_go_rel_rel(-5*ANG_1_DEG, 40, 25, 1);
+	sleep(1);
+	turn_and_go_rel_rel(0, -40, 25, 1);
+	sleep(1);
 
 	double chafind_timestamp = 0.0;
 	int lidar_ignore_over = 0;
@@ -595,16 +791,16 @@ void* main_thread()
 				switch(msg_cr_manu.op)
 				{
 					case MANU_FWD:
-						turn_and_go(cur_ang, 100, 10, 1);
+						turn_and_go_abs_rel(cur_ang, 100, 10, 1);
 					break;
 					case MANU_BACK:
-						turn_and_go(cur_ang, -100, 10, 1);
+						turn_and_go_abs_rel(cur_ang, -100, 10, 1);
 					break;
 					case MANU_LEFT:
-						turn_and_go(cur_ang-10*ANG_1_DEG, 0, 10, 1);
+						turn_and_go_abs_rel(cur_ang-10*ANG_1_DEG, 0, 10, 1);
 					break;
 					case MANU_RIGHT:
-						turn_and_go(cur_ang+10*ANG_1_DEG, 0, 10, 1);
+						turn_and_go_abs_rel(cur_ang+10*ANG_1_DEG, 0, 10, 1);
 					break;
 					default:
 					break;
@@ -700,7 +896,7 @@ void* main_thread()
 				else
 				{
 					printf("INFO: At first charger point, turning for charger.\n");
-					turn_and_go(charger_ang, 0, 23, 1);
+					turn_and_go_abs_rel(charger_ang, 0, 23, 1);
 					find_charger_state++;
 					chafind_timestamp = subsec_timestamp();
 
@@ -744,7 +940,7 @@ void* main_thread()
 				}
 				else
 				{
-					turn_and_go(charger_ang, charger_fwd, 20, 1);
+					turn_and_go_abs_rel(charger_ang, charger_fwd, 20, 1);
 					chafind_timestamp = subsec_timestamp();
 					find_charger_state++;
 				}
@@ -756,7 +952,7 @@ void* main_thread()
 			if( (stamp=subsec_timestamp()) > chafind_timestamp+3.0)
 			{
 				chafind_timestamp = stamp;
-				turn_and_go(charger_ang, 0, 23, 1);
+				turn_and_go_abs_rel(charger_ang, 0, 23, 1);
 				find_charger_state++;
 			}
 		}

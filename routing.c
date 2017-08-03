@@ -54,6 +54,8 @@ static int check_hit(int x, int y, int direction)
 		if(!routing_world->rpages[pageidx_x][pageidx_y]) // out of bounds (not allocated) - give up instantly
 		{
 			printf("rpages[%d][%d] not allocated\n", pageidx_x, pageidx_y);
+			printf("x = %d  y = %d  direction = %d\n", x, y, direction);
+			exit(1);
 			return 1;
 		}
 

@@ -853,6 +853,9 @@ void* main_thread()
 						motors_on = 1;
 						daiju_mode(0);
 						stop_automapping();
+						find_charger_state = 0;
+						lookaround_creep_reroute = 0;
+						do_follow_route = 0;
 						mapping_on = 1;
 
 					} break;

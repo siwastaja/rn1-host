@@ -1268,10 +1268,14 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 			}
 			else if(drops[iy*MAP_PAGE_W+ix] > n_tofs/3)
 			{
-				if(!(w->pages[px][py]->units[ox][oy].result & UNIT_DROP)) w->changed[px][py] = 1;
-				w->pages[px][py]->units[ox][oy].result |= UNIT_DROP;
-				w->pages[px][py]->units[ox][oy].latest |= UNIT_DROP;
-				PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_3d_obstacles);
+				// Mapping the drops will be disabled until the bug is sorted out
+				// (Sometimes, when against the wall where the charger is located, a "drop" is seen some 1.2 meters away, on the
+				// other side of the wall, in the kitchen.)
+
+//				if(!(w->pages[px][py]->units[ox][oy].result & UNIT_DROP)) w->changed[px][py] = 1;
+//				w->pages[px][py]->units[ox][oy].result |= UNIT_DROP;
+//				w->pages[px][py]->units[ox][oy].latest |= UNIT_DROP;
+//				PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_3d_obstacles);
 				cnt_drop++;
 			}
 			else if(seens[iy*MAP_PAGE_W+ix] > (2*n_tofs/3) && maybes[iy*MAP_PAGE_W+ix] == 0 && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)

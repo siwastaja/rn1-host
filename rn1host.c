@@ -285,7 +285,18 @@ void route_fsm()
 			}
 			else
 			{
-				printf("INFO: Can't turn towards the dest, doing nothing.\n");
+				printf("INFO: Can't turn towards the dest, rerouting.\n");
+				if(run_search() == 1)
+				{
+					printf("INFO: Routing failed in start, going to daiju mode for a while.\n");
+					daiju_mode(1);
+					lookaround_creep_reroute = 8;
+				}
+				else
+				{
+					printf("INFO: Routing succeeded, or failed later. Stopping lookaround, creep & reroute procedure.\n");
+					lookaround_creep_reroute = 0;
+				}
 			}
 			timestamp = subsec_timestamp();
 			lookaround_creep_reroute++;
@@ -300,14 +311,14 @@ void route_fsm()
 			int dx = the_route[route_pos].x - cur_x;
 			int dy = the_route[route_pos].y - cur_y;
 			int dist = sqrt(sq(dx)+sq(dy));
-			if(dist > 200 && creep_cnt < 7)
+			if(dist > 200 && creep_cnt < 5)
 			{
 				float ang = atan2(dy, dx) /*<- ang to dest*/;
-				int creep_amount = 150;
+				int creep_amount = 100;
 				int dest_x = cur_x + cos(ang)*creep_amount;
 				int dest_y = cur_y + sin(ang)*creep_amount;
-
-				if(check_direct_route_non_turning_mm(cur_x, cur_y, dest_x, dest_y))
+				int hitcnt = check_direct_route_non_turning_hitcnt_mm(cur_x, cur_y, dest_x, dest_y);
+				if(hitcnt < 1)
 				{
 					printf("INFO: Can creep %d mm towards the next waypoint, doing it\n", creep_amount);
 					time_interval = 2.5;
@@ -315,9 +326,31 @@ void route_fsm()
 				}
 				else
 				{
-					printf("INFO: Can't creep %d mm towards the next waypoint, turning & creeping 50 mm carefully\n", creep_amount);
+					int careful_amount = 40;
+					int imaginary_len = 200; // So that we choose to creep in a direction that doesn't have obstacles right around. (avoiding "from oja to allikko")
+					const float creep_angs[7] = {DEGTORAD(-15), DEGTORAD(15), DEGTORAD(-10), DEGTORAD(10), DEGTORAD(-5), DEGTORAD(5), 0};
+					int best_hitcnt = 999999;
+					int best_creep_ang_idx = 0;
+					for(int idx=0; idx < 7; idx++)
+					{
+						int imaginary_dest_x = cur_x + cos(ang)*(imaginary_len);
+						int imaginary_dest_y = cur_y + sin(ang)*(imaginary_len);
+						// Angles to be turned are small enough so that we'll just ignore the turn checking.
+						int hitcnt = check_direct_route_non_turning_hitcnt_mm(cur_x, cur_y, imaginary_dest_x, imaginary_dest_y);
+						if(hitcnt <= best_hitcnt)
+						{
+							best_hitcnt = hitcnt;
+							best_creep_ang_idx = idx;
+						}
+					}
+
+					if(best_hitcnt == 0) careful_amount = 100;
+					else if(best_hitcnt == 1) careful_amount = 60;
+
+					printf("INFO: Can't creep %d mm towards the next waypoint, turning & creeping %.1f deg, %d mm carefully to best possible direction (hitcnt=%d)\n",
+						creep_amount, RADTODEG(creep_angs[best_creep_ang_idx]), careful_amount, best_hitcnt);
 					time_interval = 4.0;
-					turn_and_go_abs_rel(RADTOANG32(ang) + ((creep_cnt&1)?(10*ANG_1_DEG):(-10*ANG_1_DEG)), 50, 7, 1);
+					turn_and_go_abs_rel(-1*RADTOANG32(creep_angs[best_creep_ang_idx]), careful_amount, 7, 1);
 				}
 				creep_cnt++;
 			}
@@ -457,7 +490,7 @@ void route_fsm()
 
 						if(the_route[route_pos].backmode == 0)
 						{
-							int hitcnt = check_direct_route_non_turning_hitcnt_mm(/*cur_ang,*/ cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y);
+							int hitcnt = check_direct_route_non_turning_hitcnt_mm(cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y);
 
 
 							if(hitcnt > 0)

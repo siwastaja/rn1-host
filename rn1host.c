@@ -410,6 +410,7 @@ void route_fsm()
 
 	if(do_follow_route)
 	{
+		static int maneuver_cnt = 0; // to prevent too many successive maneuver operations
 		int id = cur_xymove.id;
 
 		if(((id&0b1110000) == (id_cnt<<4)) && ((id&0b1111) == ((route_pos)&0b1111)))
@@ -450,6 +451,7 @@ void route_fsm()
 
 				if(cur_xymove.remaining < the_route[route_pos].take_next_early)
 				{
+					maneuver_cnt = 0;
 					if(route_pos < the_route_len-1)
 					{
 						route_pos++;
@@ -492,7 +494,7 @@ void route_fsm()
 							int hitcnt = check_direct_route_non_turning_hitcnt_mm(cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y);
 
 
-							if(hitcnt > 0)
+							if(hitcnt > 0 && maneuver_cnt < 3)
 							{
 								// See what happens if we steer left or right
 
@@ -538,6 +540,7 @@ void route_fsm()
 									// Do the steer
 									id_cnt = 0; // id0 is reserved for special maneuvers during route following.
 									move_to(best_new_x, best_new_y, 0, (id_cnt<<4) | ((route_pos)&0b1111), 12, 0);
+									maneuver_cnt++;
 
 								}
 								else

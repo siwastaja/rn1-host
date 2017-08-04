@@ -809,6 +809,7 @@ void* main_thread()
 				printf("  ---> DEST params: X=%d Y=%d backmode=%d\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
 				move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode, 0, cur_speedlim, 1);
 				find_charger_state = 0;
+				lookaround_creep_reroute = 0;
 				do_follow_route = 0;
 			}
 			else if(ret == TCP_CR_ROUTE_MID)
@@ -877,6 +878,8 @@ void* main_thread()
 					case 4:
 					{
 						stop_automapping();
+						find_charger_state = 0;
+						lookaround_creep_reroute = 0;
 						do_follow_route = 0;
 						motors_on = 1;
 						daiju_mode(1);
@@ -886,6 +889,8 @@ void* main_thread()
 					case 5:
 					{
 						stop_automapping();
+						find_charger_state = 0;
+						lookaround_creep_reroute = 0;
 						do_follow_route = 0;
 						motors_on = 0;
 						mapping_on = 1;
@@ -894,6 +899,8 @@ void* main_thread()
 					case 6:
 					{
 						stop_automapping();
+						find_charger_state = 0;
+						lookaround_creep_reroute = 0;
 						do_follow_route = 0;
 						motors_on = 0;
 						mapping_on = 0;
@@ -902,6 +909,15 @@ void* main_thread()
 					case 7:
 					{
 						conf_charger_pos();
+					} break;
+
+					case 8:
+					{
+						stop_automapping();
+						find_charger_state = 0;
+						lookaround_creep_reroute = 0;
+						do_follow_route = 0;
+						stop_movement();
 					} break;
 
 					default: break;

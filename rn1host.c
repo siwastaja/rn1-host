@@ -326,7 +326,7 @@ void route_fsm()
 				}
 				else
 				{
-					int careful_amount = 40;
+					int careful_amount = 50;
 					int imaginary_len = 200; // So that we choose to creep in a direction that doesn't have obstacles right around. (avoiding "from oja to allikko")
 					const float creep_angs[7] = {DEGTORAD(-15), DEGTORAD(15), DEGTORAD(-10), DEGTORAD(10), DEGTORAD(-5), DEGTORAD(5), 0};
 					int best_hitcnt = 999999;
@@ -675,10 +675,10 @@ void* main_thread()
 	turn_and_go_rel_rel(10*ANG_1_DEG, 0, 25, 1);
 	sleep(1);
 	send_keepalive();
-	turn_and_go_rel_rel(-5*ANG_1_DEG, 40, 25, 1);
+	turn_and_go_rel_rel(-5*ANG_1_DEG, 50, 25, 1);
 	sleep(1);
 	send_keepalive();
-	turn_and_go_rel_rel(0, -40, 25, 1);
+	turn_and_go_rel_rel(0, -50, 25, 1);
 	sleep(1);
 
 	double chafind_timestamp = 0.0;

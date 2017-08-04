@@ -42,7 +42,6 @@ double subsec_timestamp()
 }
 
 int mapping_on = 0;
-int mapping_on_3dtof = 0;
 int live_obstacle_checking_on = 1;
 int pos_corr_id = 42;
 #define INCR_POS_CORR_ID() {pos_corr_id++; if(pos_corr_id > 99) pos_corr_id = 0;}
@@ -761,20 +760,6 @@ void* main_thread()
 				mapping_on = 2;
 				printf("Turned mapping to fast mode.\n");
 			}
-			if(cmd == '3')
-			{
-				if(mapping_on_3dtof)
-				{
-					mapping_on_3dtof = 0;
-					printf("Turned 3dtof mapping off.\n");
-				}
-				else
-				{
-					mapping_on_3dtof = 1;
-					printf("Turned 3dtof mapping on.\n");
-				}
-
-			}
 //			if(cmd == 'K')
 //			{
 //				conf_charger_pos_pre();
@@ -868,6 +853,7 @@ void* main_thread()
 						daiju_mode(0);
 						stop_automapping();
 						mapping_on = 1;
+
 					} break;
 
 					case 2:
@@ -1193,8 +1179,12 @@ void* main_thread()
 				}
 			}
 
-			if(mapping_on_3dtof)
+			static int32_t prev_x, prev_y, prev_ang;
+
+			if(mapping_on && (prev_x != p_tof->robot_pos.x || prev_y != p_tof->robot_pos.y || prev_ang != p_tof->robot_pos.ang))
 			{
+				prev_x = p_tof->robot_pos.x; prev_y = p_tof->robot_pos.y; prev_ang = p_tof->robot_pos.ang;
+
 				static int n_tofs_to_map = 0;
 				static tof3d_scan_t* tofs_to_map[20];
 

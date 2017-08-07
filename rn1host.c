@@ -154,7 +154,32 @@ void do_live_obstacle_checking()
 {
 	if(the_route[route_pos].backmode == 0)
 	{
-		int hitcnt = check_direct_route_non_turning_hitcnt_mm(cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y);
+		int32_t target_x, target_y;
+		int dx = the_route[route_pos].x - cur_x;
+		int dy = the_route[route_pos].y - cur_y;
+
+		int32_t dist_to_next = sqrt(sq(dx)+sq(dy));
+
+		// Obstacle avoidance looks towards the next waypoint; if more than max_dist_to_next away,
+		// it looks towards the staight line from cur_pos to the next waypoint, but only for the lenght of max_dist_to_next.
+		// If there are obstacles on the straight line-of-sight, extra waypoint is searched for so that the number of
+		// obstacles are minimized.
+		// so target_x, target_y is only the target which is looked at. It's never a move_to target directly, the next waypoint is.
+
+		const int32_t max_dist_to_next = 1500;
+		if(dist_to_next < max_dist_to_next)
+		{
+			target_x = the_route[route_pos].x;
+			target_y = the_route[route_pos].y;
+		}
+		else
+		{
+			float ang_to_target = atan2(dy, dx);
+			target_x = cur_x + max_dist_to_next*cos(ang_to_target);
+			target_y = cur_y + max_dist_to_next*sin(ang_to_target);
+		}
+
+		int hitcnt = check_direct_route_non_turning_hitcnt_mm(cur_x, cur_y, target_x, target_y);
 
 		if(hitcnt > 0 && maneuver_cnt < 3)
 		{
@@ -221,12 +246,11 @@ void do_live_obstacle_checking()
 					if(tcp_client_sock > 0) tcp_send_dbgpoint(best_new_x, best_new_y,   0, 40,   0, 1);
 
 					// Do the steer
-//					id_cnt = 0; // id0 is reserved for special maneuvers during route following.
-//					move_to(best_new_x, best_new_y, 0, (id_cnt<<4) | ((route_pos)&0b1111), 12, 0);
-//					maneuver_cnt++;
+					id_cnt = 0; // id0 is reserved for special maneuvers during route following.
+					move_to(best_new_x, best_new_y, 0, (id_cnt<<4) | ((route_pos)&0b1111), 12, 0);
+					maneuver_cnt++;
 				}
-
-
+				if(tcp_client_sock > 0) tcp_send_dbgpoint(target_x, target_y, 0, 130, 230, 1);
 			}
 			else
 			{

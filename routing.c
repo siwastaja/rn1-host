@@ -1137,7 +1137,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 		free(p_del);
 	}
 	
-	printf("Solution not found, cnt = %d\n", cnt);
+	//printf("Solution not found, cnt = %d\n", cnt);
 
 	if(cnt < 200)
 	{

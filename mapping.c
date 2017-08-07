@@ -1414,7 +1414,7 @@ void map_collision_obstacle(world_t* w, int32_t now_ang, int now_x, int now_y, i
 	if(stop_reason == STOP_REASON_OBSTACLE_FRONT_LEFT || stop_reason == STOP_REASON_OBSTACLE_FRONT_RIGHT)
 	{
 		printf("Mapping FRONT obstacle due to wheel slip.\n");
-		for(int deep=0; deep<2; deep++)
+		for(int deep=0; deep<3; deep++)
 		{
 			float x = (float)now_x + cos(ANG32TORAD(now_ang))*(float)(ORIGIN_TO_ROBOT_FRONT+20.0 + deep*40.0);
 			float y = (float)now_y + sin(ANG32TORAD(now_ang))*(float)(ORIGIN_TO_ROBOT_FRONT+20.0 + deep*40.0);

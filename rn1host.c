@@ -209,8 +209,8 @@ void do_live_obstacle_checking()
 						new_y = cur_y + sin(ANG32TORAD(cur_ang)-drift_angles[angle_idx])*(-1*side_drifts[drift_idx]);
 					}
 					int drifted_hitcnt = check_direct_route_hitcnt_mm(cur_ang, new_x, new_y, the_route[route_pos].x, the_route[route_pos].y);
-					printf("a=%.1f deg  drift=%d mm  cur(%d,%d) to(%d,%d)  hitcnt=%d\n",
-						RADTODEG(drift_angles[angle_idx]), side_drifts[drift_idx], cur_x, cur_y, new_x, new_y, drifted_hitcnt);
+//					printf("a=%.1f deg  drift=%d mm  cur(%d,%d) to(%d,%d)  hitcnt=%d\n",
+//						RADTODEG(drift_angles[angle_idx]), side_drifts[drift_idx], cur_x, cur_y, new_x, new_y, drifted_hitcnt);
 					if(drifted_hitcnt <= best_hitcnt)
 					{
 						best_hitcnt = drifted_hitcnt;
@@ -234,8 +234,8 @@ void do_live_obstacle_checking()
 					limit_speed(cur_speedlim);
 					printf("!!!!!!!!!!   INFO: Steering is almost needed (not performed) to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n",
 						hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
-					if(tcp_client_sock > 0) tcp_send_dbgpoint(cur_x, cur_y, 210, 210,   110, 1);
-					if(tcp_client_sock > 0) tcp_send_dbgpoint(best_new_x, best_new_y,   0, 255,   110, 1);
+//					if(tcp_client_sock > 0) tcp_send_dbgpoint(cur_x, cur_y, 210, 210,   110, 1);
+//					if(tcp_client_sock > 0) tcp_send_dbgpoint(best_new_x, best_new_y,   0, 255,   110, 1);
 				}
 				else
 				{
@@ -243,13 +243,13 @@ void do_live_obstacle_checking()
 						hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
 					if(tcp_client_sock > 0) tcp_send_dbgpoint(cur_x, cur_y, 200, 200,   0, 1);
 					if(tcp_client_sock > 0) tcp_send_dbgpoint(best_new_x, best_new_y,   0, 40,   0, 1);
+					if(tcp_client_sock > 0) tcp_send_dbgpoint(target_x, target_y, 0, 130, 230, 1);
 
 					// Do the steer
 					id_cnt = 0; // id0 is reserved for special maneuvers during route following.
 					move_to(best_new_x, best_new_y, 0, (id_cnt<<4) | ((route_pos)&0b1111), 12, 0);
 					maneuver_cnt++;
 				}
-				if(tcp_client_sock > 0) tcp_send_dbgpoint(target_x, target_y, 0, 130, 230, 1);
 			}
 			else
 			{
@@ -1102,7 +1102,7 @@ void* main_thread()
 		}
 		else if(find_charger_state == 2)
 		{
-			if(!do_follow_route)
+			if(!do_follow_route && !lookaround_creep_reroute)
 			{
 				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(300))
 				{
@@ -1122,7 +1122,7 @@ void* main_thread()
 		else if(find_charger_state == 3)
 		{
 			double stamp;
-			if( (stamp=subsec_timestamp()) > chafind_timestamp+3.0)
+			if( (stamp=subsec_timestamp()) > chafind_timestamp+2.5)
 			{
 				chafind_timestamp = stamp;
 
@@ -1138,7 +1138,7 @@ void* main_thread()
 		}
 		else if(find_charger_state == 4)
 		{
-			if(lidar_ignore_over && subsec_timestamp() > chafind_timestamp+4.0)
+			if(lidar_ignore_over && subsec_timestamp() > chafind_timestamp+3.0)
 			{
 				printf("INFO: Going to second charger point.\n");
 				move_to(charger_second_x, charger_second_y, 0, 0x7f, 20, 1);
@@ -1174,11 +1174,29 @@ void* main_thread()
 		}
 		else if(find_charger_state == 7)
 		{
-			if(subsec_timestamp() > chafind_timestamp+1.5)
+			double stamp;
+			if( (stamp=subsec_timestamp()) > chafind_timestamp+1.5)
 			{
+				chafind_timestamp = stamp;
 				printf("INFO: Requesting charger mount.\n");
 				hw_find_charger();
 				find_charger_state = 0;
+			}
+		}
+		else if(find_charger_state == 8)
+		{
+			if(!pwr_status.charging && !pwr_status.charged)
+			{
+				if(subsec_timestamp() > chafind_timestamp+20.0)
+				{
+					printf("WARNING: Not charging (charger mount failure?). Retrying driving to charger once.\n");
+					find_charger_state = 1;
+				}
+			}
+			else
+			{
+				find_charger_state = 0;
+				printf("INFO: Robot charging succesfully.\n");
 			}
 		}
 

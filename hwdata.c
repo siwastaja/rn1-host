@@ -18,6 +18,9 @@
 #define LIDAR_RING_BUF_LEN 16
 #define SONAR_RING_BUF_LEN 16
 
+extern double subsec_timestamp();
+
+
 int lidar_wr = 0;
 int lidar_rd = 0;
 int significant_lidar_wr = 0;
@@ -76,6 +79,7 @@ pwr_status_t pwr_status;
 
 
 extern int32_t cur_ang, cur_x, cur_y;
+extern double robot_pos_timestamp;
 pthread_mutex_t cur_pos_mutex = PTHREAD_MUTEX_INITIALIZER;
 int update_robot_pos(int32_t ang, int32_t x, int32_t y)
 {
@@ -101,6 +105,7 @@ int update_robot_pos(int32_t ang, int32_t x, int32_t y)
 	//printf("write %d, %d, %d\n", ang, x, y);
 	pthread_mutex_lock(&cur_pos_mutex);
 	cur_ang = ang; cur_x = x; cur_y = y;
+	robot_pos_timestamp = subsec_timestamp();
 	cur_pos_invalid_for_3dtof = 0;
 	pthread_mutex_unlock(&cur_pos_mutex);
 

@@ -1332,24 +1332,31 @@ int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_
 {
 	routing_world = w;
 
-	printf("Generating routing pages... "); fflush(stdout);
+	printf("Searching for route...\n");
+
+//	printf("Generating routing pages... "); fflush(stdout);
 	gen_all_routing_pages(w, 0);
-	printf("done.\n");
+//	printf("done.\n");
 
 	normal_search_mode();
-	printf("Searching with normal limits...\n");
+//	printf("Searching with normal limits...\n");
 
 	int ret;
 	if(search2(route, start_ang, start_x_mm, start_y_mm, end_x_mm, end_y_mm))
 	{
-		printf("Search failed - retrying with tighter limits.\n");
+//		printf("Search failed - retrying with tighter limits.\n");
 		tight_search_mode();
 		if( (ret = search2(route, start_ang, start_x_mm, start_y_mm, end_x_mm, end_y_mm)) ) 
 		{
 			printf("There is no route.\n");
 			return ret;
 		}
+		else
+			printf("Found route with TIGHT limits\n");
 	}
+	else
+		printf("Found route with normal limits\n");
+
 
 	// extra_tight_search_mode is put into action so that collision avoidance / step skipping/rounding can use it.
 	// TODO: fix this state horror. 

@@ -57,6 +57,7 @@ extern world_t world;
 #define BUFLEN 2048
 
 int32_t cur_ang, cur_x, cur_y;
+double robot_pos_timestamp;
 int32_t cur_compass_ang;
 int compass_round_active;
 int32_t dest_x, dest_y;
@@ -146,6 +147,83 @@ int run_search()
 
 	return ret;
 
+}
+
+static int maneuver_cnt = 0; // to prevent too many successive maneuver operations
+void do_live_obstacle_checking()
+{
+	if(the_route[route_pos].backmode == 0)
+	{
+		int hitcnt = check_direct_route_non_turning_hitcnt_mm(cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y);
+
+		if(hitcnt > 0 && maneuver_cnt < 3)
+		{
+			// See what happens if we steer left or right
+
+			int best_hitcnt = 9999;
+			int best_drift_idx = 0;
+			int best_angle_idx = 0;
+			int best_new_x = 0, best_new_y = 0;
+
+			const int side_drifts[14] = {320,-320, 240,-240,200,-200,160,-160,120,-120,80,-80,40,-40};
+			const float drift_angles[5] = {M_PI/4.0, M_PI/6.0, M_PI/8.0, M_PI/12.0, M_PI/16.0};
+
+			for(int angle_idx=0; angle_idx<5; angle_idx++)
+			{
+				for(int drift_idx=0; drift_idx<14; drift_idx++)
+				{
+					int new_x, new_y;
+					if(side_drifts[drift_idx] > 0)
+					{
+						new_x = cur_x + cos(ANG32TORAD(cur_ang)+drift_angles[angle_idx])*side_drifts[drift_idx];
+						new_y = cur_y + sin(ANG32TORAD(cur_ang)+drift_angles[angle_idx])*side_drifts[drift_idx];
+					}
+					else
+					{
+						new_x = cur_x + cos(ANG32TORAD(cur_ang)-drift_angles[angle_idx])*(-1*side_drifts[drift_idx]);
+						new_y = cur_y + sin(ANG32TORAD(cur_ang)-drift_angles[angle_idx])*(-1*side_drifts[drift_idx]);
+					}
+					int drifted_hitcnt = check_direct_route_hitcnt_mm(cur_ang, new_x, new_y, the_route[route_pos].x, the_route[route_pos].y);
+					if(drifted_hitcnt <= best_hitcnt)
+					{
+						best_hitcnt = drifted_hitcnt;
+						best_drift_idx = drift_idx;
+						best_angle_idx = angle_idx;
+						best_new_x = new_x; best_new_y = new_y;
+					}
+				}
+			}
+
+			if(best_hitcnt < hitcnt)
+			{
+				printf("!!!!!!!!!!   INFO: Steering is needed to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n", 
+					hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
+
+				// Do the steer
+				id_cnt = 0; // id0 is reserved for special maneuvers during route following.
+				move_to(best_new_x, best_new_y, 0, (id_cnt<<4) | ((route_pos)&0b1111), 12, 0);
+				maneuver_cnt++;
+
+			}
+			else
+			{
+				printf("!!!!!!!!  INFO: Steering cannot help in improving line-of-sight.\n");
+				if(hitcnt < 3)
+				{
+					printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has 1..2 obstacles, slowing down.\n");
+					cur_speedlim = 12;
+					limit_speed(cur_speedlim);
+				}
+				else
+				{
+					printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Trying to solve.\n");
+					stop_movement();
+					lookaround_creep_reroute = 1;
+				}
+
+			}
+		}
+	}
 }
 
 void route_fsm()
@@ -410,7 +488,6 @@ void route_fsm()
 
 	if(do_follow_route)
 	{
-		static int maneuver_cnt = 0; // to prevent too many successive maneuver operations
 		int id = cur_xymove.id;
 
 		if(((id&0b1110000) == (id_cnt<<4)) && ((id&0b1111) == ((route_pos)&0b1111)))
@@ -485,82 +562,17 @@ void route_fsm()
 
 					static double prev_incr = 0.0;
 					double stamp;
-					if( (stamp=subsec_timestamp()) > prev_incr+0.33)
+					if( (stamp=subsec_timestamp()) > prev_incr+0.20)
 					{
 						prev_incr = stamp;
 
-						if(the_route[route_pos].backmode == 0)
+						if(robot_pos_timestamp < stamp-0.30)
 						{
-							int hitcnt = check_direct_route_non_turning_hitcnt_mm(cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y);
-
-
-							if(hitcnt > 0 && maneuver_cnt < 3)
-							{
-								// See what happens if we steer left or right
-
-								int best_hitcnt = 9999;
-								int best_drift_idx = 0;
-								int best_angle_idx = 0;
-								int best_new_x = 0, best_new_y = 0;
-
-								const int side_drifts[14] = {320,-320, 240,-240,200,-200,160,-160,120,-120,80,-80,40,-40};
-								const float drift_angles[5] = {M_PI/4.0, M_PI/6.0, M_PI/8.0, M_PI/12.0, M_PI/16.0};
-
-								for(int angle_idx=0; angle_idx<5; angle_idx++)
-								{
-									for(int drift_idx=0; drift_idx<14; drift_idx++)
-									{
-										int new_x, new_y;
-										if(side_drifts[drift_idx] > 0)
-										{
-											new_x = cur_x + cos(ANG32TORAD(cur_ang)+drift_angles[angle_idx])*side_drifts[drift_idx];
-											new_y = cur_y + sin(ANG32TORAD(cur_ang)+drift_angles[angle_idx])*side_drifts[drift_idx];
-										}
-										else
-										{
-											new_x = cur_x + cos(ANG32TORAD(cur_ang)-drift_angles[angle_idx])*(-1*side_drifts[drift_idx]);
-											new_y = cur_y + sin(ANG32TORAD(cur_ang)-drift_angles[angle_idx])*(-1*side_drifts[drift_idx]);
-										}
-										int drifted_hitcnt = check_direct_route_hitcnt_mm(cur_ang, new_x, new_y, the_route[route_pos].x, the_route[route_pos].y);
-										if(drifted_hitcnt <= best_hitcnt)
-										{
-											best_hitcnt = drifted_hitcnt;
-											best_drift_idx = drift_idx;
-											best_angle_idx = angle_idx;
-											best_new_x = new_x; best_new_y = new_y;
-										}
-									}
-								}
-
-								if(best_hitcnt < hitcnt)
-								{
-									printf("!!!!!!!!!!   INFO: Steering is needed to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d)\n", 
-										hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt);
-
-									// Do the steer
-									id_cnt = 0; // id0 is reserved for special maneuvers during route following.
-									move_to(best_new_x, best_new_y, 0, (id_cnt<<4) | ((route_pos)&0b1111), 12, 0);
-									maneuver_cnt++;
-
-								}
-								else
-								{
-									printf("!!!!!!!!  INFO: Steering cannot help in improving line-of-sight.\n");
-									if(hitcnt < 3)
-									{
-										printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has 1..2 obstacles, slowing down.\n");
-										cur_speedlim = 12;
-										limit_speed(cur_speedlim);
-									}
-									else
-									{
-										printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Trying to solve.\n");
-										stop_movement();
-										lookaround_creep_reroute = 1;
-									}
-
-								}
-							}
+							printf("INFO: Skipping live obstacle checking due to stale robot pos.\n");
+						}
+						else
+						{
+							do_live_obstacle_checking();
 						}
 					}
 				}

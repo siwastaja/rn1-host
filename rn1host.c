@@ -224,10 +224,9 @@ void do_live_obstacle_checking()
 			if(best_hitcnt < hitcnt)
 			{
 
-				do_follow_route = 0;
-				lookaround_creep_reroute = 0;
-				stop_movement();
-
+//				do_follow_route = 0;
+//				lookaround_creep_reroute = 0;
+//				stop_movement();
 
 				if( (abs(side_drifts[best_drift_idx]) < 50) || ( abs(side_drifts[best_drift_idx]) < 100 && drift_angles[best_angle_idx] < M_PI/13.0))
 				{

@@ -30,8 +30,8 @@
 
 tof3d_scan_t* get_tof3d(void);
 
-int max_speedlim = 35;
-int cur_speedlim = 35;
+int max_speedlim = 10;
+int cur_speedlim = 10;
 
 double subsec_timestamp()
 {

@@ -184,6 +184,8 @@ void do_live_obstacle_checking()
 						new_y = cur_y + sin(ANG32TORAD(cur_ang)-drift_angles[angle_idx])*(-1*side_drifts[drift_idx]);
 					}
 					int drifted_hitcnt = check_direct_route_hitcnt_mm(cur_ang, new_x, new_y, the_route[route_pos].x, the_route[route_pos].y);
+					printf("a=%.1f deg  drift=%d mm  cur(%d,%d) to(%d,%d)  hitcnt=%d\n",
+						RADTODEG(drift_angles[angle_idx]), side_drifts[drift_idx], cur_x, cur_y, new_x, new_y, drifted_hitcnt);
 					if(drifted_hitcnt <= best_hitcnt)
 					{
 						best_hitcnt = drifted_hitcnt;

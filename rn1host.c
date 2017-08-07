@@ -165,7 +165,7 @@ void do_live_obstacle_checking()
 			int best_angle_idx = 0;
 			int best_new_x = 0, best_new_y = 0;
 
-			const int side_drifts[14] = {320,-320, 240,-240,200,-200,160,-160,120,-120,80,-80,40,-40};
+			const int side_drifts[14] = {320,-320, 240,-240,200,-200,160,-160,120,-120,80,-80, 40, -40};
 			const float drift_angles[5] = {M_PI/4.0, M_PI/6.0, M_PI/8.0, M_PI/12.0, M_PI/16.0};
 
 			for(int angle_idx=0; angle_idx<5; angle_idx++)
@@ -196,16 +196,27 @@ void do_live_obstacle_checking()
 
 			if(best_hitcnt < hitcnt)
 			{
-				printf("!!!!!!!!!!   INFO: Steering is needed to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n", 
-					hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
-				if(tcp_client_sock > 0) tcp_send_dbgpoint(cur_x, cur_y, 210, 210,   0, 1);
-				if(tcp_client_sock > 0) tcp_send_dbgpoint(best_new_x, best_new_y,   0, 255,   0, 1);
+				if( (abs(side_drifts[best_drift_idx]) < 50) || ( abs(side_drifts[best_drift_idx]) < 100 && drift_angles[best_angle_idx] < M_PI/13.0))
+				{
+					cur_speedlim = 12;
+					limit_speed(cur_speedlim);
+					printf("!!!!!!!!!!   INFO: Steering is almost needed (not performed) to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n",
+						hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
+					if(tcp_client_sock > 0) tcp_send_dbgpoint(cur_x, cur_y, 210, 210,   110, 1);
+					if(tcp_client_sock > 0) tcp_send_dbgpoint(best_new_x, best_new_y,   0, 255,   110, 1);
+				}
+				else
+				{
+					printf("!!!!!!!!!!   INFO: Steering is needed to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n", 
+						hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
+					if(tcp_client_sock > 0) tcp_send_dbgpoint(cur_x, cur_y, 200, 200,   0, 1);
+					if(tcp_client_sock > 0) tcp_send_dbgpoint(best_new_x, best_new_y,   0, 40,   0, 1);
 
-				// Do the steer
-				id_cnt = 0; // id0 is reserved for special maneuvers during route following.
-				move_to(best_new_x, best_new_y, 0, (id_cnt<<4) | ((route_pos)&0b1111), 12, 0);
-				maneuver_cnt++;
-
+					// Do the steer
+					id_cnt = 0; // id0 is reserved for special maneuvers during route following.
+					move_to(best_new_x, best_new_y, 0, (id_cnt<<4) | ((route_pos)&0b1111), 12, 0);
+					maneuver_cnt++;
+				}
 			}
 			else
 			{
@@ -219,6 +230,8 @@ void do_live_obstacle_checking()
 				else
 				{
 					printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Trying to solve.\n");
+					cur_speedlim = 12;
+					limit_speed(cur_speedlim);
 					stop_movement();
 					lookaround_creep_reroute = 1;
 				}
@@ -564,11 +577,11 @@ void route_fsm()
 
 					static double prev_incr = 0.0;
 					double stamp;
-					if( (stamp=subsec_timestamp()) > prev_incr+0.20)
+					if( (stamp=subsec_timestamp()) > prev_incr+0.10)
 					{
 						prev_incr = stamp;
 
-						if(robot_pos_timestamp < stamp-0.30)
+						if(robot_pos_timestamp < stamp-0.20)
 						{
 							printf("INFO: Skipping live obstacle checking due to stale robot pos.\n");
 						}
@@ -1172,17 +1185,17 @@ void* main_thread()
 				}
 				else if(obstacle_levels[1] > 70)
 				{
-					if(cur_speedlim > 22)
+					if(cur_speedlim > 19)
 					{
-						cur_speedlim = 22;
+						cur_speedlim = 19;
 						limit_speed(cur_speedlim);
 					}
 				}
 				else if(obstacle_levels[1] > 7)
 				{
-					if(cur_speedlim > 28)
+					if(cur_speedlim > 25)
 					{
-						cur_speedlim = 28;
+						cur_speedlim = 25;
 						limit_speed(cur_speedlim);
 					}
 				}

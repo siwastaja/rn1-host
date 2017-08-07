@@ -1439,7 +1439,7 @@ int check_direct_route_hitcnt(int32_t start_ang, int start_x, int start_y, int e
 
 	route_xy_t start = {start_x, start_y};
 	route_xy_t end = {end_x, end_y};
-	hitcnt += line_of_sight(start, end);
+	hitcnt += line_of_sight_hitcnt(start, end);
 
 	return hitcnt;
 }

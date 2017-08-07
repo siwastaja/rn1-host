@@ -876,7 +876,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 	while(start_ang < 0.0) start_ang += 2.0*M_PI;
 	int start_dir = (start_ang/(2.0*M_PI) * 32.0)+0.5;
 
-	printf("Start %d,%d,  end %d,%d  start_ang=%f  start_dir=%d\n", s_x, s_y, e_x, e_y, start_ang, start_dir);
+//	printf("Start %d,%d,  end %d,%d  start_ang=%f  start_dir=%d\n", s_x, s_y, e_x, e_y, start_ang, start_dir);
 
 
 	search_unit_t* p_start = (search_unit_t*) malloc(sizeof(search_unit_t));
@@ -1137,7 +1137,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 		free(p_del);
 	}
 	
-	printf("Route not found, cnt = %d\n", cnt);
+	printf("Solution not found, cnt = %d\n", cnt);
 
 	if(cnt < 200)
 	{
@@ -1157,18 +1157,24 @@ Return values:
 2 backing off helped search to succeed in the beginning, but it still fails later
 3 search succeeds in the beginning, but fails later
 
+Searches for the route; if it fails almost right away, different back-offs are tried.
+Note that now "backoffs" also include trying to go forward first, as this could provide better
+results than the search algorithm can provide, in some rare cases.
+
 */
+
+
 int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_mm, int end_x_mm, int end_y_mm)
 {
 
-#define SRCH_NUM_A 15
+#define SRCH_NUM_A 23
 	static const int a_s[SRCH_NUM_A] = 
-	{	0,	-12,	12,	-24,	24,	-36,	36,	-48,	48,	-60,	60,	-72,	72, 	-84,	84	};
+	{	0,	-4,	4,	-8,	8,	-12,	12,	-18,	18,	-24,	24,	-36,	36,	-48,	48,	-60,	60,	-72,	72, 	-84,	84,	-96,	96	};
 
 
-#define SRCH_NUM_BACK 10
+#define SRCH_NUM_BACK 18
 	static const int b_s[SRCH_NUM_BACK] = 
-	{	-320,	-400,	-280,	-240,	-200,	-480,	-160,	-120,	-80,	-560	};
+	{	80,	120,	160,	240,	280,	320,	400,	480,	-320,	-400,	-280,	-240,	-200,	-480,	-160,	-120,	-80,	-560	};
 
 
 	// If going forward doesn't work out from the beginning, try backing off slightly.
@@ -1180,7 +1186,7 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 
 	if(ret == 1)
 	{
-		printf("Search fails in the start - trying to back off.\n");
+		//printf("Search fails in the start - trying to back off.\n");
 
 		for(int a_idx = 0; a_idx < SRCH_NUM_A; a_idx++)
 		{

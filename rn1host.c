@@ -1180,14 +1180,14 @@ void* main_thread()
 				chafind_timestamp = stamp;
 				printf("INFO: Requesting charger mount.\n");
 				hw_find_charger();
-				find_charger_state = 0;
+				find_charger_state++;
 			}
 		}
 		else if(find_charger_state == 8)
 		{
 			if(!pwr_status.charging && !pwr_status.charged)
 			{
-				if(subsec_timestamp() > chafind_timestamp+20.0)
+				if(subsec_timestamp() > chafind_timestamp+30.0)
 				{
 					printf("WARNING: Not charging (charger mount failure?). Retrying driving to charger once.\n");
 					find_charger_state = 1;

@@ -198,6 +198,12 @@ void do_live_obstacle_checking()
 
 			if(best_hitcnt < hitcnt)
 			{
+
+				do_follow_route = 0;
+				lookaround_creep_reroute = 0;
+				stop_movement();
+
+
 				if( (abs(side_drifts[best_drift_idx]) < 50) || ( abs(side_drifts[best_drift_idx]) < 100 && drift_angles[best_angle_idx] < M_PI/13.0))
 				{
 					cur_speedlim = 12;
@@ -215,10 +221,12 @@ void do_live_obstacle_checking()
 					if(tcp_client_sock > 0) tcp_send_dbgpoint(best_new_x, best_new_y,   0, 40,   0, 1);
 
 					// Do the steer
-					id_cnt = 0; // id0 is reserved for special maneuvers during route following.
-					move_to(best_new_x, best_new_y, 0, (id_cnt<<4) | ((route_pos)&0b1111), 12, 0);
-					maneuver_cnt++;
+//					id_cnt = 0; // id0 is reserved for special maneuvers during route following.
+//					move_to(best_new_x, best_new_y, 0, (id_cnt<<4) | ((route_pos)&0b1111), 12, 0);
+//					maneuver_cnt++;
 				}
+
+
 			}
 			else
 			{

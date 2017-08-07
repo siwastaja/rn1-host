@@ -198,6 +198,8 @@ void do_live_obstacle_checking()
 			{
 				printf("!!!!!!!!!!   INFO: Steering is needed to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n", 
 					hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
+				if(tcp_client_sock > 0) tcp_send_dbgpoint(cur_x, cur_y, 210, 210,   0, 1);
+				if(tcp_client_sock > 0) tcp_send_dbgpoint(best_new_x, best_new_y,   0, 255,   0, 1);
 
 				// Do the steer
 				id_cnt = 0; // id0 is reserved for special maneuvers during route following.

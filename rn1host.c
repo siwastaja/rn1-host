@@ -221,7 +221,7 @@ void do_live_obstacle_checking()
 				}
 			}
 
-			if(best_hitcnt < hitcnt)
+			if(best_hitcnt < hitcnt && best_hitcnt < 2)
 			{
 
 //				do_follow_route = 0;

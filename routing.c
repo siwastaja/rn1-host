@@ -1219,7 +1219,7 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 
 						route_unit_t* point = malloc(sizeof(route_unit_t));
 						point->loc.x = new_x_units; point->loc.y = new_y_units;
-						point->backmode = 1;			
+						point->backmode = (b_s[back_idx]<0)?1:0;
 						DL_PREPEND(*route, point);
 
 						return 0;

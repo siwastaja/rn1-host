@@ -873,7 +873,7 @@ void* main_thread()
 				if(msg_cr_dest.backmode & 0b1000) // Pose
 				{
 					float ang = atan2(msg_cr_dest.y-cur_y, msg_cr_dest.x-cur_x);
-					turn_and_go_abs_rel(-1*RADTOANG32(ang), 50, cur_speedlim, 1);
+					turn_and_go_abs_rel(RADTOANG32(ang), 0, cur_speedlim, 1);
 				}
 				else
 					move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode, 0, cur_speedlim, 1);

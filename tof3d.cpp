@@ -91,7 +91,7 @@ Softkinetic_tof::Softkinetic_tof()
 , _streaming(false)
 , _error(false)
 , _calibrating(false)
-, _mode30(true)
+, _mode30(false)
 , _temporal_smooth(false)
 , _dbg_print(false)
 {

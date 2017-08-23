@@ -379,7 +379,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 	if(is_invalid)
 		return;
 
-
+	if(!_calibrating)
 	{
 		int next = tof3d_wr+1; if(next >= TOF3D_RING_BUF_LEN) next = 0;
 		if(next == tof3d_rd)
@@ -566,6 +566,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 			printf("------------------------------------------------------------------------\n");
 			CONTEXT_QUIT(_context);
 		}
+		return;
 	}
 
 	if(_temporal_smooth)

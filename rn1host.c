@@ -436,7 +436,7 @@ void route_fsm()
 			int dx = the_route[route_pos].x - cur_x;
 			int dy = the_route[route_pos].y - cur_y;
 			int dist = sqrt(sq(dx)+sq(dy));
-			if(dist > 200 && creep_cnt < 5)
+			if(dist > 200 && creep_cnt < 4)
 			{
 				float ang = atan2(dy, dx) /*<- ang to dest*/;
 				int creep_amount = 100;

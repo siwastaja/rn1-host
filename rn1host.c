@@ -1297,7 +1297,7 @@ void* main_thread()
 				tofs_to_map[n_tofs_to_map] = p_tof;
 				n_tofs_to_map++;
 
-				if(n_tofs_to_map >= 10)
+				if(n_tofs_to_map >= 3)
 				{
 					int32_t mid_x, mid_y;
 					map_3dtof(&world, n_tofs_to_map, tofs_to_map, &mid_x, &mid_y);

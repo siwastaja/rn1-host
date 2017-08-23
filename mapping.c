@@ -1226,6 +1226,13 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 
 	int cnt_drop = 0, cnt_item = 0, cnt_3dwall = 0, cnt_removal = 0, cnt_total_removal = 0;
 
+	int wall_limit = n_tofs/2+1;
+	int item_limit = n_tofs/2+1;
+	int drop_limit = n_tofs/3+1;
+	int seen_total_removal_limit = (2*n_tofs)/3+1;
+	int seen_removal_limit = n_tofs/4+1;
+
+
 	int py = start_py; int oy = start_oy;
 	for(int iy=0; iy < MAP_PAGE_W; iy++)
 	{
@@ -1250,7 +1257,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 				return -1;
 			}
 
-			if(walls[iy*MAP_PAGE_W+ix] > n_tofs/2)
+			if(walls[iy*MAP_PAGE_W+ix] >= wall_limit)
 			{
 				if(!(w->pages[px][py]->units[ox][oy].result & UNIT_3D_WALL)) w->changed[px][py] = 1;
 				w->pages[px][py]->units[ox][oy].result |= UNIT_3D_WALL;
@@ -1258,7 +1265,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 				PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_3d_obstacles);
 				cnt_3dwall++;
 			}
-			else if(items[iy*MAP_PAGE_W+ix] > n_tofs/2)
+			else if(items[iy*MAP_PAGE_W+ix] >= item_limit)
 			{
 				if(!(w->pages[px][py]->units[ox][oy].result & UNIT_ITEM)) w->changed[px][py] = 1;
 				w->pages[px][py]->units[ox][oy].result |= UNIT_ITEM;
@@ -1266,7 +1273,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 				PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_3d_obstacles);
 				cnt_item++;
 			}
-			else if(drops[iy*MAP_PAGE_W+ix] > n_tofs/3)
+			else if(drops[iy*MAP_PAGE_W+ix] >= drop_limit)
 			{
 				// Mapping the drops will be disabled until the bug is sorted out
 				// (Sometimes, when against the wall where the charger is located, a "drop" is seen some 1.2 meters away, on the
@@ -1278,7 +1285,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 //				PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_3d_obstacles);
 				cnt_drop++;
 			}
-			else if(seens[iy*MAP_PAGE_W+ix] > (2*n_tofs/3) && maybes[iy*MAP_PAGE_W+ix] == 0 && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
+			else if(seens[iy*MAP_PAGE_W+ix] >= seen_total_removal_limit && maybes[iy*MAP_PAGE_W+ix] == 0 && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
 			{
 				if(w->pages[px][py]->units[ox][oy].result & (UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL | UNIT_INVISIBLE_WALL)) w->changed[px][py] = 1;
 				w->pages[px][py]->units[ox][oy].result &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL | UNIT_INVISIBLE_WALL);
@@ -1286,7 +1293,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 				w->pages[px][py]->units[ox][oy].num_3d_obstacles = 0;
 				cnt_total_removal++;
 			}
-			else if(seens[iy*MAP_PAGE_W+ix] > n_tofs/4 && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
+			else if(seens[iy*MAP_PAGE_W+ix] >= seen_removal_limit && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
 			{
 				if(w->pages[px][py]->units[ox][oy].result & (UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL)) w->changed[px][py] = 1;
 				w->pages[px][py]->units[ox][oy].result &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);

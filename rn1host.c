@@ -456,31 +456,7 @@ void route_fsm()
 				}
 				else
 				{
-					int careful_amount = 50;
-					int imaginary_len = 200; // So that we choose to creep in a direction that doesn't have obstacles right around. (avoiding "from oja to allikko")
-					const float creep_angs[7] = {DEGTORAD(-15), DEGTORAD(15), DEGTORAD(-10), DEGTORAD(10), DEGTORAD(-5), DEGTORAD(5), 0};
-					int best_hitcnt = 999999;
-					int best_creep_ang_idx = 0;
-					for(int idx=0; idx < 7; idx++)
-					{
-						int imaginary_dest_x = cur_x + cos(ang)*(imaginary_len);
-						int imaginary_dest_y = cur_y + sin(ang)*(imaginary_len);
-						// Angles to be turned are small enough so that we'll just ignore the turn checking.
-						int hitcnt = check_direct_route_non_turning_hitcnt_mm(cur_x, cur_y, imaginary_dest_x, imaginary_dest_y);
-						if(hitcnt <= best_hitcnt)
-						{
-							best_hitcnt = hitcnt;
-							best_creep_ang_idx = idx;
-						}
-					}
-
-					if(best_hitcnt == 0) careful_amount = 100;
-					else if(best_hitcnt == 1) careful_amount = 60;
-
-					printf("INFO: Can't creep %d mm towards the next waypoint, turning & creeping %.1f deg, %d mm carefully to best possible direction (hitcnt=%d)\n",
-						creep_amount, RADTODEG(creep_angs[best_creep_ang_idx]), careful_amount, best_hitcnt);
-					time_interval = 4.0;
-					turn_and_go_abs_rel(-1*RADTOANG32(creep_angs[best_creep_ang_idx]), careful_amount, 7, 1);
+					creep_cnt=99;
 				}
 				creep_cnt++;
 			}

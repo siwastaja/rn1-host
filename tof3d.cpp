@@ -640,12 +640,12 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 		{
 			int nearness = 0;
 			if(sx < (500)/TOF3D_HMAP_SPOT_SIZE &&
-			   sy > TOF3D_HMAP_YMIDDLE - (320)/TOF3D_HMAP_SPOT_SIZE &&
-			   sy < TOF3D_HMAP_YMIDDLE + (320)/TOF3D_HMAP_SPOT_SIZE)
+			   sy > TOF3D_HMAP_YMIDDLE - (280)/TOF3D_HMAP_SPOT_SIZE &&
+			   sy < TOF3D_HMAP_YMIDDLE + (280)/TOF3D_HMAP_SPOT_SIZE)
 				nearness = 2;
 			else if(sx < (1000)/TOF3D_HMAP_SPOT_SIZE &&
-			   sy > TOF3D_HMAP_YMIDDLE - (400)/TOF3D_HMAP_SPOT_SIZE &&
-			   sy < TOF3D_HMAP_YMIDDLE + (400)/TOF3D_HMAP_SPOT_SIZE)
+			   sy > TOF3D_HMAP_YMIDDLE - (360)/TOF3D_HMAP_SPOT_SIZE &&
+			   sy < TOF3D_HMAP_YMIDDLE + (360)/TOF3D_HMAP_SPOT_SIZE)
 				nearness = 1;
 
 

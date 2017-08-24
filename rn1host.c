@@ -190,27 +190,30 @@ void do_live_obstacle_checking()
 			int best_angle_idx = 0;
 			int best_new_x = 0, best_new_y = 0;
 
-			const int side_drifts[14] = {320,-320, 240,-240,200,-200,160,-160,120,-120,80,-80, 40, -40};
+			const int side_drifts[16] = {400, -400, 320,-320, 240,-240,200,-200,160,-160,120,-120,80,-80, 40, -40};
 			const float drift_angles[5] = {M_PI/4.0, M_PI/6.0, M_PI/8.0, M_PI/12.0, M_PI/16.0};
+
+			int predicted_cur_x = cur_x + cos(ANG32TORAD(cur_ang))*(float)cur_speedlim*2.0;
+			int predicted_cur_y = cur_y + sin(ANG32TORAD(cur_ang))*(float)cur_speedlim*2.0;
 
 			for(int angle_idx=0; angle_idx<5; angle_idx++)
 			{
-				for(int drift_idx=0; drift_idx<14; drift_idx++)
+				for(int drift_idx=0; drift_idx<16; drift_idx++)
 				{
 					int new_x, new_y;
 					if(side_drifts[drift_idx] > 0)
 					{
-						new_x = cur_x + cos(ANG32TORAD(cur_ang)+drift_angles[angle_idx])*side_drifts[drift_idx];
-						new_y = cur_y + sin(ANG32TORAD(cur_ang)+drift_angles[angle_idx])*side_drifts[drift_idx];
+						new_x = predicted_cur_x + cos(ANG32TORAD(cur_ang)+drift_angles[angle_idx])*side_drifts[drift_idx];
+						new_y = predicted_cur_y + sin(ANG32TORAD(cur_ang)+drift_angles[angle_idx])*side_drifts[drift_idx];
 					}
 					else
 					{
-						new_x = cur_x + cos(ANG32TORAD(cur_ang)-drift_angles[angle_idx])*(-1*side_drifts[drift_idx]);
-						new_y = cur_y + sin(ANG32TORAD(cur_ang)-drift_angles[angle_idx])*(-1*side_drifts[drift_idx]);
+						new_x = predicted_cur_x + cos(ANG32TORAD(cur_ang)-drift_angles[angle_idx])*(-1*side_drifts[drift_idx]);
+						new_y = predicted_cur_y + sin(ANG32TORAD(cur_ang)-drift_angles[angle_idx])*(-1*side_drifts[drift_idx]);
 					}
 					int drifted_hitcnt = check_direct_route_hitcnt_mm(cur_ang, new_x, new_y, the_route[route_pos].x, the_route[route_pos].y);
 //					printf("a=%.1f deg  drift=%d mm  cur(%d,%d) to(%d,%d)  hitcnt=%d\n",
-//						RADTODEG(drift_angles[angle_idx]), side_drifts[drift_idx], cur_x, cur_y, new_x, new_y, drifted_hitcnt);
+//						RADTODEG(drift_angles[angle_idx]), side_drifts[drift_idx], predicted_cur_x, predicted_cur_y, new_x, new_y, drifted_hitcnt);
 					if(drifted_hitcnt <= best_hitcnt)
 					{
 						best_hitcnt = drifted_hitcnt;
@@ -283,13 +286,15 @@ void route_fsm()
 	{
 		if(check_direct_route_non_turning_mm(cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y))
 		{
-			printf("INFO: Direct line-of-sight to the next waypoint, we are done, resuming following the route.\n");
+			printf("INFO: Direct line-of-sight has appeared to the next waypoint, resuming following the route.\n");
 			lookaround_creep_reroute = 0;
 			do_follow_route = 1;
 			id_cnt++; if(id_cnt > 7) id_cnt = 1;
 			move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), cur_speedlim, 0);
 		}
 	}
+
+	const float lookaround_turn = 10.0;
 
 	if(lookaround_creep_reroute == 1)
 	{
@@ -308,17 +313,17 @@ void route_fsm()
 		{
 			int dx = the_route[route_pos].x - cur_x;
 			int dy = the_route[route_pos].y - cur_y;
-			float ang = atan2(dy, dx) /*<- ang to dest*/ - DEGTORAD(15.0);
+			float ang = atan2(dy, dx) /*<- ang to dest*/ - DEGTORAD(lookaround_turn);
 
 			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
 			{
-				printf("INFO: Can turn -15 deg, doing it.\n");
+				printf("INFO: Can turn to %.1f deg, doing it.\n", -1*lookaround_turn);
 				turn_and_go_abs_rel(RADTOANG32(ang), 0, 13, 1);
 			}
 			else
 			{
-				printf("INFO: Can't turn -15 deg, wiggling a bit.\n");
-				turn_and_go_abs_rel(cur_ang-5*ANG_1_DEG, 0, 13, 1);
+				printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n", -1*lookaround_turn);
+				turn_and_go_abs_rel(cur_ang-4*ANG_1_DEG, 0, 13, 1);
 			}
 			timestamp = subsec_timestamp();
 			lookaround_creep_reroute++;
@@ -331,17 +336,17 @@ void route_fsm()
 		{
 			int dx = the_route[route_pos].x - cur_x;
 			int dy = the_route[route_pos].y - cur_y;
-			float ang = atan2(dy, dx) /*<- ang to dest*/ - DEGTORAD(30.0);
+			float ang = atan2(dy, dx) /*<- ang to dest*/ - DEGTORAD(1.8*lookaround_turn);
 
 			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
 			{
-				printf("INFO: Can turn -30 deg, doing it.\n");
+				printf("INFO: Can turn to %.1f deg, doing it.\n", -1.8*lookaround_turn);
 				turn_and_go_abs_rel(RADTOANG32(ang), -20, 13, 1);
 			}
 			else
 			{
-				printf("INFO: Can't turn -30 deg, wiggling a bit.\n");
-				turn_and_go_abs_rel(cur_ang-5*ANG_1_DEG, 0, 13, 1);
+				printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n", -1.8*lookaround_turn);
+				turn_and_go_abs_rel(cur_ang-4*ANG_1_DEG, 0, 13, 1);
 			}
 			timestamp = subsec_timestamp();
 			lookaround_creep_reroute++;
@@ -354,17 +359,17 @@ void route_fsm()
 		{
 			int dx = the_route[route_pos].x - cur_x;
 			int dy = the_route[route_pos].y - cur_y;
-			float ang = atan2(dy, dx) /*<- ang to dest*/ + DEGTORAD(15.0);
+			float ang = atan2(dy, dx) /*<- ang to dest*/ + DEGTORAD(lookaround_turn);
 
 			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
 			{
-				printf("INFO: Can turn +15 deg, doing it.\n");
+				printf("INFO: Can turn to %.1f deg, doing it.\n",lookaround_turn);
 				turn_and_go_abs_rel(RADTOANG32(ang), 0, 13, 1);
 			}
 			else
 			{
-				printf("INFO: Can't turn +15 deg, wiggling a bit.\n");
-				turn_and_go_abs_rel(cur_ang+10*ANG_1_DEG, 0, 13, 1);
+				printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n",lookaround_turn);
+				turn_and_go_abs_rel(cur_ang+12*ANG_1_DEG, 0, 13, 1);
 			}
 			timestamp = subsec_timestamp();
 			lookaround_creep_reroute++;
@@ -377,17 +382,17 @@ void route_fsm()
 		{
 			int dx = the_route[route_pos].x - cur_x;
 			int dy = the_route[route_pos].y - cur_y;
-			float ang = atan2(dy, dx) /*<- ang to dest*/ + DEGTORAD(30.0);
+			float ang = atan2(dy, dx) /*<- ang to dest*/ + DEGTORAD(1.8*lookaround_turn);
 
 			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
 			{
-				printf("INFO: Can turn +30 deg, doing it.\n");
+				printf("INFO: Can turn to %.1f deg, doing it.\n", 1.8*lookaround_turn);
 				turn_and_go_abs_rel(RADTOANG32(ang), 0, 13, 1);
 			}
 			else
 			{
-				printf("INFO: Can't turn +30 deg, wiggling a bit.\n");
-				turn_and_go_abs_rel(cur_ang+5*ANG_1_DEG, 0, 13, 1);
+				printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n", 1.8*lookaround_turn);
+				turn_and_go_abs_rel(cur_ang+4*ANG_1_DEG, 0, 13, 1);
 			}
 			timestamp = subsec_timestamp();
 			lookaround_creep_reroute++;
@@ -436,7 +441,7 @@ void route_fsm()
 			int dx = the_route[route_pos].x - cur_x;
 			int dy = the_route[route_pos].y - cur_y;
 			int dist = sqrt(sq(dx)+sq(dy));
-			if(dist > 200 && creep_cnt < 4)
+			if(dist > 300 && creep_cnt < 3)
 			{
 				float ang = atan2(dy, dx) /*<- ang to dest*/;
 				int creep_amount = 100;

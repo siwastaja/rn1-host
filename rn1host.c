@@ -30,8 +30,8 @@
 
 tof3d_scan_t* get_tof3d(void);
 
-int max_speedlim = 30;
-int cur_speedlim = 30;
+int max_speedlim = 45;
+int cur_speedlim = 45;
 
 double subsec_timestamp()
 {
@@ -233,7 +233,7 @@ void do_live_obstacle_checking()
 
 				if( (abs(side_drifts[best_drift_idx]) < 50) || ( abs(side_drifts[best_drift_idx]) < 100 && drift_angles[best_angle_idx] < M_PI/13.0))
 				{
-					cur_speedlim = 12;
+					cur_speedlim = 15;
 					limit_speed(cur_speedlim);
 					printf("!!!!!!!!!!   INFO: Steering is almost needed (not performed) to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n",
 						hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
@@ -260,13 +260,13 @@ void do_live_obstacle_checking()
 				if(hitcnt < 3)
 				{
 					printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has 1..2 obstacles, slowing down.\n");
-					cur_speedlim = 12;
+					cur_speedlim = 15;
 					limit_speed(cur_speedlim);
 				}
 				else
 				{
 					printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Trying to solve.\n");
-					cur_speedlim = 12;
+					cur_speedlim = 15;
 					limit_speed(cur_speedlim);
 					stop_movement();
 					lookaround_creep_reroute = 1;
@@ -1201,39 +1201,47 @@ void* main_thread()
 				int obstacle_levels[3];
 				pthread_mutex_lock(&cur_pos_mutex);
 				obstacle_levels[0] = tof3d_obstacle_levels[0];
-				obstacle_levels[1] = tof3d_obstacle_levels[0];
-				obstacle_levels[2] = tof3d_obstacle_levels[0];
+				obstacle_levels[1] = tof3d_obstacle_levels[1];
+				obstacle_levels[2] = tof3d_obstacle_levels[2];
 				pthread_mutex_unlock(&cur_pos_mutex);
 
 				if(obstacle_levels[2] > 100)
 				{
-					if(cur_speedlim > 12)
+					if(cur_speedlim > 14)
 					{
-						cur_speedlim = 12;
+						cur_speedlim = 14;
 						limit_speed(cur_speedlim);
 					}
 				}
 				else if(obstacle_levels[2] > 7)
 				{
-					if(cur_speedlim > 16)
+					if(cur_speedlim > 18)
 					{
-						cur_speedlim = 16;
+						cur_speedlim = 18;
 						limit_speed(cur_speedlim);
 					}
 				}
 				else if(obstacle_levels[1] > 70)
 				{
-					if(cur_speedlim > 19)
+					if(cur_speedlim > 22)
 					{
-						cur_speedlim = 19;
+						cur_speedlim = 22;
 						limit_speed(cur_speedlim);
 					}
 				}
 				else if(obstacle_levels[1] > 7)
 				{
-					if(cur_speedlim > 25)
+					if(cur_speedlim > 28)
 					{
-						cur_speedlim = 25;
+						cur_speedlim = 28;
+						limit_speed(cur_speedlim);
+					}
+				}
+				else if(obstacle_levels[0] > 20)
+				{
+					if(cur_speedlim > 35)
+					{
+						cur_speedlim = 35;
 						limit_speed(cur_speedlim);
 					}
 				}
@@ -1268,9 +1276,14 @@ void* main_thread()
 
 			static int32_t prev_x, prev_y, prev_ang;
 
-			if(mapping_on && (prev_x != p_tof->robot_pos.x || prev_y != p_tof->robot_pos.y || prev_ang != p_tof->robot_pos.ang))
+			if(mapping_on)
 			{
-				prev_x = p_tof->robot_pos.x; prev_y = p_tof->robot_pos.y; prev_ang = p_tof->robot_pos.ang;
+				int robot_moving = 0;
+				if((prev_x != p_tof->robot_pos.x || prev_y != p_tof->robot_pos.y || prev_ang != p_tof->robot_pos.ang))
+				{
+					prev_x = p_tof->robot_pos.x; prev_y = p_tof->robot_pos.y; prev_ang = p_tof->robot_pos.ang;
+					robot_moving = 1;
+				}
 
 				static int n_tofs_to_map = 0;
 				static tof3d_scan_t* tofs_to_map[20];
@@ -1278,7 +1291,7 @@ void* main_thread()
 				tofs_to_map[n_tofs_to_map] = p_tof;
 				n_tofs_to_map++;
 
-				if(n_tofs_to_map >= 3)
+				if(n_tofs_to_map >= (robot_moving?3:12))
 				{
 					int32_t mid_x, mid_y;
 					map_3dtof(&world, n_tofs_to_map, tofs_to_map, &mid_x, &mid_y);
@@ -1299,7 +1312,6 @@ void* main_thread()
 
 					n_tofs_to_map = 0;
 				}
-
 			}
 
 		}

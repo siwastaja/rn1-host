@@ -295,6 +295,26 @@ static int line_of_sight_hitcnt(route_xy_t p1, route_xy_t p2)
 
 uint32_t minimap[MINIMAP_SIZE][MINIMAP_SIZE/32 + 1];
 
+void dbg_save_minimap()
+{
+	FILE* f = fopen("minimap.data", "w");
+	for(int yy=0; yy<MINIMAP_SIZE; yy++)
+	{
+		for(int xx=0; xx<MINIMAP_SIZE; xx++)
+		{
+			int yidx = yy/32;
+			int yoffs = yy - yidx*32;
+
+			int val = (minimap[xx][yidx]&(1<<yoffs))?255:0;
+
+			fputc(val, f);
+			fputc(val, f);
+			fputc(val, f);
+		}
+	}
+	fclose(f);
+}
+
 static int minimap_check_hit(int x, int y, int direction)
 {
 //	printf("minimap_check_hit(%d, %d, %d)\n", x, y, direction);
@@ -319,10 +339,10 @@ static int minimap_check_hit(int x, int y, int direction)
 
 		if((((uint64_t)minimap[xx][yoffs]<<32) | (uint64_t)minimap[xx][yoffs+1])  & shape)
 		{
-			printf("DBG: minimap_check_hit() HIT xx=%d, yoffs=%d, yoffs_remain=%d, shape=%016" PRIx64 " minimap=%016" PRIx64 "\n", xx, yoffs, yoffs_remain, shape, (((uint64_t)minimap[xx][yoffs]<<32) | (uint64_t)minimap[xx][yoffs+1]));
+//			printf("DBG: minimap_check_hit() HIT xx=%d, yoffs=%d, yoffs_remain=%d, shape=%016" PRIx64 " minimap=%016" PRIx64 "\n", xx, yoffs, yoffs_remain, shape, (((uint64_t)minimap[xx][yoffs]<<32) | (uint64_t)minimap[xx][yoffs+1]));
 			return 1;
 		}
-		printf("DBG: minimap_check_hit() nonhit xx=%d, yoffs=%d, yoffs_remain=%d\n", xx, yoffs, yoffs_remain);
+//		printf("DBG: minimap_check_hit() nonhit xx=%d, yoffs=%d, yoffs_remain=%d\n", xx, yoffs, yoffs_remain);
 	}
 
 	return 0;
@@ -474,6 +494,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 
 	route_xy_t start = {0, 0};
 
+	dbg_save_minimap();
 	for(int tries=0; tries < 3; tries++)
 	{
 		for(float ang_to = 0; ang_to < DEGTORAD(359.9); ang_to += (tries==0)?(DEGTORAD(10.0)):(DEGTORAD(5.0)))

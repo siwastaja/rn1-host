@@ -1680,7 +1680,7 @@ typedef struct
 // The list is purposedly overwritten so that we try again older places, in case the conditions have changed.
 // TODO: move this to work per every world.
 
-#define CANT_GOTO_PLACE_LIST_LEN 32
+#define CANT_GOTO_PLACE_LIST_LEN 64
 cant_goto_place_t cant_goto_places[CANT_GOTO_PLACE_LIST_LEN];
 int cant_goto_place_wr_idx;
 
@@ -1713,7 +1713,7 @@ int find_unfamiliar_direction(world_t* w, int *x_out, int *y_out)
 			{
 				for(int i = 0; i < CANT_GOTO_PLACE_LIST_LEN; i++)
 				{
-					if(cant_goto_places[i].enabled && (sq(cant_goto_places[i].x-(cur_x+dx))+sq(cant_goto_places[i].x-(cur_x+dx))) < sq(500) )
+					if(cant_goto_places[i].enabled && (sq(cant_goto_places[i].x-(cur_x+dx))+sq(cant_goto_places[i].y-(cur_y+dy))) < sq(500) )
 					{
 //						printf("Info: ignoring potential biggest score place, cant_goto_idx=%d, abs (%d, %d) mm.\n", i, cur_x+dx, cur_y+dy);
 						goto CONTINUE_UNFAM_LOOP;
@@ -1734,6 +1734,55 @@ int find_unfamiliar_direction(world_t* w, int *x_out, int *y_out)
 		*x_out = biggest_x;
 		*y_out = biggest_y;
 	}
+
+	return biggest;
+}
+
+int find_unfamiliar_direction_randomly(world_t* w, int *x_out, int *y_out)
+{
+	int biggest = 0;
+	int biggest_x, biggest_y;
+	for(int try=0; try<1000; try++)
+	{
+		extern int32_t cur_x, cur_y;
+		float rand1 = ((float)rand() / (float)RAND_MAX)*4000.0+2000.0;
+		float rand2 = ((float)rand() / (float)RAND_MAX)*4000.0+2000.0;
+
+		if(rand()&1)
+			rand1 *= -1;
+		if(rand()&1)
+			rand2 *= -1;
+
+		int potential_x = cur_x+rand1;
+		int potential_y = cur_y+rand2;
+
+		int score = unfamiliarity_score(w, potential_x, potential_y);
+		if(score > biggest)
+		{
+			for(int i = 0; i < CANT_GOTO_PLACE_LIST_LEN; i++)
+			{
+				if(cant_goto_places[i].enabled && (sq(cant_goto_places[i].x-potential_x)+sq(cant_goto_places[i].y-potential_y)) < sq(500) )
+				{
+					goto CONTINUE_UNFAM_LOOP;
+				}
+			}
+
+			biggest = score;
+			biggest_x = potential_x;
+			biggest_y = potential_y;
+
+			CONTINUE_UNFAM_LOOP:;
+		}
+
+		if(biggest >= 1000000)
+			break;
+	}
+
+	if(biggest)
+	{
+		*x_out = biggest_x;
+		*y_out = biggest_y;
+	}	
 
 	return biggest;
 }
@@ -1876,7 +1925,7 @@ void autofsm()
 		case S_GEN_DESIRED_DIR: {
 			daiju_mode(0);
 
-			int unfam_score = find_unfamiliar_direction(&world, &desired_x, &desired_y);
+			int unfam_score = find_unfamiliar_direction_randomly(&world, &desired_x, &desired_y);
 
 			if(unfam_score)
 			{

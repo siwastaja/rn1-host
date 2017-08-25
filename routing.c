@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
+#include <inttypes.h>
 
 #include "mapping.h"
 #include "routing.h"
@@ -318,7 +319,7 @@ static int minimap_check_hit(int x, int y, int direction)
 
 		if((((uint64_t)minimap[xx][yoffs]<<32) | (uint64_t)minimap[xx][yoffs+1])  & shape)
 		{
-			printf("DBG: minimap_check_hit() HIT xx=%d, yoffs=%d, yoffs_remain=%d, shape=%016lx minimap=%016lx\n", xx, yoffs, yoffs_remain, shape, (((uint64_t)minimap[xx][yoffs]<<32) | (uint64_t)minimap[xx][yoffs+1]));
+			printf("DBG: minimap_check_hit() HIT xx=%d, yoffs=%d, yoffs_remain=%d, shape=%016" PRIx64 " minimap=%016" PRIx64 "\n", xx, yoffs, yoffs_remain, shape, (((uint64_t)minimap[xx][yoffs]<<32) | (uint64_t)minimap[xx][yoffs+1]));
 			return 1;
 		}
 		printf("DBG: minimap_check_hit() nonhit xx=%d, yoffs=%d, yoffs_remain=%d\n", xx, yoffs, yoffs_remain);

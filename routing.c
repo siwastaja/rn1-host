@@ -305,11 +305,11 @@ void dbg_save_minimap()
 			int yidx = yy/32;
 			int yoffs = yy - yidx*32;
 
-			int val = (minimap[xx][yidx]&(1<<yoffs))?255:0;
+			int val = (minimap[xx][yidx]&(1<<(32-yoffs)))?255:0;
 
 			fputc(val, f);
 			fputc(val, f);
-			fputc(val, f);
+			fputc((xx==MINIMAP_MIDDLE&&yy==MINIMAP_MIDDLE)?255:0, f);
 		}
 	}
 	fclose(f);

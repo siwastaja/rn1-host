@@ -655,6 +655,12 @@ extern float cal_y_sin_mult; //= 1.125;
 
 	int obst_cnts[3] = {0,0,0}; // [0] = very far counts, [1] somewhat near, [2] very near.
 
+	for(int sx = 0; sx < TOF3D_HMAP_XSPOTS; sx++)
+		for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
+			tof3ds[tof3d_wr].objmap[sy*TOF3D_HMAP_XSPOTS+sx] = hmap[sx][sy]/20;
+
+
+/*
 	for(int sx = 1; sx < TOF3D_HMAP_XSPOTS-1; sx++)
 	{
 		for(int sy = 1; sy < TOF3D_HMAP_YSPOTS-1; sy++)
@@ -732,7 +738,7 @@ extern float cal_y_sin_mult; //= 1.125;
 			tof3ds[tof3d_wr].objmap[sy*TOF3D_HMAP_XSPOTS+sx] = val;
 		}
 	}
-
+*/
 	pthread_mutex_lock(&cur_pos_mutex);
 	tof3d_obstacle_levels[0] = obst_cnts[0];
 	tof3d_obstacle_levels[1] = obst_cnts[1];

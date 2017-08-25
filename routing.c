@@ -396,12 +396,14 @@ static int minimap_line_of_sight(route_xy_t p1, route_xy_t p2, int reverse)
 		int x = (cos(ang)*pos + (float)p1.x)+0.5;
 		int y = (sin(ang)*pos + (float)p1.y)+0.5;
 
-//		printf("DBG: minimap_line_of_sight(): x=%d, y=%d, dir=%d\n", x, y, dir);
+		printf("DBG: minimap_line_of_sight(): x=%d, y=%d, dir=%d:", x, y, dir);
 
 		if(minimap_check_hit(x, y, dir))
 		{
+			printf(" HIT\n");
 			return 0;
 		}
+		printf(" ok\n");
 		if(terminate) break;
 		pos += step;
 		if(pos > len)

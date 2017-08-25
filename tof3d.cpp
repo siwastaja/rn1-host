@@ -109,6 +109,10 @@ void Softkinetic_tof::init(bool calibrate)
 		return;
 	}
 
+	if(calibrate)
+	{
+		printf("  TOF3D MODULE INFO: Running floor calibration. Move the robot carefully around while ensuring that only level floor is seen. Calibration ends automatically after 500 frames.\n");
+	}
 	_calibrating = calibrate;
 
 	_context = Context::createStandalone();
@@ -536,9 +540,9 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 			// Generate robot body ignores:
 			for(int sx = 0; sx < 8; sx++)
 			{
-				for(int sy = 4; sy < TOF3D_HMAP_YSPOTS-4; sy++)
+				for(int sy = 3; sy < TOF3D_HMAP_YSPOTS-3; sy++)
 				{
-					if(hmap_calib[sx][sy] > avg + 100)
+					if(hmap_calib[sx][sy] > avg + 80)
 					{
 						body_ignores++;
 						hmap_calib[sx+0][sy+0] = -9999;

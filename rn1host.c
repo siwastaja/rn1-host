@@ -973,6 +973,12 @@ void* main_thread()
 						stop_movement();
 					} break;
 
+					case 9:
+					{
+						
+					} break;
+
+
 					default: break;
 				}
 			}
@@ -1265,7 +1271,7 @@ void* main_thread()
 				static int hmap_cnt = 0;
 				hmap_cnt++;
 
-				if(hmap_cnt >= 15)
+				if(hmap_cnt >= 12)
 				{
 //					printf("Send hmap\n");
 					tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, cur_ang, cur_x, cur_y, TOF3D_HMAP_SPOT_SIZE, p_tof->objmap);

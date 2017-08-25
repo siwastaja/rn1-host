@@ -553,33 +553,14 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 						hmap_calib[sx+0][sy+0] = -9999;
 						hmap_calib[sx+0][sy-1] = -9999;
 						hmap_calib[sx+0][sy+1] = -9999;
-						hmap_calib[sx+0][sy-2] = -9999;
-						hmap_calib[sx+0][sy+2] = -9999;
 						hmap_calib[sx+1][sy+0] = -9999;
 						hmap_calib[sx+1][sy-1] = -9999;
 						hmap_calib[sx+1][sy+1] = -9999;
-						hmap_calib[sx+1][sy-2] = -9999;
-						hmap_calib[sx+1][sy+2] = -9999;
-						hmap_calib[sx+2][sy+0] = -9999;
-						hmap_calib[sx+2][sy-1] = -9999;
-						hmap_calib[sx+2][sy+1] = -9999;
-						hmap_calib[sx+2][sy-2] = -9999;
-						hmap_calib[sx+2][sy+2] = -9999;
 						if(sx > 0)
 						{
 							hmap_calib[sx-1][sy+0] = -9999;
 							hmap_calib[sx-1][sy-1] = -9999;
 							hmap_calib[sx-1][sy+1] = -9999;
-							hmap_calib[sx-1][sy-2] = -9999;
-							hmap_calib[sx-1][sy+2] = -9999;
-						}
-						if(sx > 1)
-						{
-							hmap_calib[sx-2][sy+0] = -9999;
-							hmap_calib[sx-2][sy-1] = -9999;
-							hmap_calib[sx-2][sy+1] = -9999;
-							hmap_calib[sx-2][sy-2] = -9999;
-							hmap_calib[sx-2][sy+2] = -9999;
 						}
 					}
 				}

@@ -2065,9 +2065,11 @@ void dbg_test()
 	int32_t dx, dy;
 	int need_to_back = 0;
 	extern int32_t cur_ang;
+	extern int32_t cur_x, cur_y;
 	if(minimap_find_mapping_dir(&world, ANG32TORAD(cur_ang), &dx, &dy, 0, 0, &need_to_back))
 	{
 		printf("DBG_TEST: Found direction dx=%d  dy=%d  need_to_back=%d\n", dx, dy, need_to_back);
+		if(tcp_client_sock >= 0) tcp_send_dbgpoint(cur_x+dx, cur_x+dy, need_to_back?210:0, need_to_back?0:210, 0, 0);
 	}
 	else
 	{

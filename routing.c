@@ -481,17 +481,17 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 
 				if(minimap_test_robot_turn(0, 0, ang_now, ang_to))
 				{
-//					printf("Minimap: can turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
+					printf("Minimap: can turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
 					if(minimap_line_of_sight(start, end, fwd_len<0.0))
 					{
 						int dest_x = cos(ang_to)*fwd_len;
 						int dest_y = sin(ang_to)*fwd_len;
 
-//						printf("Minimap: can go to (%d, %d), check actual map...", dest_x, dest_y);
+						printf("Minimap: can go to (%d, %d), check actual map...", dest_x, dest_y);
 						if(check_direct_route(cur_ang, MM_TO_UNIT(cur_x), MM_TO_UNIT(cur_y), 
 							MM_TO_UNIT(dest_x+cur_x), MM_TO_UNIT(dest_y+cur_y)))
 						{
-//							printf(" Agreed.\n");
+							printf(" Agreed.\n");
 							internal_cango_places[num_cango_places] = end;
 							cango_places[num_cango_places].x = dest_x; cango_places[num_cango_places].y = dest_y;
 							if(fwd_len < 0.0) backs[num_cango_places] = 1; else backs[num_cango_places] = 0;
@@ -502,19 +502,19 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 						else
 						{
 							disagrees++;
-//							printf(" Disagreed.\n");
+							printf(" Disagreed.\n");
 						}
 
 					}
 					else
 					{
-//						printf("INFO: minimap_find_mapping_dir: robot cannot go %.1f mm to %.1f deg\n", fwd_len, RADTODEG(ang_to));
+						printf("INFO: minimap_find_mapping_dir: robot cannot go %.1f mm to %.1f deg\n", fwd_len, RADTODEG(ang_to));
 					}
 
 				}
 				else
 				{
-//					printf("INFO: minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
+					printf("INFO: minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
 				}
 			}
 		}

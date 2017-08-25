@@ -456,12 +456,12 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 			d = (d - biggest - smallest)/23.0;
 
 
-extern int cal_x_d_offset; //= 0;
-extern int cal_y_d_offset; //= 0;
-extern float cal_x_offset; //= 40.0;
-extern float cal_y_offset; //= 0;
-extern float cal_x_sin_mult; //= 1.125;
-extern float cal_y_sin_mult; //= 1.125;
+//extern int cal_x_d_offset; //= 0;
+//extern int cal_y_d_offset; //= 0;
+//extern float cal_x_offset; //= 40.0;
+//extern float cal_y_offset; //= 0;
+//extern float cal_x_sin_mult; //= 1.125;
+//extern float cal_y_sin_mult; //= 1.125;
 
 			if(d < 0 || d > 1800) continue;
 
@@ -695,22 +695,22 @@ extern float cal_y_sin_mult; //= 1.125;
 				val = TOF3D_POSSIBLE_DROP;
 				obst_cnts[nearness] += 1;
 			}
-			else if(hmap[sx][sy] > 250 || hmap_avgd[sx][sy] > 150)
+			else if(hmap[sx][sy] > 200 || hmap_avgd[sx][sy] > 120)
 			{
 				val = TOF3D_WALL;
 				obst_cnts[nearness] += 8;
 			}
-			else if(hmap[sx][sy] > 150 || hmap_avgd[sx][sy] > 50)
+			else if(hmap[sx][sy] > 100 || hmap_avgd[sx][sy] > 40)
 			{
 				val = TOF3D_BIG_ITEM;
 				obst_cnts[nearness] += 8;
 			}
-			else if(hmap[sx][sy] > 120 || hmap_avgd[sx][sy] > 30)
+			else if(hmap[sx][sy] > 90 || hmap_avgd[sx][sy] > 25)
 			{
 				val = TOF3D_SMALL_ITEM;
 				obst_cnts[nearness] += 4;
 			}
-			else if(hmap[sx][sy] > 105 || hmap_avgd[sx][sy] > 20)
+			else if(hmap[sx][sy] > 80 || hmap_avgd[sx][sy] > 15)
 			{
 				val = TOF3D_POSSIBLE_ITEM;
 				obst_cnts[nearness] += 1;
@@ -723,17 +723,17 @@ extern float cal_y_sin_mult; //= 1.125;
 				{
 					for(int iy=-1; iy<=1; iy++)
 					{
-						if(hmap_avgd[sx+ix][sy+iy] < 30)
+						if(hmap_avgd[sx+ix][sy+iy] < 15)
 							diffsum += hmap_avgd[sx+ix][sy+iy];
 					}
 				}
 
-				if(diffsum > 120)
+				if(diffsum > 90)
 				{
 					val = TOF3D_SMALL_ITEM;
 					obst_cnts[nearness] += 4;
 				}
-				else if(diffsum > 100)
+				else if(diffsum > 70)
 				{
 					val = TOF3D_POSSIBLE_ITEM;
 					obst_cnts[nearness] += 1;

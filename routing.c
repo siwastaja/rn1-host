@@ -454,8 +454,8 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 
 	wide_search_mode();
 
-	#define NUM_FWDS 8
-	const float fwds[NUM_FWDS] = {1000.0, 750.0, -500.0, 400.0, -300.0, 200.0, -150.0, -750.0};
+	#define NUM_FWDS 10
+	const float fwds[NUM_FWDS] = {1000.0, 750.0, 500.0, 400.0, -500.0, -300.0, 200.0, -150.0, 100.0, -100.0};
 
 	int num_cango_places = 0;
 	route_xy_t cango_places[MAX_CANGOS];
@@ -471,17 +471,17 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 
 	for(int tries=0; tries < 3; tries++)
 	{
-		for(int f=0; f < NUM_FWDS; f++)
+		for(float ang_to = 0; ang_to < DEGTORAD(359.9); ang_to += (tries==0)?(DEGTORAD(10.0)):(DEGTORAD(5.0)))
 		{
-			for(float ang_to = 0; ang_to < DEGTORAD(359.9); ang_to += (tries==0)?(DEGTORAD(10.0)):(DEGTORAD(5.0)))
+			if(minimap_test_robot_turn(0, 0, ang_now, ang_to))
 			{
-				float fwd_len = fwds[f];
-				route_xy_t end = {(int)(cos(ang_to)*fwd_len/(float)MAP_UNIT_W),
-						  (int)(sin(ang_to)*fwd_len/(float)MAP_UNIT_W)};
-
-				if(minimap_test_robot_turn(0, 0, ang_now, ang_to))
+				printf("Minimap: can turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
+				for(int f=0; f < NUM_FWDS; f++)
 				{
-					printf("Minimap: can turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
+					float fwd_len = fwds[f];
+					route_xy_t end = {(int)(cos(ang_to)*fwd_len/(float)MAP_UNIT_W),
+							  (int)(sin(ang_to)*fwd_len/(float)MAP_UNIT_W)};
+
 					if(minimap_line_of_sight(start, end, fwd_len<0.0))
 					{
 						int dest_x = cos(ang_to)*fwd_len;
@@ -510,12 +510,11 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 					{
 						printf("INFO: minimap_find_mapping_dir: robot cannot go %.1f mm to %.1f deg\n", fwd_len, RADTODEG(ang_to));
 					}
-
 				}
-				else
-				{
-					printf("INFO: minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
-				}
+			}
+			else
+			{
+				printf("INFO: minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
 			}
 		}
 

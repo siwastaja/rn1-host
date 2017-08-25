@@ -465,8 +465,7 @@ extern float cal_y_sin_mult; //= 1.125;
 
 			if(d < 0 || d > 1800) continue;
 
-//			float x = (d * sin(pyang+top_cam_ang))*1.125 /*experimentally found*/ + 40.0;
-			float x = ((d+cal_x_d_offset) * sin(pyang+top_cam_ang))*cal_x_sin_mult /*experimentally found*/ + cal_x_offset;
+			float x = ((d+cal_x_d_offset) * sin(pyang-top_cam_ang))*cal_x_sin_mult /*experimentally found*/ + cal_x_offset;
 			float y = ((d+cal_y_d_offset) * sin(pxang))*cal_y_sin_mult + cal_y_offset;
 			float z = -1.0 * d * (1.0/cos(pyang)) * cos(pyang+top_cam_ang) + 900.0;
 

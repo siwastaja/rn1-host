@@ -617,6 +617,10 @@ extern float cal_y_sin_mult; //= 1.125;
 
 	// ------------ GENERATE SOFT AVGD MAP ---------
 
+	for(int sx = 0; sx < TOF3D_HMAP_XSPOTS; sx++)
+		for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
+			hmap_avgd[sx][sy] = 0;
+/*
 	for(int sx = 3; sx < TOF3D_HMAP_XSPOTS-3; sx++)
 	{
 		for(int sy = 3; sy < TOF3D_HMAP_YSPOTS-3; sy++)
@@ -645,7 +649,7 @@ extern float cal_y_sin_mult; //= 1.125;
 				hmap_avgd[sx][sy] = hmap[sx][sy] - acc/nsamp;
 		}
 	}
-
+*/
 	// ------------ GENERATE OBJMAP BASED ON HMAP and AVGD -------------
 
 

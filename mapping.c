@@ -1749,14 +1749,15 @@ int find_unfamiliar_direction_randomly(world_t* w, int *x_out, int *y_out)
 		float rand2 = ((float)rand() / (float)RAND_MAX)*4000.0+2000.0;
 
 		if(rand()&1)
-			rand1 *= -1;
+			rand1 *= -1.0;
 		if(rand()&1)
-			rand2 *= -1;
+			rand2 *= -1.0;
 
 		int potential_x = cur_x+rand1;
 		int potential_y = cur_y+rand2;
 
 		int score = unfamiliarity_score(w, potential_x, potential_y);
+		printf("INFO: unfam try=%d x=%d y=%d score=%d\n", try, potential_x, potential_y, score);
 		if(score > biggest)
 		{
 			for(int i = 0; i < CANT_GOTO_PLACE_LIST_LEN; i++)
@@ -1939,9 +1940,9 @@ void autofsm()
 				float rand2 = ((float)rand() / (float)RAND_MAX)*4000.0+2000.0;
 
 				if(rand()&1)
-					rand1 *= -1;
+					rand1 *= -1.0;
 				if(rand()&1)
-					rand2 *= -1;
+					rand2 *= -1.0;
 
 				desired_x = cur_x+rand1;
 				desired_y = cur_y+rand2;

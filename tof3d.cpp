@@ -656,7 +656,7 @@ extern float cal_y_sin_mult; //= 1.125;
 
 	for(int sx = 0; sx < TOF3D_HMAP_XSPOTS; sx++)
 		for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
-			tof3ds[tof3d_wr].objmap[sy*TOF3D_HMAP_XSPOTS+sx] = hmap[sx][sy]<-1000?-100:(hmap[sx][sy]/20);
+			tof3ds[tof3d_wr].objmap[sy*TOF3D_HMAP_XSPOTS+sx] = hmap_nsamples[sx][sy]; //hmap[sx][sy]<-1000?-100:(hmap[sx][sy]/20);
 
 
 /*

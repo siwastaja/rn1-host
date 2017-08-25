@@ -455,11 +455,19 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 			d = (d - biggest - smallest)/23.0;
 
+
+extern int cal_x_d_offset; //= 0;
+extern int cal_y_d_offset; //= 0;
+extern float cal_x_offset; //= 40.0;
+extern float cal_y_offset; //= 0;
+extern float cal_x_sin_mult; //= 1.125;
+extern float cal_y_sin_mult; //= 1.125;
+
 			if(d < 0 || d > 1800) continue;
 
 //			float x = (d * sin(pyang+top_cam_ang))*1.125 /*experimentally found*/ + 40.0;
-			float x = ((d+150.0) * sin(pyang+top_cam_ang))*1.125 /*experimentally found*/ + 40.0;
-			float y = ((d+50.0) * sin(pxang))*1.125;
+			float x = ((d+cal_x_d_offset) * sin(pyang+top_cam_ang))*cal_x_sin_mult /*experimentally found*/ + cal_x_offset;
+			float y = ((d+cal_y_d_offset) * sin(pxang))*cal_y_sin_mult + cal_y_offset;
 			float z = -1.0 * d * (1.0/cos(pyang)) * cos(pyang+top_cam_ang) + 900.0;
 
 			int xspot = (int)(x / (float)TOF3D_HMAP_SPOT_SIZE);

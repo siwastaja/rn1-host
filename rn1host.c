@@ -690,6 +690,13 @@ void read_charger_pos()
 }
 
 
+int cal_x_d_offset = 0;
+int cal_y_d_offset = 0;
+float cal_x_offset = 40.0;
+float cal_y_offset = 0.0;
+float cal_x_sin_mult = 1.125;
+float cal_y_sin_mult = 1.125;
+
 void request_tof_quit(void);
 
 void* main_thread()
@@ -834,6 +841,56 @@ void* main_thread()
 			{
 				dbg_test();
 			}
+			if(cmd == '1')
+			{
+				cal_x_d_offset += 20;
+			}
+			if(cmd == '!')
+			{
+				cal_x_d_offset -= 20;
+			}
+			if(cmd == '2')
+			{
+				cal_y_d_offset += 20;
+			}
+			if(cmd == '\"')
+			{
+				cal_y_d_offset -= 20;
+			}
+			if(cmd == '3')
+			{
+				cal_x_offset += 20.0;
+			}
+			if(cmd == '#')
+			{
+				cal_x_offset -= 20.0;
+			}
+			if(cmd == '4')
+			{
+				cal_y_offset += 20.0;
+			}
+			if(cmd == '$')
+			{
+				cal_y_offset -= 20.0;
+			}
+			if(cmd == '5')
+			{
+				cal_x_sin_mult += 0.025;
+			}
+			if(cmd == '%')
+			{
+				cal_x_sin_mult -= 0.025;
+			}
+			if(cmd == '6')
+			{
+				cal_y_sin_mult += 0.025;
+			}
+			if(cmd == '&')
+			{
+				cal_y_sin_mult -= 0.025;
+			}
+
+			printf("x_d_offset=%d  y_d_offset=%d  x_offset=%.1f  y_offset=%.1f  x_sin_mult=%.3f  y_sin_mult=%.3f\n", cal_x_d_offset, cal_y_d_offset, cal_x_offset, cal_y_offset, cal_x_sin_mult, cal_y_sin_mult);
 
 		}
 

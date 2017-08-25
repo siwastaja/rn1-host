@@ -537,12 +537,17 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 			int32_t avg = avg_accum / avg_cnt;
 			int body_ignores = 0;
+
+			int16_t hmap_calib_copy[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+
+			memcpy(hmap_calib_copy, hmap_calib, sizeof(hmap_calib));
+
 			// Generate robot body ignores:
 			for(int sx = 0; sx < 8; sx++)
 			{
 				for(int sy = 3; sy < TOF3D_HMAP_YSPOTS-3; sy++)
 				{
-					if(hmap_calib[sx][sy] > avg + 70)
+					if(hmap_calib_copy[sx][sy] > avg + 70)
 					{
 						body_ignores++;
 						hmap_calib[sx+0][sy+0] = -9999;

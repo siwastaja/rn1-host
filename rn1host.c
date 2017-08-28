@@ -87,14 +87,18 @@ int good_time_for_lidar_mapping = 0;
 lidar_scan_t* lidars_to_map_at_routing_start[NUM_LATEST_LIDARS_FOR_ROUTING_START];
 
 int32_t prev_search_dest_x, prev_search_dest_y;
-int run_search(int32_t dest_x, int32_t dest_y)
+int run_search(int32_t dest_x, int32_t dest_y, int dont_map_lidars)
 {
 	prev_search_dest_x = dest_x;
 	prev_search_dest_y = dest_y;
-	int32_t da, dx, dy;
-	map_lidars(&world, NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start, &da, &dx, &dy);
-	INCR_POS_CORR_ID();
-	correct_robot_pos(da, dx, dy, pos_corr_id);
+
+	if(!dont_map_lidars)
+	{
+		int32_t da, dx, dy;
+		map_lidars(&world, NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start, &da, &dx, &dy);
+		INCR_POS_CORR_ID();
+		correct_robot_pos(da, dx, dy, pos_corr_id);
+	}
 
 	route_unit_t *some_route = NULL;
 
@@ -153,7 +157,7 @@ int run_search(int32_t dest_x, int32_t dest_y)
 
 int rerun_search()
 {
-	return run_search(prev_search_dest_x, prev_search_dest_y);
+	return run_search(prev_search_dest_x, prev_search_dest_y, 0);
 }
 
 static int maneuver_cnt = 0; // to prevent too many successive maneuver operations
@@ -883,7 +887,7 @@ void* main_thread()
 				daiju_mode(0);
 				find_charger_state = 0;
 
-				if(run_search(msg_cr_route.x, msg_cr_route.y) == 1)
+				if(run_search(msg_cr_route.x, msg_cr_route.y, 0) == 1)
 				{
 					printf("INFO: Routing fails in the start, daijuing for a while to get a better position.\n");
 					daiju_mode(1);
@@ -1092,7 +1096,7 @@ void* main_thread()
 		{
 			motors_on = 1;
 			daiju_mode(0);
-			if(run_search(charger_first_x, charger_first_y) != 0)
+			if(run_search(charger_first_x, charger_first_y, 0) != 0)
 			{
 				printf("Finding charger (first point) failed.\n");
 				find_charger_state = 0;

@@ -1853,7 +1853,7 @@ void start_automap_only_compass()
 
 extern double subsec_timestamp();
 
-extern int run_search(int32_t dest_x, int32_t dest_y);
+extern int run_search(int32_t dest_x, int32_t dest_y, int dont_map_lidars);
 
 void autofsm()
 {
@@ -2054,7 +2054,7 @@ void autofsm()
 		} break;
 
 		case S_GEN_ROUTING: {
-			run_search(desired_x, desired_y);
+			run_search(desired_x, desired_y, 1);
 			cur_autostate++;
 		} break;
 

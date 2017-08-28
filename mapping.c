@@ -1757,7 +1757,7 @@ int find_unfamiliar_direction_randomly(world_t* w, int *x_out, int *y_out)
 		int potential_y = cur_y+rand2;
 
 		int score = unfamiliarity_score(w, potential_x, potential_y);
-		printf("INFO: unfam try=%d x=%d y=%d score=%d\n", try, potential_x, potential_y, score);
+//		printf("INFO: unfam try=%d x=%d y=%d score=%d\n", try, potential_x, potential_y, score);
 		if(score > biggest)
 		{
 			for(int i = 0; i < CANT_GOTO_PLACE_LIST_LEN; i++)

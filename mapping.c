@@ -1853,6 +1853,8 @@ void start_automap_only_compass()
 
 extern double subsec_timestamp();
 
+extern int run_search(int32_t dest_x, int32_t dest_y);
+
 void autofsm()
 {
 	static int movement_id = 0;
@@ -1953,7 +1955,8 @@ void autofsm()
 				if(tcp_client_sock >= 0) tcp_send_dbgpoint(desired_x, desired_y, 128, 150, 40, 0);
 			}
 			same_dir_cnt = 0;
-			cur_autostate++;
+			//cur_autostate++;
+			cur_autostate = S_GEN_ROUTING;
 		} break;
 
 		case S_FIND_DIR: {
@@ -2051,12 +2054,17 @@ void autofsm()
 		} break;
 
 		case S_GEN_ROUTING: {
-			map_significance_mode = MAP_SIGNIFICANT_IMGS | MAP_SEMISIGNIFICANT_IMGS;
-			mapping_on = 1;
-
+			run_search(desired_x, desired_y);
 		} break;
 
 		case S_WAIT_ROUTE: {
+			extern int do_follow_route;
+
+			if(!do_follow_route)
+			{
+				printf("INFO: Automapping: Following route finished.\n");
+				cur_autostate = S_FIND_DIR;
+			}
 
 		} break;
 

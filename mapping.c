@@ -2055,6 +2055,7 @@ void autofsm()
 
 		case S_GEN_ROUTING: {
 			run_search(desired_x, desired_y);
+			cur_autostate++;
 		} break;
 
 		case S_WAIT_ROUTE: {

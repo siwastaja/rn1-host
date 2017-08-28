@@ -60,7 +60,6 @@ int32_t cur_ang, cur_x, cur_y;
 double robot_pos_timestamp;
 int32_t cur_compass_ang;
 int compass_round_active;
-int32_t dest_x, dest_y;
 
 typedef struct
 {
@@ -87,8 +86,11 @@ int good_time_for_lidar_mapping = 0;
 #define NUM_LATEST_LIDARS_FOR_ROUTING_START 7
 lidar_scan_t* lidars_to_map_at_routing_start[NUM_LATEST_LIDARS_FOR_ROUTING_START];
 
-int run_search()
+int32_t prev_search_dest_x, prev_search_dest_y;
+int run_search(int32_t dest_x, int32_t dest_y)
 {
+	prev_search_dest_x = dest_x;
+	prev_search_dest_y = dest_y;
 	int32_t da, dx, dy;
 	map_lidars(&world, NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start, &da, &dx, &dy);
 	INCR_POS_CORR_ID();
@@ -147,6 +149,11 @@ int run_search()
 
 	return ret;
 
+}
+
+int rerun_search()
+{
+	return run_search(prev_search_dest_x, prev_search_dest_y);
 }
 
 static int maneuver_cnt = 0; // to prevent too many successive maneuver operations
@@ -416,7 +423,7 @@ void route_fsm()
 			else
 			{
 				printf("INFO: Can't turn towards the dest, rerouting.\n");
-				if(run_search() == 1)
+				if(rerun_search() == 1)
 				{
 					printf("INFO: Routing failed in start, going to daiju mode for a while.\n");
 					daiju_mode(1);
@@ -464,7 +471,7 @@ void route_fsm()
 			{
 				printf("INFO: We have creeped enough (dist to waypoint=%d, creep_cnt=%d), no line of sight to the waypoint, trying to reroute\n",
 					dist, creep_cnt);
-				if(run_search() == 1)
+				if(rerun_search() == 1)
 				{
 					printf("INFO: Routing failed in start, going to daiju mode for a while.\n");
 					daiju_mode(1);
@@ -487,7 +494,7 @@ void route_fsm()
 		{
 			printf("INFO: Daijued enough.\n");
 			daiju_mode(0);
-			if(run_search() == 1)
+			if(rerun_search() == 1)
 			{
 				printf("INFO: Routing failed in start, going to daiju mode for a bit more...\n");
 				daiju_mode(1);
@@ -872,13 +879,11 @@ void* main_thread()
 			{
 				printf("  ---> ROUTE params: X=%d Y=%d dummy=%d\n", msg_cr_route.x, msg_cr_route.y, msg_cr_route.dummy);
 
-				dest_x = msg_cr_route.x; dest_y = msg_cr_route.y;
-
 				motors_on = 1;
 				daiju_mode(0);
 				find_charger_state = 0;
 
-				if(run_search() == 1)
+				if(run_search(msg_cr_route.x, msg_cr_route.y) == 1)
 				{
 					printf("INFO: Routing fails in the start, daijuing for a while to get a better position.\n");
 					daiju_mode(1);
@@ -1085,13 +1090,9 @@ void* main_thread()
 
 		if(find_charger_state == 1)
 		{
-			dest_x = charger_first_x; dest_y = charger_first_y;
-
-			printf("Searching dest_x=%d  dest_y=%d\n", dest_x, dest_y);
-
 			motors_on = 1;
 			daiju_mode(0);
-			if(run_search() != 0)
+			if(run_search(charger_first_x, charger_first_y) != 0)
 			{
 				printf("Finding charger (first point) failed.\n");
 				find_charger_state = 0;

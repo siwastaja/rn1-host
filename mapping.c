@@ -1801,8 +1801,8 @@ const char* const AUTOSTATE_NAMES[] =
 	"FIND_DIR",
 	"WAIT_MOVEMENT",
 	"DAIJUING",
-	"res",
-	"res",
+	"GEN_ROUTING",
+	"WAIT_ROUTE",
 	"res",
 	"res",
 	"res"
@@ -1820,7 +1820,9 @@ typedef enum
 	S_GEN_DESIRED_DIR	= 7,
 	S_FIND_DIR		= 8,
 	S_WAIT_MOVEMENT  	= 9,
-	S_DAIJUING		= 10
+	S_DAIJUING		= 10,
+	S_GEN_ROUTING		= 11,
+	S_WAIT_ROUTE		= 12
 } autostate_t;
 
 autostate_t cur_autostate;
@@ -2046,6 +2048,16 @@ void autofsm()
 				cur_autostate = S_GEN_DESIRED_DIR;
 				daiju_mode(0);
 			}
+		} break;
+
+		case S_GEN_ROUTING: {
+			map_significance_mode = MAP_SIGNIFICANT_IMGS | MAP_SEMISIGNIFICANT_IMGS;
+			mapping_on = 1;
+
+		} break;
+
+		case S_WAIT_ROUTE: {
+
 		} break;
 
 		default: break;

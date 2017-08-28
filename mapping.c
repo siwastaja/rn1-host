@@ -1092,6 +1092,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	{
 		printf("INFO: Best score low, mapping with zero correction.\n");
 		best_da = 0; best_dx = 0; best_dy = 0;
+		search_area_size = 0;
 	}
 	else
 	{
@@ -1745,8 +1746,8 @@ int find_unfamiliar_direction_randomly(world_t* w, int *x_out, int *y_out)
 	for(int try=0; try<1000; try++)
 	{
 		extern int32_t cur_x, cur_y;
-		float rand1 = ((float)rand() / (float)RAND_MAX)*4000.0+2000.0;
-		float rand2 = ((float)rand() / (float)RAND_MAX)*4000.0+2000.0;
+		float rand1 = ((float)rand() / (float)RAND_MAX)*6000.0+300.0;
+		float rand2 = ((float)rand() / (float)RAND_MAX)*6000.0+300.0;
 
 		if(rand()&1)
 			rand1 *= -1.0;
@@ -1940,8 +1941,8 @@ void autofsm()
 			}
 			else
 			{
-				float rand1 = ((float)rand() / (float)RAND_MAX)*4000.0+2000.0;
-				float rand2 = ((float)rand() / (float)RAND_MAX)*4000.0+2000.0;
+				float rand1 = ((float)rand() / (float)RAND_MAX)*6000.0+300.0;
+				float rand2 = ((float)rand() / (float)RAND_MAX)*6000.0+300.0;
 
 				if(rand()&1)
 					rand1 *= -1.0;

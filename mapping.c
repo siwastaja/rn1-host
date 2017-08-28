@@ -2054,8 +2054,24 @@ void autofsm()
 		} break;
 
 		case S_GEN_ROUTING: {
-			run_search(desired_x, desired_y, 1);
-			cur_autostate++;
+			int ret = run_search(desired_x, desired_y, 1);
+
+			if(ret == 1)
+			{
+				printf("INFO: Automapping: run_search() fails in the start due to close obstacles (nonroutable), daijuing for a while.\n");
+				daiju_mode(1);
+				cur_autostate = S_DAIJUING;
+				daijuing_timestamp = subsec_timestamp();				
+			}
+			else if(ret == 0)
+			{
+				cur_autostate = S_WAIT_ROUTE;
+			}
+			else
+			{
+				printf("INFO: Automapping: run_search() fails later than in the start: destination is unreachable. Generating a new direction.\n");
+				cur_autostate = S_GEN_DESIRED_DIR;
+			}
 		} break;
 
 		case S_WAIT_ROUTE: {

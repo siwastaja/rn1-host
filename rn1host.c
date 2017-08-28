@@ -148,6 +148,7 @@ int run_search(int32_t dest_x, int32_t dest_y, int dont_map_lidars)
 		do_follow_route = 1;
 		start_route = 1;
 		route_pos = 0;
+		route_finished_or_notfound = 0;
 		id_cnt++; if(id_cnt > 7) id_cnt = 1;
 	}
 	else

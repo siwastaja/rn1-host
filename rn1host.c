@@ -151,6 +151,8 @@ int run_search(int32_t dest_x, int32_t dest_y, int dont_map_lidars)
 	}
 	else do_follow_route = 0;
 
+	lookaround_creep_reroute = 0;
+
 	return ret;
 
 }

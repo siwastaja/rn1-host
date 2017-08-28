@@ -1302,7 +1302,7 @@ void* main_thread()
 
 			static int32_t prev_x, prev_y, prev_ang;
 
-			if(mapping_on)
+			if(mapping_on && !pwr_status.charging && !pwr_status.charged)
 			{
 				int robot_moving = 0;
 				if((prev_x != p_tof->robot_pos.x || prev_y != p_tof->robot_pos.y || prev_ang != p_tof->robot_pos.ang))

@@ -2064,7 +2064,7 @@ void autofsm()
 			if(!do_follow_route)
 			{
 				printf("INFO: Automapping: Following route finished.\n");
-				cur_autostate = S_FIND_DIR;
+				cur_autostate = S_GEN_DESIRED_DIR;
 			}
 
 		} break;

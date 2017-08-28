@@ -75,6 +75,7 @@ route_point_t the_route[THE_ROUTE_MAX];
 int the_route_len = 0;
 
 int do_follow_route = 0;
+int route_finished_or_notfound = 0;
 int lookaround_creep_reroute = 0;
 int route_pos = 0;
 int start_route = 0;
@@ -149,7 +150,11 @@ int run_search(int32_t dest_x, int32_t dest_y, int dont_map_lidars)
 		route_pos = 0;
 		id_cnt++; if(id_cnt > 7) id_cnt = 1;
 	}
-	else do_follow_route = 0;
+	else
+	{
+		do_follow_route = 0;
+		route_finished_or_notfound = 1;
+	}
 
 	lookaround_creep_reroute = 0;
 
@@ -596,6 +601,7 @@ void route_fsm()
 					{
 						printf("INFO: Done following the route.\n");
 						do_follow_route = 0;
+						route_finished_or_notfound = 1;
 					}
 				}
 				else if(live_obstacle_checking_on)

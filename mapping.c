@@ -2077,9 +2077,9 @@ void autofsm()
 		} break;
 
 		case S_WAIT_ROUTE: {
-			extern int do_follow_route;
+			extern int route_finished_or_notfound;
 
-			if(!do_follow_route)
+			if(route_finished_or_notfound)
 			{
 				printf("INFO: Automapping: Following route finished.\n");
 				cur_autostate = S_GEN_DESIRED_DIR;

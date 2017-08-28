@@ -2070,6 +2070,7 @@ void autofsm()
 			else
 			{
 				printf("INFO: Automapping: run_search() fails later than in the start: destination is unreachable. Generating a new direction.\n");
+				add_cant_goto_place(desired_x, desired_y);
 				cur_autostate = S_GEN_DESIRED_DIR;
 			}
 		} break;

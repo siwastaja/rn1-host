@@ -875,9 +875,6 @@ static void extra_tight_search_mode()
 	gen_robot_shapes();	
 }
 
-search_unit_t* closed_set = NULL;
-search_unit_t* open_set = NULL;
-
 void clear_route(route_unit_t **route)
 {
 	route_unit_t *elt, *tmp;
@@ -891,6 +888,9 @@ void clear_route(route_unit_t **route)
 
 static int search(route_unit_t **route, float start_ang, int start_x_mm, int start_y_mm, int end_x_mm, int end_y_mm)
 {
+	search_unit_t* closed_set = NULL;
+	search_unit_t* open_set = NULL;
+
 	clear_route(route);
 
 	int s_x, s_y, e_x, e_y;

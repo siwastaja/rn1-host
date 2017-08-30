@@ -847,8 +847,8 @@ void* main_thread()
 			}
 			if(cmd == 'M')
 			{
-				mapping_on = 2;
-				printf("Turned mapping to fast mode.\n");
+				massive_search_area();
+				printf("Requesting massive search.\n");
 			}
 //			if(cmd == 'K')
 //			{

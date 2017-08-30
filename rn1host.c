@@ -1422,7 +1422,7 @@ void* main_thread()
 				lidar_ignore_over = 1;
 
 				int idx_x, idx_y, offs_x, offs_y;
-				printf("INFO: Got lidar scan. (%d)\n", p_lid->significant_for_mapping);
+				//printf("INFO: Got lidar scan. (%d)\n", p_lid->significant_for_mapping);
 
 				static int curpos_send_cnt = 0;
 				curpos_send_cnt++;
@@ -1485,7 +1485,7 @@ void* main_thread()
 						}
 						else
 						{
-							printf("INFO: Got significant(%d) lidar scan, adding to the mapping queue(%d).\n", p_lid->significant_for_mapping, n_lidars_to_map);
+				//			printf("INFO: Got significant(%d) lidar scan, adding to the mapping queue(%d).\n", p_lid->significant_for_mapping, n_lidars_to_map);
 							lidars_to_map[n_lidars_to_map] = p_lid;
 
 							n_lidars_to_map++;

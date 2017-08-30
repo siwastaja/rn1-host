@@ -1873,6 +1873,8 @@ void autofsm()
 	static double daijuing_timestamp;
 	static int num_stops;
 
+	static int map_lidars_when_searched = 0;
+
 	switch(cur_autostate)
 	{
 		case S_IDLE: {
@@ -2037,6 +2039,7 @@ void autofsm()
 			else if(cur_xymove.id == movement_id && (cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags))
 			{
 				printf("INFO: Automapping: movement id=%d stopped, generating new desired direction\n", movement_id);
+				map_lidars_when_searched = 1;
 				add_cant_goto_place(desired_x, desired_y);
 				if(tcp_client_sock >= 0) tcp_send_dbgpoint(desired_x, desired_y, 255, 30, 50, 1);
 				movement_id++; if(movement_id > 100) movement_id = 0;
@@ -2055,7 +2058,8 @@ void autofsm()
 		} break;
 
 		case S_GEN_ROUTING: {
-			int ret = run_search(desired_x, desired_y, 1);
+			int ret = run_search(desired_x, desired_y, !map_lidars_when_searched);
+			map_lidars_when_searched = 0;
 
 			if(ret == 1)
 			{

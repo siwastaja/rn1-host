@@ -1089,8 +1089,24 @@ void* main_thread()
 				feedback_stop_flags_processed = 1;
 				int stop_reason = cur_xymove.feedback_stop_flags;
 				printf("INFO: Feedback module reported: %s\n", MCU_FEEDBACK_COLLISION_NAMES[stop_reason]);
-				if(mapping_on) map_collision_obstacle(&world, cur_ang, cur_x, cur_y, stop_reason, cur_xymove.stop_xcel_vector_valid,
-					cur_xymove.stop_xcel_vector_ang_rad);
+				if(mapping_on)
+				{
+					map_collision_obstacle(&world, cur_ang, cur_x, cur_y, stop_reason, cur_xymove.stop_xcel_vector_valid,
+						cur_xymove.stop_xcel_vector_ang_rad);
+					if(do_follow_route)
+					{
+						int px, py, ox, oy;
+						page_coords(cur_x, cur_y, &px, &py, &ox, &oy);
+
+						for(int ix=-1; ix<=1; ix++)
+						{
+							for(int iy=-1; iy<=1; iy++)
+							{
+								gen_routing_page(&world, px+ix, py+iy, 0);
+							}
+						}
+					}
+				}
 			}
 		}
 		else

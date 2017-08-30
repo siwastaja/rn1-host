@@ -922,7 +922,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 	{
 		cnt++;
 
-		if(cnt > 200000)
+		if(cnt > 70000)
 		{
 			printf("Giving up at cnt = %d\n", cnt);
 			return 3;

@@ -298,6 +298,7 @@ void do_live_obstacle_checking()
 
 void route_fsm()
 {
+	static int micronavi_stops = 0;
 	static double timestamp;
 	static int creep_cnt;
 
@@ -542,8 +543,24 @@ void route_fsm()
 		{
 			if(cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags)
 			{
-				printf("INFO: Micronavi STOP, entering lookaround_creep_reroute\n");
-				lookaround_creep_reroute = 1;
+				if(micronavi_stops < 10)
+				{
+					printf("INFO: Micronavi STOP, entering lookaround_creep_reroute\n");
+					micronavi_stops++;
+					lookaround_creep_reroute = 1;
+				}
+				else
+				{
+					printf("INFO: Micronavi STOP, too many of them already, rerouting.\n");
+					if(rerun_search() == 1)
+					{
+						printf("INFO: Routing failed in start, todo: handle this situation.\n");
+					}
+					else
+					{
+						printf("INFO: Routing succeeded, or failed later.\n");
+					}
+				}
 			}
 			else if(id_cnt == 0) // Zero id move is a special move during route following
 			{
@@ -597,10 +614,12 @@ void route_fsm()
 						}
 						printf("INFO: Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
 						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), cur_speedlim, 0);
+						micronavi_stops = 0;
 					}
 					else
 					{
 						printf("INFO: Done following the route.\n");
+						micronavi_stops = 0;
 						do_follow_route = 0;
 						route_finished_or_notfound = 1;
 					}

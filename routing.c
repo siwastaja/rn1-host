@@ -56,7 +56,8 @@ static int check_hit(int x, int y, int direction)
 		{
 			printf("rpages[%d][%d] not allocated\n", pageidx_x, pageidx_y);
 			printf("x = %d  y = %d  direction = %d\n", x, y, direction);
-			exit(1);
+			//exit(1);
+			return 1;
 		}
 
 		// Now the quick comparison, which could be even faster, but we don't want to mess up the compatibility between
@@ -93,7 +94,8 @@ static int check_hit_hitcnt(int x, int y, int direction)
 		{
 			printf("rpages[%d][%d] not allocated\n", pageidx_x, pageidx_y);
 			printf("x = %d  y = %d  direction = %d\n", x, y, direction);
-			exit(1);
+			//exit(1);
+			return 999;
 		}
 
 		// Now the quick comparison, which could be even faster, but we don't want to mess up the compatibility between

@@ -1485,11 +1485,11 @@ void* main_thread()
 						}
 						else
 						{
-				//			printf("INFO: Got significant(%d) lidar scan, adding to the mapping queue(%d).\n", p_lid->significant_for_mapping, n_lidars_to_map);
+							printf("INFO: Got significant(%d) lidar scan, adding to the mapping queue(%d).\n", p_lid->significant_for_mapping, n_lidars_to_map);
 							lidars_to_map[n_lidars_to_map] = p_lid;
 
 							n_lidars_to_map++;
-							if((good_time_for_lidar_mapping && n_lidars_to_map > 5) || n_lidars_to_map > 8)
+							if((good_time_for_lidar_mapping && n_lidars_to_map > 5) || n_lidars_to_map > 12)
 							{
 								if(good_time_for_lidar_mapping) good_time_for_lidar_mapping = 0;
 								int32_t da, dx, dy;
@@ -1497,7 +1497,23 @@ void* main_thread()
 								map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
 								INCR_POS_CORR_ID();
 								correct_robot_pos(da, dx, dy, pos_corr_id);
-								n_lidars_to_map = 0;
+
+								// keep a few old lidars:
+								if(n_lidars_to_map > 12)
+								{
+									lidars_to_map[0] = lidars_to_map[9];
+									lidars_to_map[1] = lidars_to_map[10];
+									lidars_to_map[2] = lidars_to_map[11];
+									lidars_to_map[3] = lidars_to_map[12];
+									n_lidars_to_map = 4;
+								}
+								else
+								{
+									lidars_to_map[0] = lidars_to_map[n_lidars_to_map-1];
+									lidars_to_map[1] = lidars_to_map[n_lidars_to_map];
+									n_lidars_to_map = 2;
+								}
+
 							}
 						}
 					}

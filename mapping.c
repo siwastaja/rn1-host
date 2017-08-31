@@ -963,8 +963,12 @@ void massive_search_area()
 	search_area_size = 2;
 }
 
+extern double subsec_timestamp();
+
 int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy)
 {
+	double time;
+
 	static int8_t scoremap[TEMP_MAP_W*TEMP_MAP_W];
 
 	*da = 0;
@@ -979,18 +983,24 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		return -1;
 	}
 
+	time = subsec_timestamp();
 	prefilter_lidar_list(n_lidars, lidar_list);
+	double prefilter_time = subsec_timestamp() - time;
 
 	int mid_x, mid_y;
 
 	// Calculate average robot coordinates between the images, to find arithmetical midpoint.
 	// When correcting angle, image is rotated around this point.
+	time = subsec_timestamp();
 	lidars_avg_midpoint(n_lidars, lidar_list, &mid_x, &mid_y);
+	double avg_midpoint_time = subsec_timestamp() - time;
 
+	time = subsec_timestamp();
 	if(search_area_size == 2)
 		gen_scoremap_for_large_steps(w, scoremap, mid_x, mid_y);
 	else
 		gen_scoremap_for_small_steps(w, scoremap, mid_x, mid_y);
+	double scoremap_time = subsec_timestamp() - time;
 
 	int a_range, xy_range, xy_step, a_step;
 
@@ -1021,6 +1031,8 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	int best_score = -999999;
 	int best1_da=0, best1_dx=0, best1_dy=0;
 
+	time = subsec_timestamp();
+
 	for(int ida=-1*a_range*ANG_1_DEG; ida<=a_range*ANG_1_DEG; ida+=a_step)
 	{
 		int32_t idx = 0, idy = 0;
@@ -1034,6 +1046,9 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			best1_dy = idy;
 		}
 	}
+
+
+	double pass1_time = subsec_timestamp() - time;
 
 	int pass2_a_range, pass2_a_step;
 	int pass2_dx_start, pass2_dx_step, pass2_num_dx, pass2_dy_start, pass2_dy_step, pass2_num_dy;
@@ -1068,6 +1083,9 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	best_score = -999999;
 	int best2_da=0, best2_dx=0, best2_dy=0;
 
+	time = subsec_timestamp();
+
+
 	for(int ida=best1_da-pass2_a_range*pass2_a_step; ida<=best1_da+pass2_a_range*pass2_a_step; ida+=pass2_a_step)
 	{
 		int32_t idx = 0, idy = 0;
@@ -1081,6 +1099,8 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			best2_dy = idy;
 		}
 	}
+
+	double pass2_time = subsec_timestamp() - time;
 
 	int best_da = best2_da;
 	int best_dx = best2_dx;
@@ -1101,7 +1121,13 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 	int32_t aft_corr_x = 0, aft_corr_y = 0;
 
+	time = subsec_timestamp();
+
 	do_mapping(w, n_lidars, lidar_list, best_da, best_dx, best_dy, mid_x, mid_y, &aft_corr_x, &aft_corr_y);
+
+	double mapping_time = subsec_timestamp() - time;
+
+	printf("Info: Performance: prefilter %.1fms avg_midpoint %.1fms scoremap %.1fms pass1 %.1fms pass2 %.1fms mapping %.1fms\n", prefilter_time, avg_midpoint_time, scoremap_time, pass1_time, pass2_time, mapping_time);
 
 	*da = best_da;
 	*dx = best_dx + aft_corr_x;

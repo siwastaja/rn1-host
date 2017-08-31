@@ -1007,8 +1007,8 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	if(search_area_size == 0)
 	{
 		a_range = 3; // was 4
-		xy_range = 320; // was 360
-		xy_step = 40;
+		xy_range = 400; // was 360
+		xy_step = 80;
 		a_step = 1*ANG_1_DEG;
 	}
 	else if(search_area_size == 1)
@@ -1058,12 +1058,12 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		// we already generated scoremap for small steps
 		pass2_a_range = 2; // in half degs
 		pass2_a_step = ANG_0_5_DEG;
-		pass2_dx_start = best1_dx-40;
-		pass2_dx_step = 20;
-		pass2_num_dx = 2*(40/20) + 1;
-		pass2_dy_start = best1_dy-40;
-		pass2_dy_step = 20;
-		pass2_num_dy = 2*(40/20) + 1;
+		pass2_dx_start = best1_dx-80;
+		pass2_dx_step = 40;
+		pass2_num_dx = 2*(80/40) + 1;
+		pass2_dy_start = best1_dy-80;
+		pass2_dy_step = 40;
+		pass2_num_dy = 2*(80/40) + 1;
 	}
 	else // massive
 	{
@@ -1127,7 +1127,8 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 	double mapping_time = subsec_timestamp() - time;
 
-	printf("Info: Performance: prefilter %.1fms avg_midpoint %.1fms scoremap %.1fms pass1 %.1fms pass2 %.1fms mapping %.1fms\n", prefilter_time, avg_midpoint_time, scoremap_time, pass1_time, pass2_time, mapping_time);
+	printf("Info: Performance: prefilter %.1fms avg_midpoint %.1fms scoremap %.1fms pass1 %.1fms pass2 %.1fms mapping %.1fms\n",
+		prefilter_time*1000.0, avg_midpoint_time*1000.0, scoremap_time*1000.0, pass1_time*1000.0, pass2_time*1000.0, mapping_time*1000.0);
 
 	*da = best_da;
 	*dx = best_dx + aft_corr_x;

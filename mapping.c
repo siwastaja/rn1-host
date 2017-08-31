@@ -862,7 +862,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 							PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_seen);
 							PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_obstacles);
 
-							if(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles > 2)
+							//if(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles > 2)
 								w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_WALL;
 
 							spot_used[copy_px][copy_py][ox][oy] = 1;
@@ -877,8 +877,14 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 				{
 					// We have a new wall.
 					w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_MAPPED;
-					PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_seen);
+
+					// If the area is basically unmapped, just decide that the new wall is actually a wall, right away.
+					// For mapped areas, UNIT_WALL is not set right away to avoid moving people etc. being count as walls.
+					if(w->pages[pagex][pagey]->units[offsx][offsy].num_seen < 2)
+						w->pages[pagex][pagey]->units[offsx][offsy].result |= UNIT_WALL;
+
 					PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_obstacles);
+					PLUS_SAT_255(w->pages[pagex][pagey]->units[offsx][offsy].num_seen);
 					w->changed[pagex][pagey] = 1;
 				}
 			}

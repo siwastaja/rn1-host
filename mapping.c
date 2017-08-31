@@ -384,7 +384,7 @@ static int gen_scoremap_for_small_steps(world_t *w, int8_t *scoremap, int mid_x,
 static int32_t score_quick_search_xy(int8_t *scoremap, int n_lidars, lidar_scan_t** lidar_list, 
 	       int32_t rotate_mid_x, int32_t rotate_mid_y, 
 	       int32_t da, int32_t dx_start, int32_t dx_step, int32_t num_dx, int32_t dy_start, int32_t dy_step, int32_t num_dy,
-               int32_t *best_dx, int32_t *best_dy)
+               int32_t *best_dx, int32_t *best_dy, int ena_weigh)
 {
 	int n_points = 0;
 
@@ -448,10 +448,17 @@ static int32_t score_quick_search_xy(int8_t *scoremap, int n_lidars, lidar_scan_
 	{
 		for(int iy = 0; iy < num_dy; iy++)
 		{
-			int weigh_dx = num_dx - abs(weigh_mid_idx - ix);
-			int weigh_dy = num_dy - abs(weigh_mid_idx - iy);
-
-			int sco = score[ix][iy]*weigh_dx*weigh_dy;
+			int sco;
+			if(ena_weigh)
+			{
+				int weigh_dx = num_dx - abs(weigh_mid_idx - ix);
+				int weigh_dy = num_dy - abs(weigh_mid_idx - iy);
+				sco = score[ix][iy]*weigh_dx*weigh_dy;
+			}
+			else
+			{
+				sco = score[ix][iy];
+			}
 
 //			printf(" (%2d,%2d): %6d ", ix, iy, score[ix][iy]);
 			if(sco > best_score)
@@ -467,7 +474,7 @@ static int32_t score_quick_search_xy(int8_t *scoremap, int n_lidars, lidar_scan_
 	*best_dx = dx_start+dx_step*best_ix;
 	*best_dy = dy_start+dy_step*best_iy;
 
-	return (1000*best_score)/n_points;
+	return (200*best_score)/n_points;
 }
 
 
@@ -1052,7 +1059,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	{
 		int32_t idx = 0, idy = 0;
 		int score_now = score_quick_search_xy(scoremap, n_lidars, lidar_list, mid_x, mid_y,
-			ida, -1*xy_range, xy_step, n_xy_steps, -1*xy_range, xy_step, n_xy_steps, &idx, &idy);
+			ida, -1*xy_range, xy_step, n_xy_steps, -1*xy_range, xy_step, n_xy_steps, &idx, &idy,1);
 		if(score_now > best_score)
 		{
 			best_score = score_now;
@@ -1105,7 +1112,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	{
 		int32_t idx = 0, idy = 0;
 		int score_now = score_quick_search_xy(scoremap, n_lidars, lidar_list, mid_x, mid_y,
-			ida, pass2_dx_start, pass2_dx_step, pass2_num_dx, pass2_dy_start, pass2_dy_step, pass2_num_dy, &idx, &idy);
+			ida, pass2_dx_start, pass2_dx_step, pass2_num_dx, pass2_dy_start, pass2_dy_step, pass2_num_dy, &idx, &idy,0);
 		if(score_now > best_score)
 		{
 			best_score = score_now;

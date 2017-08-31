@@ -262,7 +262,7 @@ static int gen_scoremap_for_large_steps(world_t *w, int8_t *scoremap, int mid_x,
 			page_coords(mid_x + (xx-TEMP_MAP_MIDDLE)*MAP_UNIT_W, mid_y + (yy-TEMP_MAP_MIDDLE)*MAP_UNIT_W, &px, &py, &ox, &oy);
 //			load_9pages(w, px, py);
 
-			int score = 4*w->pages[px][py]->units[ox][oy].num_obstacles;
+			int score = 3*w->pages[px][py]->units[ox][oy].num_obstacles;
 
 			for(int ix=-5; ix<=5; ix++)
 			{
@@ -273,16 +273,12 @@ static int gen_scoremap_for_large_steps(world_t *w, int8_t *scoremap, int mid_x,
 					if(noy < 0) { noy += MAP_PAGE_W; npy--; } else if(noy >= MAP_PAGE_W) { noy -= MAP_PAGE_W; npy++;}
 
 					int neigh_score;
-//					if(ix == -4 || ix == 4 || iy == -4 || iy == 4)
-//						neigh_score = 2*w->pages[npx][npy]->units[nox][noy].num_obstacles;
-//					else
-						neigh_score = 3*w->pages[npx][npy]->units[nox][noy].num_obstacles;
+					neigh_score = 2*w->pages[npx][npy]->units[nox][noy].num_obstacles;
 					if(neigh_score > score) score = neigh_score;
 				}
 			}
 
-			score >>= 1;
-			if(score > 63) score=63; else if(score < -64) score = -64;
+			if(score > 63) score=63;
 
 			scoremap[yy*TEMP_MAP_W+xx] = score;
 		}
@@ -334,7 +330,7 @@ static int gen_scoremap_for_small_steps(world_t *w, int8_t *scoremap, int mid_x,
 			page_coords(mid_x + (xx-TEMP_MAP_MIDDLE)*MAP_UNIT_W, mid_y + (yy-TEMP_MAP_MIDDLE)*MAP_UNIT_W, &px, &py, &ox, &oy);
 //			load_9pages(w, px, py);
 
-			int score = 4*w->pages[px][py]->units[ox][oy].num_obstacles;
+			int score = 3*w->pages[px][py]->units[ox][oy].num_obstacles;
 
 			for(int ix=-1; ix<=1; ix++)
 			{
@@ -344,13 +340,12 @@ static int gen_scoremap_for_small_steps(world_t *w, int8_t *scoremap, int mid_x,
 					if(nox < 0) { nox += MAP_PAGE_W; npx--; } else if(nox >= MAP_PAGE_W) { nox -= MAP_PAGE_W; npx++;}
 					if(noy < 0) { noy += MAP_PAGE_W; npy--; } else if(noy >= MAP_PAGE_W) { noy -= MAP_PAGE_W; npy++;}
 
-					int neigh_score = 3*w->pages[npx][npy]->units[nox][noy].num_obstacles;
+					int neigh_score = 2*w->pages[npx][npy]->units[nox][noy].num_obstacles;
 					if(neigh_score > score) score = neigh_score;
 				}
 			}
 
-			score >>= 1;
-			if(score > 63) score=63; else if(score < -64) score = -64;
+			if(score > 63) score=63;
 
 			scoremap[yy*TEMP_MAP_W+xx] = score;
 		}

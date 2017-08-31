@@ -327,7 +327,7 @@ static int gen_scoremap_for_small_steps(world_t *w, int8_t *scoremap, int mid_x,
 			page_coords(mid_x + (xx-TEMP_MAP_MIDDLE)*MAP_UNIT_W, mid_y + (yy-TEMP_MAP_MIDDLE)*MAP_UNIT_W, &px, &py, &ox, &oy);
 			load_9pages(w, px, py);
 
-			int score = 4*w->pages[px][py]->units[ox][oy].num_obstacles; // - 2*w->pages[px][py]->units[ox][oy].num_seen;
+			int score = 4*w->pages[px][py]->units[ox][oy].num_obstacles;
 
 			for(int ix=-1; ix<=1; ix++)
 			{
@@ -337,7 +337,7 @@ static int gen_scoremap_for_small_steps(world_t *w, int8_t *scoremap, int mid_x,
 					if(nox < 0) { nox += MAP_PAGE_W; npx--; } else if(nox >= MAP_PAGE_W) { nox -= MAP_PAGE_W; npx++;}
 					if(noy < 0) { noy += MAP_PAGE_W; npy--; } else if(noy >= MAP_PAGE_W) { noy -= MAP_PAGE_W; npy++;}
 
-					int neigh_score = 3*w->pages[npx][npy]->units[nox][noy].num_obstacles; // - 2*w->pages[npx][npy]->units[nox][noy].num_seen;
+					int neigh_score = 3*w->pages[npx][npy]->units[nox][noy].num_obstacles;
 					if(neigh_score > score) score = neigh_score;
 				}
 			}

@@ -119,6 +119,8 @@ void prevent_3dtoffing()
 	pthread_mutex_unlock(&cur_pos_mutex);
 }
 
+#define sq(x) ((x)*(x))
+
 int parse_uart_msg(uint8_t* buf, int len)
 {
 	switch(buf[0])
@@ -148,7 +150,25 @@ int parse_uart_msg(uint8_t* buf, int len)
 
 			*/
 
-			int is_significant = buf[1]&0b11;
+			int32_t mid_ang = (I7I7_U16_lossy(buf[3], buf[4]))<<16;
+			int32_t mid_x = I7x5_I32(buf[5],buf[6],buf[7],buf[8],buf[9]);
+			int32_t mid_y = I7x5_I32(buf[10],buf[11],buf[12],buf[13],buf[14]);
+
+			static int32_t prev_mid_ang, prev_mid_x, prev_mid_y;
+
+			int32_t da = mid_ang - prev_mid_ang; int32_t dx = mid_x - prev_mid_x; int32_t dy = mid_y - prev_mid_y;
+
+
+			int is_significant = 0; // = buf[1]&0b11;
+
+			if(da < -15*ANG_1_DEG || da > 15*ANG_1_DEG || (sq(dx)+sq(dy)) > sq(50))
+			{ 
+				is_significant = 1;
+				prev_mid_ang = mid_ang;
+				prev_mid_x = mid_x;
+				prev_mid_y = mid_y;
+			}
+
 
 			if(is_significant)
 			{
@@ -174,9 +194,9 @@ int parse_uart_msg(uint8_t* buf, int len)
 			lid->is_invalid = (buf[1]&4)?1:0;
 			lid->significant_for_mapping = is_significant;
 			lid->id = buf[2];
-			lid->robot_pos.ang = (I7I7_U16_lossy(buf[3], buf[4]))<<16;
-			int mid_x = lid->robot_pos.x = I7x5_I32(buf[5],buf[6],buf[7],buf[8],buf[9]);
-			int mid_y = lid->robot_pos.y = I7x5_I32(buf[10],buf[11],buf[12],buf[13],buf[14]);
+			lid->robot_pos.ang = mid_ang; 
+			lid->robot_pos.x = mid_x;
+			lid->robot_pos.y = mid_y;
 
 			if(update_robot_pos(lid->robot_pos.ang, mid_x, mid_y) < 0)
 			{

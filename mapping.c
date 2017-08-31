@@ -522,8 +522,8 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		robot_x /= MAP_UNIT_W; robot_y /= MAP_UNIT_W;
 		robot_x += TEMP_MAP_MIDDLE; robot_y += TEMP_MAP_MIDDLE;
 
-		// Robot coords should be in the middle 1/3..2/3 section.
-		if(robot_x < MAP_PAGE_W || robot_x >= 2*MAP_PAGE_W || robot_y < MAP_PAGE_W || robot_y > 2*MAP_PAGE_W)
+		// Robot coords should be in the middle 1/4..3/4 section.
+		if(robot_x < TEMP_MAP_W/4 || robot_x >= 3*TEMP_MAP_W/4 || robot_y < TEMP_MAP_W/4 || robot_y > 3*TEMP_MAP_W/4)
 		{
 			printf("ERROR: out of range temp map coords (%d, %d) (robot position)\n", robot_x, robot_y);
 			free(temp_map);
@@ -546,7 +546,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 			x += TEMP_MAP_MIDDLE; y += TEMP_MAP_MIDDLE;
 
-			if(x < 0 || x >= 3*MAP_PAGE_W || y < 0 || y > 3*MAP_PAGE_W)
+			if(x < 0 || x >= TEMP_MAP_W || y < 0 || y > TEMP_MAP_W)
 			{
 				printf("ERROR: out of range temp map coords (%d, %d) (scan point)\n", x, y);
 				free(temp_map);
@@ -1130,7 +1130,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 	printf("Info: Map search complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best_da/(float)ANG_1_DEG, best_dx, best_dy, best_score);
 
-	if(best_score < 1000)
+	if(best_score < 100)
 	{
 		printf("INFO: Best score low, mapping with zero correction.\n");
 		best_da = 0; best_dx = 0; best_dy = 0;

@@ -380,6 +380,7 @@ static int gen_scoremap_for_small_steps(world_t *w, int8_t *scoremap, int mid_x,
 	return 0;
 }
 
+// now, num_dx must equal num_dy, also, num_dx, num_dy must be odd values.
 static int32_t score_quick_search_xy(int8_t *scoremap, int n_lidars, lidar_scan_t** lidar_list, 
 	       int32_t rotate_mid_x, int32_t rotate_mid_y, 
 	       int32_t da, int32_t dx_start, int32_t dx_step, int32_t num_dx, int32_t dy_start, int32_t dy_step, int32_t num_dy,
@@ -442,14 +443,20 @@ static int32_t score_quick_search_xy(int8_t *scoremap, int n_lidars, lidar_scan_
 
 //	printf("scores: ");
 	int best_score = -999999, best_ix = 0, best_iy = 0;
+	int weigh_mid_idx = num_dx/2;
 	for(int ix = 0; ix < num_dx; ix++)
 	{
 		for(int iy = 0; iy < num_dy; iy++)
 		{
+			int weigh_dx = num_dx - abs(weigh_mid_idx - ix);
+			int weigh_dy = num_dy - abs(weigh_mid_idx - iy);
+
+			int sco = score[ix][iy]*weigh_dx*weigh_dy;
+
 //			printf(" (%2d,%2d): %6d ", ix, iy, score[ix][iy]);
-			if(score[ix][iy] > best_score)
+			if(sco > best_score)
 			{
-				best_score = score[ix][iy];
+				best_score = sco;
 				best_ix = ix;
 				best_iy = iy;
 			}
@@ -484,7 +491,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		This map is (3* MAP_PAGE_W) x (3* MAP_PAGE_W) in size, the middle point being at rotate_mid_x,rotate_mid_y.
 	*/
 
-	temp_map_img_t* temp_map = calloc(3*MAP_PAGE_W*3*MAP_PAGE_W, sizeof(temp_map_img_t));
+	temp_map_img_t* temp_map = calloc(TEMP_MAP_W*TEMP_MAP_W, sizeof(temp_map_img_t));
 	if(!temp_map)
 	{
 		printf("ERROR: Out of memory in do_mapping\n");

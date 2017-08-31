@@ -244,7 +244,7 @@ x2 = x*cos(a) + y*sin(a)
 y2 = -1*x*sin(a) + y*cos(a)
 */
 
-#define TEMP_MAP_W (3*MAP_PAGE_W)
+#define TEMP_MAP_W (2*MAP_PAGE_W)
 #define TEMP_MAP_MIDDLE (TEMP_MAP_W/2)
 
 // Slower, allows stepping larger steps:

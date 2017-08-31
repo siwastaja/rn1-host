@@ -40,6 +40,7 @@ typedef struct
 
 typedef struct
 {
+	int filtered;
 	int significant_for_mapping;
 	int is_invalid; // May be distorted due to excessive robot acceleration (collision, drop, etc.)
 	int id; // id can be updated with the correct position message; this way we know when the scan has recent coordinate update done or not.

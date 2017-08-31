@@ -191,6 +191,7 @@ int parse_uart_msg(uint8_t* buf, int len)
 
 			lidar_scan_t* lid = is_significant?&significant_lidars[significant_lidar_wr]:&lidars[lidar_wr];
 			latest_lidar = lid;
+			lid->filtered = 0;
 			lid->is_invalid = (buf[1]&4)?1:0;
 			lid->significant_for_mapping = is_significant;
 			lid->id = buf[2];

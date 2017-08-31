@@ -251,6 +251,8 @@ y2 = -1*x*sin(a) + y*cos(a)
 static int gen_scoremap_for_large_steps(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
 {
 	int px, py, ox, oy;
+	page_coords(mid_x, mid_y, &px, &py, &ox, &oy);
+	load_25pages(w, px, py);
 
 	printf("Generating scoremap (for large steps)..."); fflush(stdout);
 	for(int xx = 0; xx < TEMP_MAP_W; xx++)
@@ -258,7 +260,7 @@ static int gen_scoremap_for_large_steps(world_t *w, int8_t *scoremap, int mid_x,
 		for(int yy = 0; yy < TEMP_MAP_W; yy++)
 		{
 			page_coords(mid_x + (xx-TEMP_MAP_MIDDLE)*MAP_UNIT_W, mid_y + (yy-TEMP_MAP_MIDDLE)*MAP_UNIT_W, &px, &py, &ox, &oy);
-			load_9pages(w, px, py);
+//			load_9pages(w, px, py);
 
 			int score = 4*w->pages[px][py]->units[ox][oy].num_obstacles;
 
@@ -321,7 +323,7 @@ static int gen_scoremap_for_small_steps(world_t *w, int8_t *scoremap, int mid_x,
 	int px, py, ox, oy;
 
 	page_coords(mid_x, mid_y, &px, &py, &ox, &oy);
-	load_9pages(w, px, py);
+	load_25pages(w, px, py);
 
 
 //	printf("Generating scoremap..."); fflush(stdout);

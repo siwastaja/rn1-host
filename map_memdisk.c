@@ -158,9 +158,31 @@ void load_9pages(world_t* w, int pagex, int pagey)
 		return;
 	}
 
-	for(int x=-1; x<2; x++)
+	for(int x=-1; x<=1; x++)
 	{
-		for(int y=-1; y<2; y++)
+		for(int y=-1; y<=1; y++)
+		{
+			int xx = pagex+x;
+			int yy = pagey+y;
+			if(!w->pages[xx][yy])
+			{
+				load_map_page(w, xx, yy);
+			}
+		}
+	}
+}
+
+void load_25pages(world_t* w, int pagex, int pagey)
+{
+	if(pagex < 2 || pagex >= MAP_W-2 || pagey < 2 || pagey >= MAP_W-2)
+	{
+		printf("ERROR: load_25pages invalid page number (%d,%d)\n", pagex, pagey);
+		return;
+	}
+
+	for(int x=-2; x<=2; x++)
+	{
+		for(int y=-2; y<=2; y++)
 		{
 			int xx = pagex+x;
 			int yy = pagey+y;

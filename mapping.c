@@ -1875,6 +1875,11 @@ typedef enum
 
 autostate_t cur_autostate;
 
+int doing_autonomous_things()
+{
+	return (int)cur_autostate;
+}
+
 void start_automapping_from_compass()
 {
 	cur_autostate = S_START;

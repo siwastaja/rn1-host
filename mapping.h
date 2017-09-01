@@ -143,6 +143,7 @@ void autofsm();
 void dbg_test();
 void clear_within_robot(world_t* w, pos_t pos);
 void massive_search_area();
+int doing_autonomous_things();
 
 
 #endif

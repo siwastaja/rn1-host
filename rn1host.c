@@ -331,22 +331,31 @@ void route_fsm()
 		double stamp;
 		if( (stamp=subsec_timestamp()) > timestamp+1.0)
 		{
-			int dx = the_route[route_pos].x - cur_x;
-			int dy = the_route[route_pos].y - cur_y;
-			float ang = atan2(dy, dx) /*<- ang to dest*/ - DEGTORAD(lookaround_turn);
-
-			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
+			if(doing_autonomous_things())
 			{
-				printf("INFO: Can turn to %.1f deg, doing it.\n", -1*lookaround_turn);
-				turn_and_go_abs_rel(RADTOANG32(ang), 0, 13, 1);
+				printf("Robot is mapping autonomously: no need to clear the exact route right now, skipping lookaround & creep\n");
+				rerun_search();
+				lookaround_creep_reroute = 0;
 			}
 			else
 			{
-				printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n", -1*lookaround_turn);
-				turn_and_go_abs_rel(cur_ang-4*ANG_1_DEG, 0, 13, 1);
+				int dx = the_route[route_pos].x - cur_x;
+				int dy = the_route[route_pos].y - cur_y;
+				float ang = atan2(dy, dx) /*<- ang to dest*/ - DEGTORAD(lookaround_turn);
+
+				if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
+				{
+					printf("INFO: Can turn to %.1f deg, doing it.\n", -1*lookaround_turn);
+					turn_and_go_abs_rel(RADTOANG32(ang), 0, 13, 1);
+				}
+				else
+				{
+					printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n", -1*lookaround_turn);
+					turn_and_go_abs_rel(cur_ang-4*ANG_1_DEG, 0, 13, 1);
+				}
+				timestamp = subsec_timestamp();
+				lookaround_creep_reroute++;
 			}
-			timestamp = subsec_timestamp();
-			lookaround_creep_reroute++;
 		}
 	}
 	else if(lookaround_creep_reroute == 3)

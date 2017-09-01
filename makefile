@@ -1,4 +1,6 @@
-CFLAGS = -Wall -Winline -std=c99 -g
+MODEL=PULU1
+
+CFLAGS = -D$(MODEL) -Wall -Winline -std=c99 -g
 LDFLAGS = 
 
 DEPS = mapping.h uart.h map_memdisk.h datatypes.h hwdata.h tcp_comm.h tcp_parser.h routing.h map_opers.h
@@ -7,7 +9,7 @@ OBJ = rn1host.o mapping.o map_memdisk.o uart.o hwdata.o tcp_comm.o tcp_parser.o 
 all: rn1host
 
 tof3d.o: tof3d.cpp tof3d.h
-	c++ -c -o tof3d.o -Wall -I/opt/softkinetic/DepthSenseSDK/include tof3d.cpp -pthread
+	c++ -c -o tof3d.o -Wall -I/opt/softkinetic/DepthSenseSDK/include tof3d.cpp -pthread -D$(MODEL)
 
 %.o: %.c $(DEPS)
 	gcc -c -o $@ $< $(CFLAGS) -pthread

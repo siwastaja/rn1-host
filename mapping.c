@@ -1408,10 +1408,8 @@ int map_lidars_to_minimap(int n_lidars, lidar_scan_t** lidar_list)
 	return map_lidar_to_minimap(lidar_list[n_lidars-1]);
 }
 
-const int robot_xs = 480;
-const int robot_ys = 524;
-const int lidar_xoffs = 120;
-const int lidar_yoffs = 0;
+extern float main_robot_xs;
+extern float main_robot_ys;
 
 #define STOP_REASON_JERK 1
 #define STOP_REASON_OBSTACLE_FRONT_RIGHT 2
@@ -1502,8 +1500,8 @@ void map_collision_obstacle(world_t* w, int32_t now_ang, int now_x, int now_y, i
 		// Shift the result to the right or left:
 		int32_t angle = now_ang + (uint32_t)( ((stop_reason==STOP_REASON_OBSTACLE_BACK_RIGHT)?90:-90) *ANG_1_DEG);
 
-		x += cos(ANG32TORAD(angle))*(float)robot_ys/2.0;
-		y += sin(ANG32TORAD(angle))*(float)robot_ys/2.0;
+		x += cos(ANG32TORAD(angle))*(float)main_robot_ys/2.0;
+		y += sin(ANG32TORAD(angle))*(float)main_robot_ys/2.0;
 
 		for(int i = 0; i < 3; i++)
 		{
@@ -1554,6 +1552,8 @@ void map_collision_obstacle(world_t* w, int32_t now_ang, int now_x, int now_y, i
 void clear_within_robot(world_t* w, pos_t pos)
 {
 	int idx_x, idx_y, offs_x, offs_y;
+	int robot_xs = main_robot_xs;
+	int robot_ys = main_robot_ys;
 	for(int stripe = 1; stripe < robot_xs/20 - 1; stripe++)
 	{
 		float x = (float)pos.x + cos(ANG32TORAD(pos.ang))*(float)(ORIGIN_TO_ROBOT_FRONT-stripe*20);

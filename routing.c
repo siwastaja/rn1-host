@@ -14,6 +14,16 @@
 #define M_PI 3.141592653589793238
 #endif
 
+#ifdef PULU1
+float main_robot_xs = 340.0+50.0;
+float main_robot_ys = 320.0+50.0;
+float main_robot_middle_to_lidar = -90.0;
+#else
+float main_robot_xs = 524.0;
+float main_robot_ys = 480.0;
+float main_robot_middle_to_lidar = -120.0;
+#endif
+
 static void wide_search_mode();
 static void normal_search_mode();
 static void tight_search_mode();
@@ -732,30 +742,27 @@ static void draw_robot_shape(int a_idx, float ang)
 
 	float middle_xoffs; // from o_x, o_y to the robot middle point.
 	float middle_yoffs = -0.0;
+	middle_xoffs = main_robot_middle_to_lidar;
 
 	if(tight_shapes == 2)
 	{
-		robot_xs = (524.0 - 100.0);
-		robot_ys = (480.0 - 100.0);
-		middle_xoffs = -120.0;
+		robot_xs = (main_robot_xs - 100.0);
+		robot_ys = (main_robot_ys - 100.0);
 	}
 	else if(tight_shapes == 1)
 	{
-		robot_xs = (524.0 - 40.0);
-		robot_ys = (480.0 - 40.0);
-		middle_xoffs = -120.0;
+		robot_xs = (main_robot_xs - 40.0);
+		robot_ys = (main_robot_ys - 40.0);
 	}
 	else if(tight_shapes == 0)
 	{
-		robot_xs = (524.0 + 140.0);
-		robot_ys = (480.0 + 200.0);
-		middle_xoffs = -120.0;
+		robot_xs = (main_robot_xs + 140.0);
+		robot_ys = (main_robot_ys + 200.0);
 	}
 	else // wide
 	{
-		robot_xs = (524.0 + 420.0);
-		robot_ys = (480.0 + 420.0);
-		middle_xoffs = -120.0;
+		robot_xs = (main_robot_xs + 420.0);
+		robot_ys = (main_robot_ys + 420.0);
 	}
 
 	robot_shape_x_len = robot_xs;

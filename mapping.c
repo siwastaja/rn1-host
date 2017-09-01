@@ -997,7 +997,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	*dx = 0;
 	*dy = 0;
 
-	printf("Info: Attempting to map %d lidar images\n", n_lidars);
+	printf("Info: (timestamp=%.1f) Attempting to map %d lidar images\n", subsec_timestamp(), n_lidars);
 
 	if(n_lidars > 32)
 	{
@@ -1013,9 +1013,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 	// Calculate average robot coordinates between the images, to find arithmetical midpoint.
 	// When correcting angle, image is rotated around this point.
-	time = subsec_timestamp();
 	lidars_avg_midpoint(n_lidars, lidar_list, &mid_x, &mid_y);
-	double avg_midpoint_time = subsec_timestamp() - time;
 
 	time = subsec_timestamp();
 	if(search_area_size == 2)
@@ -1028,8 +1026,8 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 	if(search_area_size == 0)
 	{
-		a_range = 3; // was 4
-		xy_range = 400; // was 360
+		a_range = 3;
+		xy_range = 400;
 		xy_step = 80;
 		a_step = 1*ANG_1_DEG;
 	}
@@ -1149,8 +1147,8 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 	double mapping_time = subsec_timestamp() - time;
 
-	printf("Info: Performance: prefilter %.1fms avg_midpoint %.1fms scoremap %.1fms pass1 %.1fms pass2 %.1fms mapping %.1fms\n",
-		prefilter_time*1000.0, avg_midpoint_time*1000.0, scoremap_time*1000.0, pass1_time*1000.0, pass2_time*1000.0, mapping_time*1000.0);
+	printf("Info: Performance: prefilter %.1fms scoremap %.1fms pass1 %.1fms pass2 %.1fms mapping %.1fms\n",
+		prefilter_time*1000.0, scoremap_time*1000.0, pass1_time*1000.0, pass2_time*1000.0, mapping_time*1000.0);
 
 	*da = best_da;
 	*dx = best_dx + aft_corr_x;
@@ -1792,11 +1790,11 @@ int find_unfamiliar_direction_randomly(world_t* w, int *x_out, int *y_out)
 {
 	int biggest = 0;
 	int biggest_x, biggest_y;
-	for(int try=0; try<1000; try++)
+	for(int try=0; try<2000; try++)
 	{
 		extern int32_t cur_x, cur_y;
-		float rand1 = ((float)rand() / (float)RAND_MAX)*6000.0+300.0;
-		float rand2 = ((float)rand() / (float)RAND_MAX)*6000.0+300.0;
+		float rand1 = ((float)rand() / (float)RAND_MAX)*10000.0+300.0;
+		float rand2 = ((float)rand() / (float)RAND_MAX)*10000.0+300.0;
 
 		if(rand()&1)
 			rand1 *= -1.0;

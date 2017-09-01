@@ -122,7 +122,7 @@ int unload_map_pages(world_t* w, int cur_pagex, int cur_pagey)
 	{
 		for(int y = 0; y < MAP_W; y++)
 		{
-			if(w->pages[x][y] && (abs(cur_pagex - x) > 2 || abs(cur_pagey - y) > 2))
+			if(w->pages[x][y] && (abs(cur_pagex - x) > 3 || abs(cur_pagey - y) > 3))
 			{
 				unload_map_page(w, x, y);
 			}

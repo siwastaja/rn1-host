@@ -1439,7 +1439,7 @@ void* main_thread()
 				}
 
 				page_coords(p_lid->robot_pos.x, p_lid->robot_pos.y, &idx_x, &idx_y, &offs_x, &offs_y);
-				load_9pages(&world, idx_x, idx_y);
+				load_25pages(&world, idx_x, idx_y);
 
 				if(mapping_on)
 				{
@@ -1485,7 +1485,7 @@ void* main_thread()
 						}
 						else
 						{
-							printf("INFO: Got significant(%d) lidar scan, adding to the mapping queue(%d).\n", p_lid->significant_for_mapping, n_lidars_to_map);
+							//printf("INFO: Got significant(%d) lidar scan, adding to the mapping queue(%d).\n", p_lid->significant_for_mapping, n_lidars_to_map);
 							lidars_to_map[n_lidars_to_map] = p_lid;
 
 							n_lidars_to_map++;

@@ -1518,8 +1518,8 @@ void* main_thread()
 								}
 								else
 								{
-									lidars_to_map[0] = lidars_to_map[n_lidars_to_map-1];
-									lidars_to_map[1] = lidars_to_map[n_lidars_to_map];
+									lidars_to_map[0] = lidars_to_map[n_lidars_to_map-2];
+									lidars_to_map[1] = lidars_to_map[n_lidars_to_map-1];
 									n_lidars_to_map = 2;
 								}
 

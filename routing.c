@@ -15,8 +15,8 @@
 #endif
 
 #ifdef PULU1
-float main_robot_xs = 340.0+50.0;
-float main_robot_ys = 320.0+50.0;
+float main_robot_xs = 300.0;
+float main_robot_ys = 330.0;
 float main_robot_middle_to_lidar = -90.0;
 #else
 float main_robot_xs = 524.0;
@@ -744,25 +744,31 @@ static void draw_robot_shape(int a_idx, float ang)
 	float middle_yoffs = -0.0;
 	middle_xoffs = main_robot_middle_to_lidar;
 
+	#ifdef PULU1
+	const float extra_x = 40.0, extra_y = 40.0;
+	#else
+	const float extra_x = 0.0, extra_y = 0.0;
+	#endif
+
 	if(tight_shapes == 2)
 	{
-		robot_xs = (main_robot_xs - 100.0);
-		robot_ys = (main_robot_ys - 100.0);
+		robot_xs = (main_robot_xs - 100.0 + extra_x);
+		robot_ys = (main_robot_ys - 100.0 + extra_y);
 	}
 	else if(tight_shapes == 1)
 	{
-		robot_xs = (main_robot_xs - 40.0);
-		robot_ys = (main_robot_ys - 40.0);
+		robot_xs = (main_robot_xs - 40.0 + extra_x);
+		robot_ys = (main_robot_ys - 40.0 + extra_y);
 	}
 	else if(tight_shapes == 0)
 	{
-		robot_xs = (main_robot_xs + 140.0);
-		robot_ys = (main_robot_ys + 200.0);
+		robot_xs = (main_robot_xs + 140.0 + extra_x);
+		robot_ys = (main_robot_ys + 200.0 + extra_y);
 	}
 	else // wide
 	{
-		robot_xs = (main_robot_xs + 420.0);
-		robot_ys = (main_robot_ys + 420.0);
+		robot_xs = (main_robot_xs + 420.0 + extra_x);
+		robot_ys = (main_robot_ys + 420.0 + extra_y);
 	}
 
 	robot_shape_x_len = robot_xs;

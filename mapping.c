@@ -1427,10 +1427,19 @@ extern float main_robot_ys;
 #define STOP_REASON_OBSTACLE_BACK_RIGHT 6
 
 
+#ifdef PULU1
+#define ORIGIN_TO_ROBOT_FRONT 70
+#define ASSUMED_ITEM_POS_FROM_MIDDLE_START 40
+#define ASSUMED_ITEM_STEP_SIZE (MAP_UNIT_W)
+#define ASSUMED_ITEM_NUM_STEPS 4
+#define ARSE_OBSTACLE_BACK_LOCATION 170
+#else
 #define ORIGIN_TO_ROBOT_FRONT 130
 #define ASSUMED_ITEM_POS_FROM_MIDDLE_START 100
 #define ASSUMED_ITEM_STEP_SIZE (MAP_UNIT_W)
 #define ASSUMED_ITEM_NUM_STEPS 5
+#define ARSE_OBSTACLE_BACK_LOCATION 300
+#endif
 
 const int robot_outline[32] =
 {
@@ -1503,8 +1512,8 @@ void map_collision_obstacle(world_t* w, int32_t now_ang, int now_x, int now_y, i
 	else if(stop_reason == STOP_REASON_OBSTACLE_BACK_LEFT || stop_reason == STOP_REASON_OBSTACLE_BACK_RIGHT)
 	{
 		printf("Mapping BACK (ARSE) obstacle due to wheel slip.\n");
-		float x = (float)now_x + cos(ANG32TORAD(now_ang))*(float)-300.0;
-		float y = (float)now_y + sin(ANG32TORAD(now_ang))*(float)-300.0;
+		float x = (float)now_x + cos(ANG32TORAD(now_ang))*(float)-(float)ARSE_OBSTACLE_BACK_LOCATION;
+		float y = (float)now_y + sin(ANG32TORAD(now_ang))*(float)-(float)ARSE_OBSTACLE_BACK_LOCATION;
 
 		// Shift the result to the right or left:
 		int32_t angle = now_ang + (uint32_t)( ((stop_reason==STOP_REASON_OBSTACLE_BACK_RIGHT)?90:-90) *ANG_1_DEG);

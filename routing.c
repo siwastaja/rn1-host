@@ -225,8 +225,10 @@ static int line_of_sight(route_xy_t p1, route_xy_t p2)
 
 	float len = sqrt(sq(dx) + sq(dy));
 
-	float pos = 0.0;
 	int terminate = 0;
+
+	float pos = step/2.0;
+	if(pos > len) {pos = len; terminate = 1;}
 
 	float ang = atan2(dy, dx);
 	if(ang < 0.0) ang += 2.0*M_PI;
@@ -270,8 +272,10 @@ static int line_of_sight_hitcnt(route_xy_t p1, route_xy_t p2)
 
 	float len = sqrt(sq(dx) + sq(dy));
 
-	float pos = 0.0;
 	int terminate = 0;
+
+	float pos = step/2.0;
+	if(pos > len) {pos = len; terminate = 1;}
 
 	float ang = atan2(dy, dx);
 	if(ang < 0.0) ang += 2.0*M_PI;

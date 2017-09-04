@@ -83,5 +83,17 @@ extern xymove_t cur_xymove;
 #define MAP_SEMISIGNIFICANT_IMGS 2
 extern int map_significance_mode;
 
+typedef enum 
+{
+	INFO_STATE_UNDEF = -1,
+	INFO_STATE_IDLE = 0,
+	INFO_STATE_THINK = 1,
+	INFO_STATE_FWD = 2,
+	INFO_STATE_REV = 3,
+	INFO_STATE_LEFT = 4,
+	INFO_STATE_RIGHT = 5,
+	INFO_STATE_CHARGING = 6,
+	INFO_STATE_DAIJUING = 7
+} info_state_t;
 
 #endif

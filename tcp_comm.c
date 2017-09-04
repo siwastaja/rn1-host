@@ -56,6 +56,7 @@ int init_tcp_comm()
 	return 0;
 }
 
+extern void tcp_send_robot_info();
 // Call this when you have data (connection request) in tcp_listener_sock input buffer, for example, after using select()
 int handle_tcp_listener()
 {
@@ -77,6 +78,9 @@ int handle_tcp_listener()
 	tcp_client_sock = new_fd;
 	printf("INFO: connection accepted, client %08x, port %u.\n", clientname.sin_addr.s_addr,
 	        ntohs(clientname.sin_port));
+
+	tcp_send_robot_info();
+
 	return 0;
 }
 

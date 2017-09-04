@@ -20,6 +20,9 @@
 #include "tcp_comm.h"   // to send dbgpoint.
 #include "tcp_parser.h" // to send dbgpoint.
 
+extern void send_info(info_state_t state);
+
+
 static const int search_order[25][2] = { 
 	{ 0, 0},
 	{ 0, 1},
@@ -1005,6 +1008,12 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		return -1;
 	}
 
+
+	if(search_area_size > 0)
+	{
+		send_info(INFO_STATE_THINK);
+	}
+
 	time = subsec_timestamp();
 	prefilter_lidar_list(n_lidars, lidar_list);
 	double prefilter_time = subsec_timestamp() - time;
@@ -1894,6 +1903,7 @@ void stop_automapping()
 {
 	map_significance_mode = MAP_SIGNIFICANT_IMGS;
 	cur_autostate = S_IDLE;
+	send_info(INFO_STATE_IDLE);
 }
 
 int automap_only_compass;
@@ -1940,6 +1950,8 @@ void autofsm()
 		} break;
 
 		case S_COMPASS: {
+			send_info(INFO_STATE_THINK);
+
 			printf("INFO: Started compass round\n");
 			do_compass_round();
 			cur_autostate++;
@@ -1983,6 +1995,8 @@ void autofsm()
 		} break;
 
 		case S_GEN_DESIRED_DIR: {
+			send_info(INFO_STATE_THINK);
+
 			daiju_mode(0);
 
 			int unfam_score = find_unfamiliar_direction_randomly(&world, &desired_x, &desired_y);
@@ -2015,6 +2029,8 @@ void autofsm()
 		} break;
 
 		case S_FIND_DIR: {
+			send_info(INFO_STATE_THINK);
+
 			map_significance_mode = MAP_SIGNIFICANT_IMGS | MAP_SEMISIGNIFICANT_IMGS;
 			mapping_on = 1;
 
@@ -2031,6 +2047,7 @@ void autofsm()
 			{
 				num_stops = 0;
 				printf("INFO: Too many stops without success, daijuing for a while.\n");
+				send_info(INFO_STATE_DAIJUING);
 				daiju_mode(1);
 				cur_autostate = S_DAIJUING;
 				daijuing_timestamp = subsec_timestamp();
@@ -2049,12 +2066,15 @@ void autofsm()
 					}
 					set_hw_obstacle_avoidance_margin((ret&2)?0:120);
 
+					send_info(need_to_back?INFO_STATE_REV:INFO_STATE_FWD);
+
 					move_to(cur_x+dx, cur_y+dy, need_to_back, movement_id, 30, 0);
 					cur_autostate++;
 				}
 				else
 				{
 					printf("INFO: Automapping: can't go anywhere; daijuing for a while.\n");
+					send_info(INFO_STATE_DAIJUING);
 					daiju_mode(1);
 					cur_autostate = S_DAIJUING;
 					daijuing_timestamp = subsec_timestamp();
@@ -2116,6 +2136,7 @@ void autofsm()
 			if(ret == 1)
 			{
 				printf("INFO: Automapping: run_search() fails in the start due to close obstacles (nonroutable), daijuing for a while.\n");
+				send_info(INFO_STATE_DAIJUING);
 				daiju_mode(1);
 				cur_autostate = S_DAIJUING;
 				daijuing_timestamp = subsec_timestamp();				

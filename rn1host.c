@@ -87,9 +87,16 @@ int good_time_for_lidar_mapping = 0;
 #define NUM_LATEST_LIDARS_FOR_ROUTING_START 7
 lidar_scan_t* lidars_to_map_at_routing_start[NUM_LATEST_LIDARS_FOR_ROUTING_START];
 
+void send_info(info_state_t state)
+{
+	if(tcp_client_sock >= 0) tcp_send_info_state(state);
+}
+
 int32_t prev_search_dest_x, prev_search_dest_y;
 int run_search(int32_t dest_x, int32_t dest_y, int dont_map_lidars)
 {
+	send_info(INFO_STATE_THINK);
+
 	prev_search_dest_x = dest_x;
 	prev_search_dest_y = dest_y;
 
@@ -155,6 +162,7 @@ int run_search(int32_t dest_x, int32_t dest_y, int dont_map_lidars)
 	{
 		do_follow_route = 0;
 		route_finished_or_notfound = 1;
+		send_info(INFO_STATE_IDLE);
 	}
 
 	lookaround_creep_reroute = 0;
@@ -270,6 +278,7 @@ void do_live_obstacle_checking()
 					// Do the steer
 					id_cnt = 0; // id0 is reserved for special maneuvers during route following.
 					move_to(best_new_x, best_new_y, 0, (id_cnt<<4) | ((route_pos)&0b1111), 12, 0);
+					send_info((side_drifts[best_drift_idx] > 0)?INFO_STATE_RIGHT:INFO_STATE_LEFT);
 					maneuver_cnt++;
 				}
 			}
@@ -310,6 +319,7 @@ void route_fsm()
 			lookaround_creep_reroute = 0;
 			do_follow_route = 1;
 			id_cnt++; if(id_cnt > 7) id_cnt = 1;
+			send_info(the_route[route_pos].backmode?INFO_STATE_REV:INFO_STATE_FWD);
 			move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), cur_speedlim, 0);
 		}
 	}
@@ -448,6 +458,7 @@ void route_fsm()
 				if(rerun_search() == 1)
 				{
 					printf("INFO: Routing failed in start, going to daiju mode for a while.\n");
+					send_info(INFO_STATE_DAIJUING);
 					daiju_mode(1);
 					lookaround_creep_reroute = 8;
 				}
@@ -497,6 +508,7 @@ void route_fsm()
 				{
 					printf("INFO: Routing failed in start, going to daiju mode for a while.\n");
 					daiju_mode(1);
+					send_info(INFO_STATE_DAIJUING);
 					lookaround_creep_reroute++;
 				}
 				else
@@ -520,6 +532,7 @@ void route_fsm()
 			{
 				printf("INFO: Routing failed in start, going to daiju mode for a bit more...\n");
 				daiju_mode(1);
+					send_info(INFO_STATE_DAIJUING);
 				lookaround_creep_reroute++;
 				timestamp = subsec_timestamp();
 			}
@@ -541,6 +554,8 @@ void route_fsm()
 	{
 		printf("Start going id=%d!\n", id_cnt<<4);
 		move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4), cur_speedlim, 0);
+		send_info(the_route[route_pos].backmode?INFO_STATE_REV:INFO_STATE_FWD);
+
 		start_route = 0;
 	}
 
@@ -591,6 +606,8 @@ void route_fsm()
 					id_cnt = 1;
 					printf("INFO: Maneuver done, redo the waypoint, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
 					move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), cur_speedlim, 0);
+					send_info(the_route[route_pos].backmode?INFO_STATE_REV:INFO_STATE_FWD);
+
 				}
 			}
 			else
@@ -623,11 +640,13 @@ void route_fsm()
 						}
 						printf("INFO: Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
 						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), cur_speedlim, 0);
+						send_info(the_route[route_pos].backmode?INFO_STATE_REV:INFO_STATE_FWD);
 						micronavi_stops = 0;
 					}
 					else
 					{
 						printf("INFO: Done following the route.\n");
+						send_info(INFO_STATE_IDLE);
 						micronavi_stops = 0;
 						do_follow_route = 0;
 						route_finished_or_notfound = 1;
@@ -915,6 +934,8 @@ void* main_thread()
 				find_charger_state = 0;
 				lookaround_creep_reroute = 0;
 				do_follow_route = 0;
+				send_info(INFO_STATE_IDLE);
+
 			}
 			else if(ret == TCP_CR_ROUTE_MID)
 			{
@@ -928,6 +949,7 @@ void* main_thread()
 				{
 					printf("INFO: Routing fails in the start, daijuing for a while to get a better position.\n");
 					daiju_mode(1);
+					send_info(INFO_STATE_DAIJUING);
 					printf("INFO: (Please retry after some time.)\n");
 				}
 
@@ -958,6 +980,7 @@ void* main_thread()
 						find_charger_state = 0;
 						lookaround_creep_reroute = 0;
 						do_follow_route = 0;
+						send_info(INFO_STATE_IDLE);
 						mapping_on = 1;
 
 					} break;
@@ -987,6 +1010,7 @@ void* main_thread()
 						lookaround_creep_reroute = 0;
 						do_follow_route = 0;
 						motors_on = 1;
+						send_info(INFO_STATE_DAIJUING);
 						daiju_mode(1);
 						mapping_on = 0;
 					} break;
@@ -997,6 +1021,7 @@ void* main_thread()
 						find_charger_state = 0;
 						lookaround_creep_reroute = 0;
 						do_follow_route = 0;
+						send_info(INFO_STATE_IDLE);
 						motors_on = 0;
 						mapping_on = 1;
 					} break;
@@ -1006,6 +1031,7 @@ void* main_thread()
 						stop_automapping();
 						find_charger_state = 0;
 						lookaround_creep_reroute = 0;
+						send_info(INFO_STATE_IDLE);
 						do_follow_route = 0;
 						motors_on = 0;
 						mapping_on = 0;
@@ -1023,6 +1049,7 @@ void* main_thread()
 						lookaround_creep_reroute = 0;
 						do_follow_route = 0;
 						stop_movement();
+						send_info(INFO_STATE_IDLE);
 					} break;
 
 					case 9:
@@ -1252,6 +1279,7 @@ void* main_thread()
 			}
 			else
 			{
+				send_info(INFO_STATE_CHARGING);
 				find_charger_state = 0;
 				printf("INFO: Robot charging succesfully.\n");
 			}

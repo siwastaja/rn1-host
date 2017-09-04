@@ -94,6 +94,8 @@ extern tcp_rc_pos_t    msg_rc_pos;
 #define TCP_RC_SYNCREQ_MID   136
 #define TCP_RC_DBGPOINT_MID  137
 #define TCP_RC_HMAP_MID      138
+#define TCP_RC_INFOSTATE_MID 139
+#define TCP_RC_ROBOTINFO_MID 140
 
 int tcp_parser(int sock);
 
@@ -107,5 +109,8 @@ void tcp_send_route(route_unit_t **route);
 void tcp_send_sync_request();
 void tcp_send_dbgpoint(int x, int y, uint8_t r, uint8_t g, uint8_t b, int persistence);
 void tcp_send_hmap(int xsamps, int ysamps, int32_t ang, int xorig_mm, int yorig_mm, int unit_size_mm, int8_t *hmap);
+void tcp_send_info_state(info_state_t state);
+void tcp_send_robot_info();
+
 
 #endif

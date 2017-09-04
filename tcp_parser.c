@@ -76,6 +76,48 @@ tcp_rc_pos_t    msg_rc_pos;
 #define I32TOBUF(i_, b_, s_) {b_[(s_)] = ((i_)>>24)&0xff; b_[(s_)+1] = ((i_)>>16)&0xff; b_[(s_)+2] = ((i_)>>8)&0xff; b_[(s_)+3] = ((i_)>>0)&0xff; }
 #define I16TOBUF(i_, b_, s_) {b_[(s_)] = ((i_)>>8)&0xff; b_[(s_)+1] = ((i_)>>0)&0xff; }
 
+void tcp_send_robot_info()
+{
+	const int size = 3+8;
+	uint8_t buf[size];
+	buf[0] = TCP_RC_ROBOTINFO_MID;
+	buf[1] = ((size-3)>>8)&0xff;
+	buf[2] = (size-3)&0xff;
+
+	extern float main_robot_xs;
+	extern float main_robot_ys;
+	extern float main_robot_middle_to_lidar;
+	int16_t rx = main_robot_xs;
+	int16_t ry = main_robot_ys;
+	int16_t lid_xoffs = -1.0*main_robot_middle_to_lidar;
+	int16_t lid_yoffs = 0;
+
+	I16TOBUF(rx, buf, 3);
+	I16TOBUF(ry, buf, 5);
+	I16TOBUF(lid_xoffs, buf, 7);
+	I16TOBUF(lid_yoffs, buf, 9);
+
+	tcp_send(buf, size);
+}
+
+
+void tcp_send_info_state(info_state_t state)
+{
+	static info_state_t prev = INFO_STATE_UNDEF;
+
+	if(state != prev)
+	{
+		prev = state;
+		const int size = 3+1;
+		uint8_t buf[size];
+		buf[0] = TCP_RC_INFOSTATE_MID;
+		buf[1] = ((size-3)>>8)&0xff;
+		buf[2] = (size-3)&0xff;
+		buf[3] = (int8_t)state;
+		tcp_send(buf, size);
+	}
+}
+
 void tcp_send_lidar(lidar_scan_t* p_lid)
 {
 	const int size = 13+180*2;

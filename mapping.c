@@ -1262,7 +1262,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 
 					case TOF3D_WALL         : walls[tm_y*MAP_PAGE_W+tm_x]++; break;
 
-					case TOF3D_SEEN         : seens[tm_y*MAP_PAGE_W+tm_x]++; break;
+					case TOF3D_SEEN         : if(ix > 4) seens[tm_y*MAP_PAGE_W+tm_x]++; break; // don't remove obstacles right next to the robot
 					default: break;
 				}
 			}

@@ -10,11 +10,17 @@
 #define TOF3D_DROP          -2    // Significant hole or drop.
 #define TOF3D_UNSEEN         0
 
-
 #define TOF3D_HMAP_SPOT_SIZE 40
-#define TOF3D_HMAP_YSPOTS 36
-#define TOF3D_HMAP_YMIDDLE 18
-#define TOF3D_HMAP_XSPOTS 30
+
+#ifdef PULU1
+	#define TOF3D_HMAP_YSPOTS 24
+	#define TOF3D_HMAP_YMIDDLE 12
+	#define TOF3D_HMAP_XSPOTS 20
+#else
+	#define TOF3D_HMAP_YSPOTS 36
+	#define TOF3D_HMAP_YMIDDLE 18
+	#define TOF3D_HMAP_XSPOTS 30
+#endif
 
 #define TOF3D_RING_BUF_LEN 32
 

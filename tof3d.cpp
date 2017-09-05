@@ -229,7 +229,11 @@ void Softkinetic_tof::onNodeAdded(Device device, Node node)
 			bool doSetConfiguration = false;
 			for (unsigned int i = 0; i < configurations.size(); i++)
 			{
+				#ifdef PULU1
+				if(configurations[i].framerate == 25 && strcmp(DepthNode::CameraMode_toString(configurations[i].mode).c_str(), "CloseMode") == 0)
+				#else
 				if(configurations[i].framerate == (_mode30?30:6) && strcmp(DepthNode::CameraMode_toString(configurations[i].mode).c_str(), "LongRange") == 0)
+				#endif
 				{
 					printf("  TOF3D MODULE INFO:  Found requested config\n");
 					configuration = configurations[i];
@@ -374,6 +378,15 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 		return;
 	}
 
+	#ifdef PULU1
+	//Drop every other frame: 25 FPS -> 12.5 FPS
+	static int drop_cnt = 0;
+	drop_cnt++;
+	if(drop_cnt&1) return;
+	#else
+
+	#endif
+
 	extern int32_t cur_pos_invalid_for_3dtof;
 	int32_t is_invalid;
 	pthread_mutex_lock(&cur_pos_mutex);
@@ -428,7 +441,12 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 		{hmap_accum[xx][yy] = 0; hmap_nsamples[xx][yy] = 0; hmap_avgd[xx][yy] = 0;} }
 
 	const float ang_per_pixel = (72.44/*deg horizontal fov*/ /320.0)/360.0*2.0*M_PI;
-	const float top_cam_ang = (32.0)/360.0*2.0*M_PI;
+	const float top_cam_ang = 
+		#ifdef PULU1
+		(39.0)/360.0*2.0*M_PI;
+		#else
+		(32.0)/360.0*2.0*M_PI;
+		#endif
 
 	int ignored = 0;
 	int confi_ignored = 0;
@@ -471,7 +489,11 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 //extern float cal_x_sin_mult; //= 1.125;
 //extern float cal_y_sin_mult; //= 1.125;
 
-			if(d < 0 || d > 1800) continue;
+			#ifdef PULU1
+				if(d < 0 || d > 1000) continue;
+			#else
+				if(d < 0 || d > 1800) continue;
+			#endif
 
 //			float x = ((d+cal_x_d_offset) * (1.0/cos(pyang)) * sin(pyang+top_cam_ang))*cal_x_sin_mult + cal_x_offset;
 //			float y = ((d+cal_y_d_offset) * (1.0/cos(pxang)) * sin(pxang))*cal_y_sin_mult + cal_y_offset;
@@ -479,7 +501,13 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 			float x = ((d) * (1.0/cos(pyang)) * sin(pyang+top_cam_ang))*1.15;
 			float y = ((d) * (1.0/cos(pxang)) * sin(pxang))*1.15;
-			float z = -1.0 * d * (1.0/cos(pyang)) * (1.0/cos(pxang)) * cos(pyang+top_cam_ang) + 900.0;
+			float z = -1.0 * d * (1.0/cos(pyang)) * (1.0/cos(pxang)) * cos(pyang+top_cam_ang) + 
+				#ifdef PULU1
+					220.0;
+				#else
+					900.0;
+				#endif
+
 
 			int xspot = (int)(x / (float)TOF3D_HMAP_SPOT_SIZE);
 			int yspot = (int)(y / (float)TOF3D_HMAP_SPOT_SIZE) + TOF3D_HMAP_YMIDDLE;

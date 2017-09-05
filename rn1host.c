@@ -262,14 +262,14 @@ void do_live_obstacle_checking()
 				{
 					cur_speedlim = 15;
 					limit_speed(cur_speedlim);
-					printf("!!!!!!!!!!   INFO: Steering is almost needed (not performed) to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n",
-						hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
+//					printf("!!!!!!!!!!   INFO: Steering is almost needed (not performed) to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n",
+//						hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
 //					if(tcp_client_sock > 0) tcp_send_dbgpoint(cur_x, cur_y, 210, 210,   110, 1);
 //					if(tcp_client_sock > 0) tcp_send_dbgpoint(best_new_x, best_new_y,   0, 255,   110, 1);
 				}
 				else
 				{
-					printf("!!!!!!!!!!   INFO: Steering is needed to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n", 
+					printf("INFO: Steering is needed, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n", 
 						hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
 					if(tcp_client_sock > 0) tcp_send_dbgpoint(cur_x, cur_y, 200, 200,   0, 1);
 					if(tcp_client_sock > 0) tcp_send_dbgpoint(best_new_x, best_new_y,   0, 40,   0, 1);
@@ -284,16 +284,16 @@ void do_live_obstacle_checking()
 			}
 			else
 			{
-				printf("!!!!!!!!  INFO: Steering cannot help in improving line-of-sight.\n");
+//				printf("!!!!!!!!  INFO: Steering cannot help in improving line-of-sight.\n");
 				if(hitcnt < 3)
 				{
-					printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has 1..2 obstacles, slowing down.\n");
+//					printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has 1..2 obstacles, slowing down.\n");
 					cur_speedlim = 15;
 					limit_speed(cur_speedlim);
 				}
 				else
 				{
-					printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has disappeared! Trying to solve.\n");
+					printf("INFO: Direct line-of-sight to the next point has disappeared! Trying to solve.\n");
 					cur_speedlim = 15;
 					limit_speed(cur_speedlim);
 					stop_movement();
@@ -355,12 +355,12 @@ void route_fsm()
 
 				if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
 				{
-					printf("INFO: Can turn to %.1f deg, doing it.\n", -1*lookaround_turn);
+					//printf("INFO: Can turn to %.1f deg, doing it.\n", -1*lookaround_turn);
 					turn_and_go_abs_rel(RADTOANG32(ang), 0, 13, 1);
 				}
 				else
 				{
-					printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n", -1*lookaround_turn);
+					//printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n", -1*lookaround_turn);
 					turn_and_go_abs_rel(cur_ang-4*ANG_1_DEG, 0, 13, 1);
 				}
 				timestamp = subsec_timestamp();
@@ -379,12 +379,12 @@ void route_fsm()
 
 			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
 			{
-				printf("INFO: Can turn to %.1f deg, doing it.\n", -1.8*lookaround_turn);
+				//printf("INFO: Can turn to %.1f deg, doing it.\n", -1.8*lookaround_turn);
 				turn_and_go_abs_rel(RADTOANG32(ang), -20, 13, 1);
 			}
 			else
 			{
-				printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n", -1.8*lookaround_turn);
+				//printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n", -1.8*lookaround_turn);
 				turn_and_go_abs_rel(cur_ang-4*ANG_1_DEG, 0, 13, 1);
 			}
 			timestamp = subsec_timestamp();
@@ -402,12 +402,12 @@ void route_fsm()
 
 			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
 			{
-				printf("INFO: Can turn to %.1f deg, doing it.\n",lookaround_turn);
+				//printf("INFO: Can turn to %.1f deg, doing it.\n",lookaround_turn);
 				turn_and_go_abs_rel(RADTOANG32(ang), 0, 13, 1);
 			}
 			else
 			{
-				printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n",lookaround_turn);
+				//printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n",lookaround_turn);
 				turn_and_go_abs_rel(cur_ang+12*ANG_1_DEG, 0, 13, 1);
 			}
 			timestamp = subsec_timestamp();
@@ -425,12 +425,12 @@ void route_fsm()
 
 			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
 			{
-				printf("INFO: Can turn to %.1f deg, doing it.\n", 1.8*lookaround_turn);
+				//printf("INFO: Can turn to %.1f deg, doing it.\n", 1.8*lookaround_turn);
 				turn_and_go_abs_rel(RADTOANG32(ang), 0, 13, 1);
 			}
 			else
 			{
-				printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n", 1.8*lookaround_turn);
+				//printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n", 1.8*lookaround_turn);
 				turn_and_go_abs_rel(cur_ang+4*ANG_1_DEG, 0, 13, 1);
 			}
 			timestamp = subsec_timestamp();
@@ -449,7 +449,7 @@ void route_fsm()
 
 			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
 			{
-				printf("INFO: Can turn towards the dest, doing it.\n");
+				//printf("INFO: Can turn towards the dest, doing it.\n");
 				turn_and_go_abs_rel(RADTOANG32(ang), 50, 13, 1);
 			}
 			else
@@ -490,7 +490,7 @@ void route_fsm()
 				int hitcnt = check_direct_route_non_turning_hitcnt_mm(cur_x, cur_y, dest_x, dest_y);
 				if(hitcnt < 1)
 				{
-					printf("INFO: Can creep %d mm towards the next waypoint, doing it\n", creep_amount);
+					//printf("INFO: Can creep %d mm towards the next waypoint, doing it\n", creep_amount);
 					time_interval = 2.5;
 					turn_and_go_abs_rel(RADTOANG32(ang) + ((creep_cnt&1)?(5*ANG_1_DEG):(-5*ANG_1_DEG)), creep_amount, 15, 1);
 				}
@@ -567,7 +567,7 @@ void route_fsm()
 		{
 			if(cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags)
 			{
-				if(micronavi_stops < 10)
+				if(micronavi_stops < 7)
 				{
 					printf("INFO: Micronavi STOP, entering lookaround_creep_reroute\n");
 					micronavi_stops++;
@@ -594,7 +594,7 @@ void route_fsm()
 					{
 						if(check_direct_route_mm(cur_ang, cur_x, cur_y, the_route[route_pos+1].x, the_route[route_pos+1].y))
 						{
-							printf("!!!!!!!!!!!  INFO: Maneuver done; but skipping point (%d, %d), going directly to (%d, %d)\n", the_route[route_pos].x,
+							printf("INFO: Maneuver done; skipping point (%d, %d), going directly to (%d, %d)\n", the_route[route_pos].x,
 							       the_route[route_pos].y, the_route[route_pos+1].x, the_route[route_pos+1].y);
 							route_pos++;
 						}
@@ -629,7 +629,7 @@ void route_fsm()
 						{
 							if(check_direct_route_mm(cur_ang, cur_x, cur_y, the_route[route_pos+1].x, the_route[route_pos+1].y))
 							{
-								printf("!!!!!!!!!!!  INFO: skipping point (%d, %d), going directly to (%d, %d)\n", the_route[route_pos].x,
+								printf("INFO: skipping point (%d, %d), going directly to (%d, %d)\n", the_route[route_pos].x,
 								       the_route[route_pos].y, the_route[route_pos+1].x, the_route[route_pos+1].y);
 								route_pos++;
 							}
@@ -1111,7 +1111,7 @@ void* main_thread()
 			if(!micronavi_stop_flags_printed)
 			{
 				micronavi_stop_flags_printed = 1;
-				printf("INFO: MCU-level micronavigation reported a stop. Stop reason flags:\n");
+				printf("INFO: MCU-level micronavigation: STOP. Reason flags:\n");
 				for(int i=0; i<32; i++)
 				{
 					if(cur_xymove.micronavi_stop_flags&(1UL<<i))
@@ -1120,7 +1120,7 @@ void* main_thread()
 					}
 				}
 
-				printf("Actions taken during stop condition:\n");
+				printf("Actions being taken:\n");
 				for(int i=0; i<32; i++)
 				{
 					if(cur_xymove.micronavi_action_flags&(1UL<<i))
@@ -1195,6 +1195,7 @@ void* main_thread()
 				}
 				else
 				{
+					send_info(INFO_STATE_THINK);
 					printf("INFO: At first charger point, turning for charger.\n");
 					turn_and_go_abs_rel(charger_ang, 0, 23, 1);
 					find_charger_state++;
@@ -1208,6 +1209,8 @@ void* main_thread()
 			double stamp;
 			if( (stamp=subsec_timestamp()) > chafind_timestamp+2.5)
 			{
+				send_info(INFO_STATE_THINK);
+
 				chafind_timestamp = stamp;
 
 				printf("INFO: Turned at first charger point, mapping lidars for exact pos.\n");
@@ -1225,6 +1228,7 @@ void* main_thread()
 			if(lidar_ignore_over && subsec_timestamp() > chafind_timestamp+3.0)
 			{
 				printf("INFO: Going to second charger point.\n");
+				send_info(INFO_STATE_FWD);
 				move_to(charger_second_x, charger_second_y, 0, 0x7f, 20, 1);
 				find_charger_state++;
 			}
@@ -1240,6 +1244,8 @@ void* main_thread()
 				}
 				else
 				{
+					send_info(INFO_STATE_THINK);
+
 					turn_and_go_abs_rel(charger_ang, charger_fwd, 20, 1);
 					chafind_timestamp = subsec_timestamp();
 					find_charger_state++;
@@ -1251,6 +1257,7 @@ void* main_thread()
 			double stamp;
 			if( (stamp=subsec_timestamp()) > chafind_timestamp+3.0)
 			{
+				send_info(INFO_STATE_THINK);
 				chafind_timestamp = stamp;
 				turn_and_go_abs_rel(charger_ang, 0, 23, 1);
 				find_charger_state++;
@@ -1262,6 +1269,7 @@ void* main_thread()
 			if( (stamp=subsec_timestamp()) > chafind_timestamp+1.5)
 			{
 				chafind_timestamp = stamp;
+				send_info(INFO_STATE_THINK);
 				printf("INFO: Requesting charger mount.\n");
 				hw_find_charger();
 				find_charger_state++;
@@ -1271,9 +1279,9 @@ void* main_thread()
 		{
 			if(!pwr_status.charging && !pwr_status.charged)
 			{
-				if(subsec_timestamp() > chafind_timestamp+30.0)
+				if(subsec_timestamp() > chafind_timestamp+25.0)
 				{
-					printf("WARNING: Not charging (charger mount failure?). Retrying driving to charger once.\n");
+					printf("WARNING: Not charging (charger mount failure?). Retrying driving to charger.\n");
 					find_charger_state = 1;
 				}
 			}
@@ -1384,12 +1392,16 @@ void* main_thread()
 				}
 
 				static int n_tofs_to_map = 0;
-				static tof3d_scan_t* tofs_to_map[20];
+				static tof3d_scan_t* tofs_to_map[25];
 
 				tofs_to_map[n_tofs_to_map] = p_tof;
 				n_tofs_to_map++;
 
+				#ifdef PULU1
+				if(n_tofs_to_map >= (robot_moving?3:24))
+				#else
 				if(n_tofs_to_map >= (robot_moving?3:12))
+				#endif
 				{
 					int32_t mid_x, mid_y;
 					map_3dtof(&world, n_tofs_to_map, tofs_to_map, &mid_x, &mid_y);

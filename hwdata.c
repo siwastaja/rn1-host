@@ -346,7 +346,7 @@ void move_to(int32_t x, int32_t y, int8_t backmode, int id, int speedlimit, int 
 		id = 0;
 	}
 
-	printf("INFO: Move to (%d, %d), backmode=%d, id=%d\n", x,y,backmode,id);
+	printf("INFO: Move(%d,%d),back=%d,id=%d\n", x,y,backmode,id);
 
 	buf[0] = 0x82;
 	buf[1] = I32_I7_4(x);

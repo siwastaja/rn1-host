@@ -941,7 +941,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 	{
 		cnt++;
 
-		if(cnt > 70000)
+		if(cnt > 50000)
 		{
 			printf("Giving up at cnt = %d\n", cnt);
 			return 3;
@@ -968,7 +968,7 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 		if(p_cur->loc.x == e_x && p_cur->loc.y == e_y)
 		{
 
-			printf("Solution found, cnt = %d\n", cnt);
+			//printf("Solution found, cnt = %d\n", cnt);
 
 			// solution found.
 
@@ -1259,7 +1259,7 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 					int ret = search(route, new_ang, new_x, new_y, end_x_mm, end_y_mm);
 					if(ret == 0)
 					{
-						printf("Search succeeded (back off ang=%.1fdeg, mm = %d), stopping back-off search.\n", TODEG(new_ang), b_s[back_idx]);
+						//printf("Search succeeded (back off ang=%.1fdeg, mm = %d), stopping back-off search.\n", TODEG(new_ang), b_s[back_idx]);
 
 						route_unit_t* point = malloc(sizeof(route_unit_t));
 						point->loc.x = new_x_units; point->loc.y = new_y_units;
@@ -1270,7 +1270,7 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 					}
 					else if(ret > 1)
 					{
-						printf("Search failed later than in the beginning, stopping back-off search.\n");
+						//printf("Search failed later than in the beginning, stopping back-off search.\n");
 						return 2;
 					}
 				}
@@ -1382,7 +1382,7 @@ int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_
 {
 	routing_world = w;
 
-	printf("Searching for route...\n");
+	//printf("Searching for route...\n");
 
 //	printf("Generating routing pages... "); fflush(stdout);
 	gen_all_routing_pages(w, 0);
@@ -1408,9 +1408,9 @@ int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_
 		printf("Found route with normal limits\n");
 
 
-	// extra_tight_search_mode is put into action so that collision avoidance / step skipping/rounding can use it.
+	// tight_search_mode is put into action so that collision avoidance / step skipping/rounding can use it.
 	// TODO: fix this state horror. 
-	extra_tight_search_mode();
+	tight_search_mode();
 	return 0;
 }
 

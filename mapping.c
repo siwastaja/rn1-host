@@ -1752,7 +1752,7 @@ int cant_goto_place_wr_idx;
 
 void add_cant_goto_place(int x, int y)
 {
-	printf("INFO: Adding cant_goto_place idx=%d, abs (%d, %d) mm\n", cant_goto_place_wr_idx, x, y);
+//	printf("INFO: Adding cant_goto_place idx=%d, abs (%d, %d) mm\n", cant_goto_place_wr_idx, x, y);
 	cant_goto_places[cant_goto_place_wr_idx].enabled = 1;
 	cant_goto_places[cant_goto_place_wr_idx].x = x;
 	cant_goto_places[cant_goto_place_wr_idx].y = y;
@@ -1961,7 +1961,7 @@ void autofsm()
 		case S_COMPASS: {
 			send_info(INFO_STATE_THINK);
 
-			printf("INFO: Started compass round\n");
+//			printf("INFO: Started compass round\n");
 			do_compass_round();
 			cur_autostate++;
 		} break;
@@ -1990,7 +1990,7 @@ void autofsm()
 		case S_SYNC_TO_COMPASS: {
 			if(!compass_round_active)
 			{
-				printf("INFO: Syncing robot angle to compass, zeroing coords, turning mapping on, requesting massive search area.\n");
+//				printf("INFO: Syncing robot angle to compass, zeroing coords, turning mapping on, requesting massive search area.\n");
 				int32_t ang = cur_compass_ang-90*ANG_1_DEG;
 				printf("DBG: cur_compass_ang=%d (%.1fdeg), ang=%d (%.1fdeg)\n", cur_compass_ang, ANG32TOFDEG(cur_compass_ang), ang, ANG32TOFDEG(ang));
 				set_robot_pos(ang,0,0);
@@ -2156,7 +2156,7 @@ void autofsm()
 			}
 			else
 			{
-				printf("INFO: Automapping: run_search() fails later than in the start: destination is unreachable. Generating a new direction.\n");
+//				printf("INFO: Automapping: run_search() fails later than in the start: destination is unreachable. Generating a new direction.\n");
 				add_cant_goto_place(desired_x, desired_y);
 				cur_autostate = S_GEN_DESIRED_DIR;
 			}
@@ -2167,7 +2167,7 @@ void autofsm()
 
 			if(route_finished_or_notfound)
 			{
-				printf("INFO: Automapping: Following route finished.\n");
+//				printf("INFO: Automapping: Following route finished.\n");
 				cur_autostate = S_GEN_DESIRED_DIR;
 			}
 

@@ -503,7 +503,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 			float y = ((d) * (1.0/cos(pxang)) * sin(pxang))*1.15;
 			float z = -1.0 * d * (1.0/cos(pyang)) * (1.0/cos(pxang)) * cos(pyang+top_cam_ang) + 
 				#ifdef PULU1
-					220.0;
+					160.0;
 				#else
 					900.0;
 				#endif

@@ -565,9 +565,9 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 			int32_t avg_accum = 0;
 			int avg_cnt = 0;
 
-			for(int sx = 0; sx < TOF3D_HMAP_XSPOTS; sx++)
+			for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
 			{
-				for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
+				for(int sx = 0; sx < TOF3D_HMAP_YSPOTS; sx++)
 				{
 					if(hmap_calib_cnt[sx][sy] < 10)
 						hmap_calib[sx][sy] = 0;
@@ -581,7 +581,10 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 						avg_cnt++;
 
 					}
+
+					printf("%4d ", hmap_calib[sx][sy]);
 				}
+				printf("\n");
 			}
 
 			int32_t avg = avg_accum / avg_cnt;

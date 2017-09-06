@@ -404,7 +404,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 		{
 			if(ignore_print_cnt == 0)
 				printf("  TOF3D MODULE WARNING: tof3d ring buffer overrun prevented by ignoring a scan.\n");
-			else if(ignore_print_cnt%10 == 0)
+			else if(ignore_print_cnt%20 == 0)
 				printf("  TOF3D MODULE WARNING: still ignoring scans\n");
 
 			ignore_print_cnt++;

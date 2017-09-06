@@ -260,7 +260,7 @@ void do_live_obstacle_checking()
 
 				if( (abs(side_drifts[best_drift_idx]) < 50) || ( abs(side_drifts[best_drift_idx]) < 100 && drift_angles[best_angle_idx] < M_PI/13.0))
 				{
-					cur_speedlim = 15;
+					cur_speedlim = 18;
 					limit_speed(cur_speedlim);
 //					printf("!!!!!!!!!!   Steering is almost needed (not performed) to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n",
 //						hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
@@ -288,13 +288,13 @@ void do_live_obstacle_checking()
 				if(hitcnt < 3)
 				{
 //					printf("!!!!!!!!!!!  Direct line-of-sight to the next point has 1..2 obstacles, slowing down.\n");
-					cur_speedlim = 15;
+					cur_speedlim = 18;
 					limit_speed(cur_speedlim);
 				}
 				else
 				{
 					printf("Direct line-of-sight to the next point has disappeared! Trying to solve.\n");
-					cur_speedlim = 15;
+					cur_speedlim = 18;
 					limit_speed(cur_speedlim);
 					stop_movement();
 					lookaround_creep_reroute = 1;
@@ -922,6 +922,7 @@ void* main_thread()
 			{
 				motors_on = 1;
 				daiju_mode(0);
+				max_speedlim=40;
 
 				printf("  ---> DEST params: X=%d Y=%d backmode=0x%02x\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
 				if(msg_cr_dest.backmode & 0b1000) // Pose
@@ -944,7 +945,7 @@ void* main_thread()
 				motors_on = 1;
 				daiju_mode(0);
 				find_charger_state = 0;
-
+				max_speedlim=50;
 				if(run_search(msg_cr_route.x, msg_cr_route.y, 0) == 1)
 				{
 					printf("Routing fails in the start, daijuing for a while to get a better position.\n");
@@ -956,6 +957,7 @@ void* main_thread()
 			}
 			else if(ret == TCP_CR_CHARGE_MID)
 			{
+				max_speedlim=50;
 				read_charger_pos();
 				find_charger_state = 1;
 			}
@@ -1313,41 +1315,41 @@ void* main_thread()
 
 				if(obstacle_levels[2] > 100)
 				{
-					if(cur_speedlim > 14)
-					{
-						cur_speedlim = 14;
-						limit_speed(cur_speedlim);
-					}
-				}
-				else if(obstacle_levels[2] > 7)
-				{
 					if(cur_speedlim > 18)
 					{
 						cur_speedlim = 18;
 						limit_speed(cur_speedlim);
 					}
 				}
+				else if(obstacle_levels[2] > 7)
+				{
+					if(cur_speedlim > 25)
+					{
+						cur_speedlim = 25;
+						limit_speed(cur_speedlim);
+					}
+				}
 				else if(obstacle_levels[1] > 70)
 				{
-					if(cur_speedlim > 22)
+					if(cur_speedlim > 30)
 					{
-						cur_speedlim = 22;
+						cur_speedlim = 30;
 						limit_speed(cur_speedlim);
 					}
 				}
 				else if(obstacle_levels[1] > 7)
 				{
-					if(cur_speedlim > 28)
+					if(cur_speedlim > 37)
 					{
-						cur_speedlim = 28;
+						cur_speedlim = 37;
 						limit_speed(cur_speedlim);
 					}
 				}
 				else if(obstacle_levels[0] > 20)
 				{
-					if(cur_speedlim > 35)
+					if(cur_speedlim > 45)
 					{
-						cur_speedlim = 35;
+						cur_speedlim = 45;
 						limit_speed(cur_speedlim);
 					}
 				}

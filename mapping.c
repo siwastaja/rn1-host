@@ -1026,7 +1026,10 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 	time = subsec_timestamp();
 	if(search_area_size == 2)
+	{
+		stop_movement();
 		gen_scoremap_for_large_steps(w, scoremap, mid_x, mid_y);
+	}
 	else
 		gen_scoremap_for_small_steps(w, scoremap, mid_x, mid_y);
 	double scoremap_time = subsec_timestamp() - time;
@@ -1927,6 +1930,7 @@ extern double subsec_timestamp();
 
 extern int run_search(int32_t dest_x, int32_t dest_y, int dont_map_lidars);
 
+extern int max_speedlim;
 void autofsm()
 {
 	static int movement_id = 0;
@@ -1946,6 +1950,8 @@ void autofsm()
 
 	static int map_lidars_when_searched = 0;
 
+	static int increase_speedlim = 0;
+
 	switch(cur_autostate)
 	{
 		case S_IDLE: {
@@ -1959,6 +1965,8 @@ void autofsm()
 		} break;
 
 		case S_COMPASS: {
+			increase_speedlim = 0;
+			max_speedlim = 15;
 			send_info(INFO_STATE_THINK);
 
 //			printf("Started compass round\n");
@@ -2139,6 +2147,13 @@ void autofsm()
 		} break;
 
 		case S_GEN_ROUTING: {
+
+			if(increase_speedlim==1)
+			{
+				increase_speedlim = 2;
+				max_speedlim = 50;
+			}
+
 			int ret = run_search(desired_x, desired_y, !map_lidars_when_searched);
 			map_lidars_when_searched = 0;
 
@@ -2169,6 +2184,7 @@ void autofsm()
 			{
 //				printf("Automapping: Following route finished.\n");
 				cur_autostate = S_GEN_DESIRED_DIR;
+				if(increase_speedlim==0) increase_speedlim=1;
 			}
 
 		} break;

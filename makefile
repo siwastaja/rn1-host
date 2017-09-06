@@ -1,4 +1,4 @@
-MODEL=PULU1
+MODEL=RN1P4
 
 CFLAGS = -D$(MODEL) -Wall -Winline -std=c99 -g
 LDFLAGS = 

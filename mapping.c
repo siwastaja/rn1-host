@@ -1212,7 +1212,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 	int8_t *items =  calloc(MAP_PAGE_W*MAP_PAGE_W, sizeof(int8_t));
 	int8_t *walls =  calloc(MAP_PAGE_W*MAP_PAGE_W, sizeof(int8_t));
 	int8_t *maybes = calloc(MAP_PAGE_W*MAP_PAGE_W, sizeof(int8_t));
-	int8_t *seens = calloc(MAP_PAGE_W*MAP_PAGE_W, sizeof(int8_t));
+	int8_t *seens =  calloc(MAP_PAGE_W*MAP_PAGE_W, sizeof(int8_t));
 
 	if(!drops || !items || !walls || !maybes || !seens)
 	{

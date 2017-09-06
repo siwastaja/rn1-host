@@ -550,13 +550,13 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 					}
 					else
 					{
-						printf("INFO: minimap_find_mapping_dir: robot cannot go %.1f mm to %.1f deg\n", fwd_len, RADTODEG(ang_to));
+						printf("minimap_find_mapping_dir: robot cannot go %.1f mm to %.1f deg\n", fwd_len, RADTODEG(ang_to));
 					}
 				}
 			}
 			else
 			{
-				printf("INFO: minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
+				printf("minimap_find_mapping_dir: robot cannot turn %.1f deg -> %.1f deg\n", RADTODEG(ang_now), RADTODEG(ang_to));
 			}
 		}
 
@@ -565,12 +565,12 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 			in_tight_spot = 1;
 			if(tries == 0)
 			{
-				printf("INFO: minimap_find_mapping_dir goes to tighter (normal) search mode to find more possibilities (%d so far).\n", num_cango_places);
+				printf("minimap_find_mapping_dir goes to tighter (normal) search mode to find more possibilities (%d so far).\n", num_cango_places);
 				normal_search_mode();
 			}
 			else if(tries == 1)
 			{
-				printf("INFO: minimap_find_mapping_dir goes to the tightest (tight) search mode to find more possibilities (%d so far).\n", num_cango_places);
+				printf("minimap_find_mapping_dir goes to the tightest (tight) search mode to find more possibilities (%d so far).\n", num_cango_places);
 				tight_search_mode();
 			}
 		}
@@ -611,11 +611,11 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 
 		if(nearest == INT64_MAX)
 		{
-			printf("INFO: In a tight spot; tried to choose route leading to wider environment (from %d routes); couldn't find one, just choosing the closest to desired coords:\n", num_cango_places);
+			printf("In a tight spot; tried to choose route leading to wider environment (from %d routes); couldn't find one, just choosing the closest to desired coords:\n", num_cango_places);
 		}
 		else
 		{
-			printf("INFO: In a tight spot; of (%d found from lidar only; %d agreed with map) possibilities, %d lead to wider environment, of which (%d, %d) is nearest the desired (%d, %d)\n",
+			printf("In a tight spot; of (%d found from lidar only; %d agreed with map) possibilities, %d lead to wider environment, of which (%d, %d) is nearest the desired (%d, %d)\n",
 				num_cango_places+disagrees, num_cango_places, good_candidates, cango_places[nearest_i].x, cango_places[nearest_i].y, desired_x, desired_y);
 			*x = cango_places[nearest_i].x ; *y = cango_places[nearest_i].y; *back = backs[nearest_i];
 			return 1 | ((in_tight_spot)?2:0);
@@ -635,7 +635,7 @@ int minimap_find_mapping_dir(world_t *w, float ang_now, int32_t* x, int32_t* y, 
 		}
 	}
 
-	printf("INFO: (%d, %d) is nearest the desired (%d, %d) (%d found from lidar only; %d agreed with map)\n",
+	printf("(%d, %d) is nearest the desired (%d, %d) (%d found from lidar only; %d agreed with map)\n",
 		cango_places[nearest_i].x, cango_places[nearest_i].y, desired_x, desired_y, num_cango_places+disagrees, num_cango_places);
 	*x = cango_places[nearest_i].x ; *y = cango_places[nearest_i].y; *back = backs[nearest_i];
 
@@ -1462,13 +1462,13 @@ int check_direct_route(int32_t start_ang, int start_x, int start_y, int end_x, i
 
 	if(test_robot_turn(start_x, start_y, ANG32TORAD(start_ang), end_ang))
 	{
-		//printf("INFO: check_direct_route(): robot can turn...\n");
+		//printf("check_direct_route(): robot can turn...\n");
 		route_xy_t start = {start_x, start_y};
 		route_xy_t end = {end_x, end_y};
 		//printf(" start = (%d, %d)  end = (%d, %d)\n", start_x, start_y, end_x, end_y);
 		if(line_of_sight(start, end))
 		{
-			//printf("INFO: check_direct_route(): there is line of sight\n");
+			//printf("check_direct_route(): there is line of sight\n");
 			return 1;
 		}
 	}
@@ -1502,7 +1502,7 @@ int check_direct_route_non_turning(int start_x, int start_y, int end_x, int end_
 	//printf(" start = (%d, %d)  end = (%d, %d)\n", start_x, start_y, end_x, end_y);
 	if(line_of_sight(start, end))
 	{
-		//printf("INFO: check_direct_route(): there is line of sight\n");
+		//printf("check_direct_route(): there is line of sight\n");
 		return 1;
 	}
 	return 0;

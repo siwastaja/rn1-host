@@ -111,7 +111,7 @@ void Softkinetic_tof::init(bool calibrate)
 
 	if(calibrate)
 	{
-		printf("  TOF3D MODULE INFO: Running floor calibration. Move the robot carefully around while ensuring that only level floor is seen. Calibration ends automatically after 500 frames.\n");
+		printf("  TOF3D MODULE Running floor calibration. Move the robot carefully around while ensuring that only level floor is seen. Calibration ends automatically after 500 frames.\n");
 	}
 	_calibrating = calibrate;
 
@@ -197,7 +197,7 @@ void Softkinetic_tof::onDeviceAdded(Context context, Device device)
 
 	DepthSense::Device::Model model = device.getModel();
 
-	printf("  TOF3D MODULE INFO: Found device model %s with serial %s\n", DepthSense::Device::Model_toString(model).c_str(),
+	printf("  TOF3D MODULE Found device model %s with serial %s\n", DepthSense::Device::Model_toString(model).c_str(),
 		device.getSerialNumber().c_str());
 	device.nodeAddedEvent().connect(this, &Softkinetic_tof::onNodeAdded);
 	device.nodeRemovedEvent().connect(this, &Softkinetic_tof::onNodeRemoved);
@@ -235,7 +235,7 @@ void Softkinetic_tof::onNodeAdded(Device device, Node node)
 				if(configurations[i].framerate == (_mode30?30:6) && strcmp(DepthNode::CameraMode_toString(configurations[i].mode).c_str(), "LongRange") == 0)
 				#endif
 				{
-					printf("  TOF3D MODULE INFO:  Found requested config\n");
+					printf("  TOF3D MODULE  Found requested config\n");
 					configuration = configurations[i];
 					doSetConfiguration = true;
 				}
@@ -897,7 +897,7 @@ void* start_tof(void* calibrate)
 	int calib = *(uint8_t*)calibrate;
 	if(!calib)
 	{
-		printf("INFO: tof3d: opening tof_zcalib.raw Z axis calibration file for read.\n");
+		printf("tof3d: opening tof_zcalib.raw Z axis calibration file for read.\n");
 		FILE* floor = fopen("/home/hrst/rn1-host/tof_zcalib.raw", "r");
 		if(!floor)
 		{

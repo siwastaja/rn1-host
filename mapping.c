@@ -185,7 +185,7 @@ static int prefilter_lidar_list(int n_lidars, lidar_scan_t** lidar_list)
 		}
 	}
 
-//	printf("INFO: prefilter_lidar_list() removed %d points: ", n_removed);
+//	printf("prefilter_lidar_list() removed %d points: ", n_removed);
 //	for(int i=0; i < n_lidars; i++)	printf("%d, ", n_removed_per_scan[i]);
 //	printf("\n");
 	return n_removed;
@@ -235,7 +235,7 @@ static int prefilter_lidar_list_aggressive(int n_lidars, lidar_scan_t** lidar_li
 		}
 	}
 
-//	printf("INFO: prefilter_lidar_list_aggressive() removed %d points: ", n_removed);
+//	printf("prefilter_lidar_list_aggressive() removed %d points: ", n_removed);
 //	for(int i=0; i < n_lidars; i++)	printf("%d, ", n_removed_per_scan[i]);
 //	printf("\n");
 	return n_removed;
@@ -811,7 +811,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			int y_mm = (rotate_mid_y/MAP_UNIT_W - TEMP_MAP_MIDDLE + iy)*MAP_UNIT_W;
 			page_coords(x_mm, y_mm, &pagex, &pagey, &offsx, &offsy);
 //			if(ix == 2 && iy == 2)
-//				printf("Info: temp map -> map: start: page (%d, %d) offs (%d, %d)\n", pagex, pagey, offsx, offsy);
+//				printf("temp map -> map: start: page (%d, %d) offs (%d, %d)\n", pagex, pagey, offsx, offsy);
 
 //			float ang_from_middle = atan2(y_mm-rotate_mid_y, x_mm-rotete_mid_x)*(8.0/(2.0*M_PI));
 //			if(ang_from_middle < 0.0) ang_from_middle += 8.0;
@@ -930,7 +930,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		*after_dy = (avg_drift_y*MAP_UNIT_W)/avg_drift_cnt;
 	}
 
-//	printf("INFO: Average adjustment during map insertion: x=%d mm, y=%d mm (%d samples)\n", *after_dx, *after_dy, avg_drift_cnt);
+//	printf("Average adjustment during map insertion: x=%d mm, y=%d mm (%d samples)\n", *after_dx, *after_dy, avg_drift_cnt);
 
 
 	free(temp_map);
@@ -1000,7 +1000,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	*dx = 0;
 	*dy = 0;
 
-	printf("Info: (timestamp=%.1f) Attempting to map %d lidar images\n", subsec_timestamp(), n_lidars);
+	printf("(timestamp=%.1f) Attempting to map %d lidar images\n", subsec_timestamp(), n_lidars);
 
 	if(n_lidars > 32)
 	{
@@ -1096,7 +1096,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	}
 	else // massive
 	{
-		printf("Info: Pass1 complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best1_da/(float)ANG_1_DEG, best1_dx, best1_dy, best_score);
+		printf("Pass1 complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best1_da/(float)ANG_1_DEG, best1_dx, best1_dy, best_score);
 
 		gen_scoremap_for_small_steps(w, scoremap, mid_x, mid_y); // overwrite large step scoremap.
 		pass2_a_range = 8; // in half degs
@@ -1135,11 +1135,11 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	int best_dx = best2_dx;
 	int best_dy = best2_dy;
 
-	printf("Info: Map search complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best_da/(float)ANG_1_DEG, best_dx, best_dy, best_score);
+	printf("Map search complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best_da/(float)ANG_1_DEG, best_dx, best_dy, best_score);
 
 	if(best_score < 100)
 	{
-		printf("INFO: Best score low, mapping with zero correction.\n");
+		printf("Best score low, mapping with zero correction.\n");
 		best_da = 0; best_dx = 0; best_dy = 0;
 		search_area_size = 0;
 	}
@@ -1156,7 +1156,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 	double mapping_time = subsec_timestamp() - time;
 
-	printf("Info: Performance: prefilter %.1fms scoremap %.1fms pass1 %.1fms pass2 %.1fms mapping %.1fms\n",
+	printf("Performance: prefilter %.1fms scoremap %.1fms pass1 %.1fms pass2 %.1fms mapping %.1fms\n",
 		prefilter_time*1000.0, scoremap_time*1000.0, pass1_time*1000.0, pass2_time*1000.0, mapping_time*1000.0);
 
 	*da = best_da;
@@ -1199,7 +1199,7 @@ void tofs_avg_midpoint(int n_tofs, tof3d_scan_t** tof_list, int32_t* mid_x, int3
 
 int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int32_t *my)
 {
-//	printf("INFO: Mapping %d  3DTOF scans\n", n_tofs);
+//	printf("Mapping %d  3DTOF scans\n", n_tofs);
 	int32_t mid_x, mid_y;
 	tofs_avg_midpoint(n_tofs, tof_list, &mid_x, &mid_y);
 	*mx = mid_x;
@@ -1270,7 +1270,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 	}
 
 	if(out_of_area_ignores)
-		printf("INFO: Ignored %d far-away points not fitting to tempmap.\n", out_of_area_ignores);
+		printf("Ignored %d far-away points not fitting to tempmap.\n", out_of_area_ignores);
 
 	// Copy tempmaps to actual map
 
@@ -1371,7 +1371,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 	free(walls);
 	free(maybes);
 	free(seens);
-//	printf("INFO: 3D TOF objmap inserted: added %d drops, %d items and %d 3dwalls. Cleared %d units; of which %d confidently\n", 
+//	printf("3D TOF objmap inserted: added %d drops, %d items and %d 3dwalls. Cleared %d units; of which %d confidently\n", 
 //		cnt_drop, cnt_item, cnt_3dwall, cnt_removal+cnt_total_removal, cnt_total_removal);
 
 	return 0;
@@ -1386,7 +1386,7 @@ int map_lidar_to_minimap(lidar_scan_t *p_lid)
 		return -1;
 	}
 
-//	printf("Info: mapping lidar to minimap\n");
+//	printf("mapping lidar to minimap\n");
 	memset(minimap, 0, MINIMAP_SIZE*(MINIMAP_SIZE/32+1)*sizeof(uint32_t));
 	for(int p=0; p<LIDAR_SCAN_POINTS; p++)
 	{
@@ -1640,7 +1640,7 @@ void map_sonar(world_t* w, sonar_scan_t* p_son)
 			if(ang < 0.0) ang += 2.0*M_PI;
 			else if(ang > 2.0*M_PI) ang -= 2.0*M_PI;
 
-		//	printf("INFO: Clearing items start (%d, %d) ang = %.1f deg, len = %.1f\n", p_son->scan[1].x, p_son->scan[1].y, RADTODEG(ang), nearest);
+		//	printf("Clearing items start (%d, %d) ang = %.1f deg, len = %.1f\n", p_son->scan[1].x, p_son->scan[1].y, RADTODEG(ang), nearest);
 		//	printf("ang = %.4f  dir = %d \n", ang, dir);
 
 			while(1)
@@ -1682,7 +1682,7 @@ void map_sonar(world_t* w, sonar_scan_t* p_son)
 
 			if(world.pages[idx_x][idx_y]->units[offs_x][offs_y].result & UNIT_ITEM)
 			{
-//				printf("INFO: Item already mapped\n");
+//				printf("Item already mapped\n");
 				goto ALREADY_MAPPED_ITEM;
 			}
 		}
@@ -1696,7 +1696,7 @@ void map_sonar(world_t* w, sonar_scan_t* p_son)
 		{
 			page_coords(p_son->scan[i].x,p_son->scan[i].y, &idx_x, &idx_y, &offs_x, &offs_y);
 			world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM;
-//			printf("INFO: Mapping an item\n");
+//			printf("Mapping an item\n");
 			//world.changed[idx_x][idx_y] = 1;
 		}
 
@@ -1752,14 +1752,14 @@ int cant_goto_place_wr_idx;
 
 void add_cant_goto_place(int x, int y)
 {
-//	printf("INFO: Adding cant_goto_place idx=%d, abs (%d, %d) mm\n", cant_goto_place_wr_idx, x, y);
+//	printf("Adding cant_goto_place idx=%d, abs (%d, %d) mm\n", cant_goto_place_wr_idx, x, y);
 	cant_goto_places[cant_goto_place_wr_idx].enabled = 1;
 	cant_goto_places[cant_goto_place_wr_idx].x = x;
 	cant_goto_places[cant_goto_place_wr_idx].y = y;
 	cant_goto_place_wr_idx++;
 	if(cant_goto_place_wr_idx >= CANT_GOTO_PLACE_LIST_LEN)
 	{
-		printf("INFO: cant_goto_place_list wraps around, old out-of-limits areas will be tried again.\n");
+		printf("cant_goto_place_list wraps around, old out-of-limits areas will be tried again.\n");
 		cant_goto_place_wr_idx = 0;
 
 	}
@@ -1781,7 +1781,7 @@ int find_unfamiliar_direction(world_t* w, int *x_out, int *y_out)
 				{
 					if(cant_goto_places[i].enabled && (sq(cant_goto_places[i].x-(cur_x+dx))+sq(cant_goto_places[i].y-(cur_y+dy))) < sq(500) )
 					{
-//						printf("Info: ignoring potential biggest score place, cant_goto_idx=%d, abs (%d, %d) mm.\n", i, cur_x+dx, cur_y+dy);
+//						printf("ignoring potential biggest score place, cant_goto_idx=%d, abs (%d, %d) mm.\n", i, cur_x+dx, cur_y+dy);
 						goto CONTINUE_UNFAM_LOOP;
 					}
 				}
@@ -1823,7 +1823,7 @@ int find_unfamiliar_direction_randomly(world_t* w, int *x_out, int *y_out)
 		int potential_y = cur_y+rand2;
 
 		int score = unfamiliarity_score(w, potential_x, potential_y);
-//		printf("INFO: unfam try=%d x=%d y=%d score=%d\n", try, potential_x, potential_y, score);
+//		printf("unfam try=%d x=%d y=%d score=%d\n", try, potential_x, potential_y, score);
 		if(score > biggest)
 		{
 			for(int i = 0; i < CANT_GOTO_PLACE_LIST_LEN; i++)
@@ -1961,7 +1961,7 @@ void autofsm()
 		case S_COMPASS: {
 			send_info(INFO_STATE_THINK);
 
-//			printf("INFO: Started compass round\n");
+//			printf("Started compass round\n");
 			do_compass_round();
 			cur_autostate++;
 		} break;
@@ -1990,7 +1990,7 @@ void autofsm()
 		case S_SYNC_TO_COMPASS: {
 			if(!compass_round_active)
 			{
-//				printf("INFO: Syncing robot angle to compass, zeroing coords, turning mapping on, requesting massive search area.\n");
+//				printf("Syncing robot angle to compass, zeroing coords, turning mapping on, requesting massive search area.\n");
 				int32_t ang = cur_compass_ang-90*ANG_1_DEG;
 				printf("DBG: cur_compass_ang=%d (%.1fdeg), ang=%d (%.1fdeg)\n", cur_compass_ang, ANG32TOFDEG(cur_compass_ang), ang, ANG32TOFDEG(ang));
 				set_robot_pos(ang,0,0);
@@ -2013,7 +2013,7 @@ void autofsm()
 			if(unfam_score)
 			{
 				same_dir_len = 10;
-				printf("INFO: Generated new desired vector abs (%d, %d) mm based on unfamiliarity score %d, time to follow = %d\n", desired_x, desired_y, unfam_score, same_dir_len);
+				printf("Generated new desired vector abs (%d, %d) mm based on unfamiliarity score %d, time to follow = %d\n", desired_x, desired_y, unfam_score, same_dir_len);
 				if(tcp_client_sock >= 0) tcp_send_dbgpoint(desired_x, desired_y, 0, 255, 40, 0);
 			}
 			else
@@ -2029,7 +2029,7 @@ void autofsm()
 				desired_x = cur_x+rand1;
 				desired_y = cur_y+rand2;
 				same_dir_len = 10; //((float)rand() / (float)RAND_MAX)*7.0;
-				printf("INFO: No unfamiliarity scores generated (area unmapped?): generated new random desired vector abs (%d, %d) mm, time to follow = %d\n", desired_x, desired_y, same_dir_len);
+				printf("No unfamiliarity scores generated (area unmapped?): generated new random desired vector abs (%d, %d) mm, time to follow = %d\n", desired_x, desired_y, same_dir_len);
 				if(tcp_client_sock >= 0) tcp_send_dbgpoint(desired_x, desired_y, 128, 150, 40, 0);
 			}
 			same_dir_cnt = 0;
@@ -2055,7 +2055,7 @@ void autofsm()
 			if(num_stops > 8)
 			{
 				num_stops = 0;
-				printf("INFO: Too many stops without success, daijuing for a while.\n");
+				printf("Too many stops without success, daijuing for a while.\n");
 				send_info(INFO_STATE_DAIJUING);
 				daiju_mode(1);
 				cur_autostate = S_DAIJUING;
@@ -2066,10 +2066,10 @@ void autofsm()
 				int ret;
 				if( (ret = minimap_find_mapping_dir(&world, ANG32TORAD(cur_ang), &dx, &dy, desired_x-cur_x, desired_y-cur_y, &need_to_back)) )
 				{
-					printf("INFO: Found direction\n");
+					printf("Found direction\n");
 					if(movement_id == cur_xymove.id)
 					{
-						printf("INFO: id issue, incrementing by 5\n");
+						printf("id issue, incrementing by 5\n");
 						movement_id+=5;
 						if(movement_id > 100) movement_id = 0;
 					}
@@ -2082,7 +2082,7 @@ void autofsm()
 				}
 				else
 				{
-					printf("INFO: Automapping: can't go anywhere; daijuing for a while.\n");
+					printf("Automapping: can't go anywhere; daijuing for a while.\n");
 					send_info(INFO_STATE_DAIJUING);
 					daiju_mode(1);
 					cur_autostate = S_DAIJUING;
@@ -2097,7 +2097,7 @@ void autofsm()
 			if(cur_xymove.id == movement_id && cur_xymove.remaining < 80)
 			{
 				num_stops = 0;
-				printf("INFO: Automapping: movement id=%d finished, ", movement_id);
+				printf("Automapping: movement id=%d finished, ", movement_id);
 
 				movement_id++; if(movement_id > 100) movement_id = 0;
 				same_dir_cnt++;
@@ -2119,7 +2119,7 @@ void autofsm()
 			}
 			else if(cur_xymove.id == movement_id && (cur_xymove.micronavi_stop_flags || cur_xymove.feedback_stop_flags))
 			{
-				printf("INFO: Automapping: movement id=%d stopped, generating new desired direction\n", movement_id);
+				printf("Automapping: movement id=%d stopped, generating new desired direction\n", movement_id);
 				map_lidars_when_searched = 1;
 				add_cant_goto_place(desired_x, desired_y);
 				if(tcp_client_sock >= 0) tcp_send_dbgpoint(desired_x, desired_y, 255, 30, 50, 1);
@@ -2144,7 +2144,7 @@ void autofsm()
 
 			if(ret == 1)
 			{
-				printf("INFO: Automapping: run_search() fails in the start due to close obstacles (nonroutable), daijuing for a while.\n");
+				printf("Automapping: run_search() fails in the start due to close obstacles (nonroutable), daijuing for a while.\n");
 				send_info(INFO_STATE_DAIJUING);
 				daiju_mode(1);
 				cur_autostate = S_DAIJUING;
@@ -2156,7 +2156,7 @@ void autofsm()
 			}
 			else
 			{
-//				printf("INFO: Automapping: run_search() fails later than in the start: destination is unreachable. Generating a new direction.\n");
+//				printf("Automapping: run_search() fails later than in the start: destination is unreachable. Generating a new direction.\n");
 				add_cant_goto_place(desired_x, desired_y);
 				cur_autostate = S_GEN_DESIRED_DIR;
 			}
@@ -2167,7 +2167,7 @@ void autofsm()
 
 			if(route_finished_or_notfound)
 			{
-//				printf("INFO: Automapping: Following route finished.\n");
+//				printf("Automapping: Following route finished.\n");
 				cur_autostate = S_GEN_DESIRED_DIR;
 			}
 
@@ -2178,7 +2178,7 @@ void autofsm()
 
 	if(cur_autostate != prev_autostate)
 	{
-		printf("INFO: autostate change %s --> %s\n", AUTOSTATE_NAMES[prev_autostate], AUTOSTATE_NAMES[cur_autostate]);
+		printf("autostate change %s --> %s\n", AUTOSTATE_NAMES[prev_autostate], AUTOSTATE_NAMES[cur_autostate]);
 	}
 }
 

@@ -285,7 +285,7 @@ int parse_uart_msg(uint8_t* buf, int len)
 			compass_round_active = buf[1];
 			cur_compass_ang = I7I7_U16_lossy(buf[2], buf[3])<<16;
 
-//			printf("INFO: cur_compass_ang = %6.1fdeg  %s\n", ANG32TOFDEG(cur_compass_ang), compass_round_active?"CALIBRATING":"");
+//			printf("cur_compass_ang = %6.1fdeg  %s\n", ANG32TOFDEG(cur_compass_ang), compass_round_active?"CALIBRATING":"");
 		}
 		break;
 
@@ -346,7 +346,7 @@ void move_to(int32_t x, int32_t y, int8_t backmode, int id, int speedlimit, int 
 		id = 0;
 	}
 
-	printf("INFO: Move(%d,%d),back=%d,id=%d\n", x,y,backmode,id);
+	printf("Move(%d,%d),back=%d,id=%d\n", x,y,backmode,id);
 
 	buf[0] = 0x82;
 	buf[1] = I32_I7_4(x);
@@ -371,7 +371,7 @@ void turn_and_go_abs_rel(int32_t ang_abs, int fwd_rel, int speedlimit, int accur
 {
 	uint8_t buf[8];
 
-	printf("INFO: Turn & go abs %d, rel %d\n", ang_abs/ANG_1_DEG, fwd_rel);
+	printf("Turn & go abs %d, rel %d\n", ang_abs/ANG_1_DEG, fwd_rel);
 
 	buf[0] = 0x83;
 	buf[1] = I16_MS(ang_abs>>16);
@@ -388,7 +388,7 @@ void turn_and_go_rel_rel(int32_t ang_rel, int fwd_rel, int speedlimit, int accur
 {
 	uint8_t buf[8];
 
-	printf("INFO: Turn & go rel %d, rel %d\n", ang_rel/ANG_1_DEG, fwd_rel);
+	printf("Turn & go rel %d, rel %d\n", ang_rel/ANG_1_DEG, fwd_rel);
 
 	buf[0] = 0x81;
 	buf[1] = I16_MS(ang_rel>>16);
@@ -405,7 +405,7 @@ void limit_speed(int speedlimit)
 {
 	uint8_t buf[3];
 
-//	printf("INFO: limit_speed(%d)\n", speedlimit);
+//	printf("limit_speed(%d)\n", speedlimit);
 
 	buf[0] = 0x85;
 	buf[1] = speedlimit&0x7f;
@@ -417,7 +417,7 @@ void stop_movement()
 {
 	uint8_t buf[3];
 
-	printf("INFO: stop_movement()\n");
+	printf("stop_movement()\n");
 
 	buf[0] = 0x84;
 	buf[1] = 0;
@@ -441,11 +441,11 @@ void correct_robot_pos(int32_t da, int32_t dx, int32_t dy, int id)
 
 /*	if(da == 0 && dx == 0 && dy == 0)
 	{
-		printf("INFO: No position correction needed.\n");
+		printf("No position correction needed.\n");
 		return;
 	}
 */
-//	printf("INFO: Correcting robot pos by %d, %d, %d, with id %d\n", da>>16, dx, dy, id);
+//	printf("Correcting robot pos by %d, %d, %d, with id %d\n", da>>16, dx, dy, id);
 
 	uint8_t buf[9];
 
@@ -464,7 +464,7 @@ void correct_robot_pos(int32_t da, int32_t dx, int32_t dy, int id)
 
 void set_robot_pos(int32_t na, int32_t nx, int32_t ny)
 {
-	printf("INFO: Setting robot pos to ang=%d, x=%d, y=%d\n", na>>16, nx, ny);
+	printf("Setting robot pos to ang=%d, x=%d, y=%d\n", na>>16, nx, ny);
 
 	uint8_t buf[14];
 
@@ -495,7 +495,7 @@ void set_hw_obstacle_avoidance_margin(int mm)
 	if(cm < 0) cm = 0;
 	else if(cm > 100) cm = 100;
 
-//	printf("INFO: set_hw_obstacle_avoidance_margin to %d cm\n", cm);
+//	printf("set_hw_obstacle_avoidance_margin to %d cm\n", cm);
 
 	buf[0] = 0x88;
 	buf[1] = cm;

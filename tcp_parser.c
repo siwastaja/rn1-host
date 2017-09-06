@@ -367,7 +367,7 @@ int tcp_send_msg(tcp_message_t* msg_type, void* msg)
 
 	PARSE_END: ;
 
-	//printf("INFO: Sending tcp, size=%d\n", msg_type->size+3);
+	//printf("Sending tcp, size=%d\n", msg_type->size+3);
 	tcp_send(sendbuf, msg_type->size+3);
 
 	return 0;
@@ -405,7 +405,7 @@ int tcp_parser(int sock)
 		}
 		else if(ret == 0)
 		{
-			fprintf(stderr, "INFO: Client closed connection\n");
+			fprintf(stderr, "Client closed connection\n");
 			state = 0;
 			return -10;
 		}

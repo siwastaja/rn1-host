@@ -262,14 +262,14 @@ void do_live_obstacle_checking()
 				{
 					cur_speedlim = 15;
 					limit_speed(cur_speedlim);
-//					printf("!!!!!!!!!!   INFO: Steering is almost needed (not performed) to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n",
+//					printf("!!!!!!!!!!   Steering is almost needed (not performed) to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n",
 //						hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
 //					if(tcp_client_sock > 0) tcp_send_dbgpoint(cur_x, cur_y, 210, 210,   110, 1);
 //					if(tcp_client_sock > 0) tcp_send_dbgpoint(best_new_x, best_new_y,   0, 255,   110, 1);
 				}
 				else
 				{
-					printf("INFO: Steering is needed, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n", 
+					printf("Steering is needed, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n", 
 						hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
 					if(tcp_client_sock > 0) tcp_send_dbgpoint(cur_x, cur_y, 200, 200,   0, 1);
 					if(tcp_client_sock > 0) tcp_send_dbgpoint(best_new_x, best_new_y,   0, 40,   0, 1);
@@ -284,16 +284,16 @@ void do_live_obstacle_checking()
 			}
 			else
 			{
-//				printf("!!!!!!!!  INFO: Steering cannot help in improving line-of-sight.\n");
+//				printf("!!!!!!!!  Steering cannot help in improving line-of-sight.\n");
 				if(hitcnt < 3)
 				{
-//					printf("!!!!!!!!!!!  INFO: Direct line-of-sight to the next point has 1..2 obstacles, slowing down.\n");
+//					printf("!!!!!!!!!!!  Direct line-of-sight to the next point has 1..2 obstacles, slowing down.\n");
 					cur_speedlim = 15;
 					limit_speed(cur_speedlim);
 				}
 				else
 				{
-					printf("INFO: Direct line-of-sight to the next point has disappeared! Trying to solve.\n");
+					printf("Direct line-of-sight to the next point has disappeared! Trying to solve.\n");
 					cur_speedlim = 15;
 					limit_speed(cur_speedlim);
 					stop_movement();
@@ -315,7 +315,7 @@ void route_fsm()
 	{
 		if(check_direct_route_non_turning_mm(cur_x, cur_y, the_route[route_pos].x, the_route[route_pos].y))
 		{
-			printf("INFO: Direct line-of-sight has appeared to the next waypoint, resuming following the route.\n");
+			printf("Direct line-of-sight has appeared to the next waypoint, resuming following the route.\n");
 			lookaround_creep_reroute = 0;
 			do_follow_route = 1;
 			id_cnt++; if(id_cnt > 7) id_cnt = 1;
@@ -331,7 +331,7 @@ void route_fsm()
 		do_follow_route = 0;
 		start_route = 0;
 
-		printf("INFO: Lookaround, creep & reroute procedure started; backing off 50 mm.\n");
+		printf("Lookaround, creep & reroute procedure started; backing off 50 mm.\n");
 		turn_and_go_abs_rel(cur_ang, -50, 13, 1);
 		timestamp = subsec_timestamp();
 		lookaround_creep_reroute++;
@@ -355,12 +355,12 @@ void route_fsm()
 
 				if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
 				{
-					//printf("INFO: Can turn to %.1f deg, doing it.\n", -1*lookaround_turn);
+					//printf("Can turn to %.1f deg, doing it.\n", -1*lookaround_turn);
 					turn_and_go_abs_rel(RADTOANG32(ang), 0, 13, 1);
 				}
 				else
 				{
-					//printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n", -1*lookaround_turn);
+					//printf("Can't turn to %.1f deg, wiggling a bit.\n", -1*lookaround_turn);
 					turn_and_go_abs_rel(cur_ang-4*ANG_1_DEG, 0, 13, 1);
 				}
 				timestamp = subsec_timestamp();
@@ -379,12 +379,12 @@ void route_fsm()
 
 			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
 			{
-				//printf("INFO: Can turn to %.1f deg, doing it.\n", -1.8*lookaround_turn);
+				//printf("Can turn to %.1f deg, doing it.\n", -1.8*lookaround_turn);
 				turn_and_go_abs_rel(RADTOANG32(ang), -20, 13, 1);
 			}
 			else
 			{
-				//printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n", -1.8*lookaround_turn);
+				//printf("Can't turn to %.1f deg, wiggling a bit.\n", -1.8*lookaround_turn);
 				turn_and_go_abs_rel(cur_ang-4*ANG_1_DEG, 0, 13, 1);
 			}
 			timestamp = subsec_timestamp();
@@ -402,12 +402,12 @@ void route_fsm()
 
 			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
 			{
-				//printf("INFO: Can turn to %.1f deg, doing it.\n",lookaround_turn);
+				//printf("Can turn to %.1f deg, doing it.\n",lookaround_turn);
 				turn_and_go_abs_rel(RADTOANG32(ang), 0, 13, 1);
 			}
 			else
 			{
-				//printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n",lookaround_turn);
+				//printf("Can't turn to %.1f deg, wiggling a bit.\n",lookaround_turn);
 				turn_and_go_abs_rel(cur_ang+12*ANG_1_DEG, 0, 13, 1);
 			}
 			timestamp = subsec_timestamp();
@@ -425,12 +425,12 @@ void route_fsm()
 
 			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
 			{
-				//printf("INFO: Can turn to %.1f deg, doing it.\n", 1.8*lookaround_turn);
+				//printf("Can turn to %.1f deg, doing it.\n", 1.8*lookaround_turn);
 				turn_and_go_abs_rel(RADTOANG32(ang), 0, 13, 1);
 			}
 			else
 			{
-				//printf("INFO: Can't turn to %.1f deg, wiggling a bit.\n", 1.8*lookaround_turn);
+				//printf("Can't turn to %.1f deg, wiggling a bit.\n", 1.8*lookaround_turn);
 				turn_and_go_abs_rel(cur_ang+4*ANG_1_DEG, 0, 13, 1);
 			}
 			timestamp = subsec_timestamp();
@@ -449,22 +449,22 @@ void route_fsm()
 
 			if(test_robot_turn_mm(cur_x, cur_y, ANG32TORAD(cur_ang),  ang))
 			{
-				//printf("INFO: Can turn towards the dest, doing it.\n");
+				//printf("Can turn towards the dest, doing it.\n");
 				turn_and_go_abs_rel(RADTOANG32(ang), 50, 13, 1);
 			}
 			else
 			{
-				printf("INFO: Can't turn towards the dest, rerouting.\n");
+				printf("Can't turn towards the dest, rerouting.\n");
 				if(rerun_search() == 1)
 				{
-					printf("INFO: Routing failed in start, going to daiju mode for a while.\n");
+					printf("Routing failed in start, going to daiju mode for a while.\n");
 					send_info(INFO_STATE_DAIJUING);
 					daiju_mode(1);
 					lookaround_creep_reroute = 8;
 				}
 				else
 				{
-					printf("INFO: Routing succeeded, or failed later. Stopping lookaround, creep & reroute procedure.\n");
+					printf("Routing succeeded, or failed later. Stopping lookaround, creep & reroute procedure.\n");
 					lookaround_creep_reroute = 0;
 				}
 			}
@@ -490,7 +490,7 @@ void route_fsm()
 				int hitcnt = check_direct_route_non_turning_hitcnt_mm(cur_x, cur_y, dest_x, dest_y);
 				if(hitcnt < 1)
 				{
-					//printf("INFO: Can creep %d mm towards the next waypoint, doing it\n", creep_amount);
+					//printf("Can creep %d mm towards the next waypoint, doing it\n", creep_amount);
 					time_interval = 2.5;
 					turn_and_go_abs_rel(RADTOANG32(ang) + ((creep_cnt&1)?(5*ANG_1_DEG):(-5*ANG_1_DEG)), creep_amount, 15, 1);
 				}
@@ -502,18 +502,18 @@ void route_fsm()
 			}
 			else
 			{
-				printf("INFO: We have creeped enough (dist to waypoint=%d, creep_cnt=%d), no line of sight to the waypoint, trying to reroute\n",
+				printf("We have creeped enough (dist to waypoint=%d, creep_cnt=%d), no line of sight to the waypoint, trying to reroute\n",
 					dist, creep_cnt);
 				if(rerun_search() == 1)
 				{
-					printf("INFO: Routing failed in start, going to daiju mode for a while.\n");
+					printf("Routing failed in start, going to daiju mode for a while.\n");
 					daiju_mode(1);
 					send_info(INFO_STATE_DAIJUING);
 					lookaround_creep_reroute++;
 				}
 				else
 				{
-					printf("INFO: Routing succeeded, or failed later. Stopping lookaround, creep & reroute procedure.\n");
+					printf("Routing succeeded, or failed later. Stopping lookaround, creep & reroute procedure.\n");
 					lookaround_creep_reroute = 0;
 				}
 
@@ -526,11 +526,11 @@ void route_fsm()
 		double stamp;
 		if( (stamp=subsec_timestamp()) > timestamp+5.0)
 		{
-			printf("INFO: Daijued enough.\n");
+			printf("Daijued enough.\n");
 			daiju_mode(0);
 			if(rerun_search() == 1)
 			{
-				printf("INFO: Routing failed in start, going to daiju mode for a bit more...\n");
+				printf("Routing failed in start, going to daiju mode for a bit more...\n");
 				daiju_mode(1);
 					send_info(INFO_STATE_DAIJUING);
 				lookaround_creep_reroute++;
@@ -538,7 +538,7 @@ void route_fsm()
 			}
 			else
 			{
-				printf("INFO: Routing succeeded, or failed later. Stopping lookaround, creep & reroute procedure.\n");
+				printf("Routing succeeded, or failed later. Stopping lookaround, creep & reroute procedure.\n");
 				lookaround_creep_reroute = 0;
 			}
 
@@ -546,7 +546,7 @@ void route_fsm()
 	}
 	else if(lookaround_creep_reroute == 12)
 	{
-		printf("INFO: Giving up lookaround, creep & reroute procedure!\n");
+		printf("Giving up lookaround, creep & reroute procedure!\n");
 		lookaround_creep_reroute = 0;
 	}
 
@@ -569,20 +569,20 @@ void route_fsm()
 			{
 				if(micronavi_stops < 7)
 				{
-					printf("INFO: Micronavi STOP, entering lookaround_creep_reroute\n");
+					printf("Micronavi STOP, entering lookaround_creep_reroute\n");
 					micronavi_stops++;
 					lookaround_creep_reroute = 1;
 				}
 				else
 				{
-					printf("INFO: Micronavi STOP, too many of them already, rerouting.\n");
+					printf("Micronavi STOP, too many of them already, rerouting.\n");
 					if(rerun_search() == 1)
 					{
-						printf("INFO: Routing failed in start, todo: handle this situation.\n");
+						printf("Routing failed in start, todo: handle this situation.\n");
 					}
 					else
 					{
-						printf("INFO: Routing succeeded, or failed later.\n");
+						printf("Routing succeeded, or failed later.\n");
 					}
 				}
 			}
@@ -594,7 +594,7 @@ void route_fsm()
 					{
 						if(check_direct_route_mm(cur_ang, cur_x, cur_y, the_route[route_pos+1].x, the_route[route_pos+1].y))
 						{
-							printf("INFO: Maneuver done; skipping point (%d, %d), going directly to (%d, %d)\n", the_route[route_pos].x,
+							printf("Maneuver done; skipping point (%d, %d), going directly to (%d, %d)\n", the_route[route_pos].x,
 							       the_route[route_pos].y, the_route[route_pos+1].x, the_route[route_pos+1].y);
 							route_pos++;
 						}
@@ -604,7 +604,7 @@ void route_fsm()
 						}
 					}
 					id_cnt = 1;
-					printf("INFO: Maneuver done, redo the waypoint, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
+					printf("Maneuver done, redo the waypoint, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
 					move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), cur_speedlim, 0);
 					send_info(the_route[route_pos].backmode?INFO_STATE_REV:INFO_STATE_FWD);
 
@@ -629,7 +629,7 @@ void route_fsm()
 						{
 							if(check_direct_route_mm(cur_ang, cur_x, cur_y, the_route[route_pos+1].x, the_route[route_pos+1].y))
 							{
-								printf("INFO: skipping point (%d, %d), going directly to (%d, %d)\n", the_route[route_pos].x,
+								printf("skipping point (%d, %d), going directly to (%d, %d)\n", the_route[route_pos].x,
 								       the_route[route_pos].y, the_route[route_pos+1].x, the_route[route_pos+1].y);
 								route_pos++;
 							}
@@ -638,14 +638,14 @@ void route_fsm()
 								break;
 							}
 						}
-						printf("INFO: Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
+						printf("Take the next, id=%d!\n", (id_cnt<<4) | ((route_pos)&0b1111));
 						move_to(the_route[route_pos].x, the_route[route_pos].y, the_route[route_pos].backmode, (id_cnt<<4) | ((route_pos)&0b1111), cur_speedlim, 0);
 						send_info(the_route[route_pos].backmode?INFO_STATE_REV:INFO_STATE_FWD);
 						micronavi_stops = 0;
 					}
 					else
 					{
-						printf("INFO: Done following the route.\n");
+						printf("Done following the route.\n");
 						send_info(INFO_STATE_IDLE);
 						micronavi_stops = 0;
 						do_follow_route = 0;
@@ -664,7 +664,7 @@ void route_fsm()
 
 						if(robot_pos_timestamp < stamp-0.20)
 						{
-							printf("INFO: Skipping live obstacle checking due to stale robot pos.\n");
+							printf("Skipping live obstacle checking due to stale robot pos.\n");
 						}
 						else
 						{
@@ -729,7 +729,7 @@ void conf_charger_pos()  // call when the robot is *in* the charger.
 
 	correct_robot_pos(da, dx, dy, pos_corr_id);
 
-	printf("INFO: Set charger pos at ang=%d, x=%d, y=%d\n", cha_ang, cha_x, cha_y);
+	printf("Set charger pos at ang=%d, x=%d, y=%d\n", cha_ang, cha_x, cha_y);
 	charger_first_x = (float)cha_x - cos(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;
 	charger_first_y = (float)cha_y - sin(ANG32TORAD(cha_ang))*(float)CHARGER_FIRST_DIST;	
 	charger_second_x = (float)cha_x - cos(ANG32TORAD(cha_ang))*(float)CHARGER_SECOND_DIST;
@@ -752,7 +752,7 @@ void read_charger_pos()
 	{
 		fscanf(f_cha, "%d %d %d %d %d %d", &charger_first_x, &charger_first_y, &charger_second_x, &charger_second_y, &charger_ang, &charger_fwd);
 		fclose(f_cha);
-		printf("Info: charger position retrieved from file: %d, %d --> %d, %d, ang=%d, fwd=%d\n", charger_first_x, charger_first_y, charger_second_x, charger_second_y, charger_ang, charger_fwd);
+		printf("charger position retrieved from file: %d, %d --> %d, %d, ang=%d, fwd=%d\n", charger_first_x, charger_first_y, charger_second_x, charger_second_y, charger_ang, charger_fwd);
 	}
 }
 
@@ -947,10 +947,10 @@ void* main_thread()
 
 				if(run_search(msg_cr_route.x, msg_cr_route.y, 0) == 1)
 				{
-					printf("INFO: Routing fails in the start, daijuing for a while to get a better position.\n");
+					printf("Routing fails in the start, daijuing for a while to get a better position.\n");
 					daiju_mode(1);
 					send_info(INFO_STATE_DAIJUING);
-					printf("INFO: (Please retry after some time.)\n");
+					printf("(Please retry after some time.)\n");
 				}
 
 			}
@@ -961,7 +961,7 @@ void* main_thread()
 			}
 			else if(ret == TCP_CR_MODE_MID)
 			{
-				printf("INFO: Request for MODE %d\n", msg_cr_mode.mode);
+				printf("Request for MODE %d\n", msg_cr_mode.mode);
 				switch(msg_cr_mode.mode)
 				{
 					case 0:
@@ -1070,7 +1070,7 @@ void* main_thread()
 				stop_automapping();
 				daiju_mode(0);
 				motors_on = 1;
-				printf("INFO: Manual OP %d\n", msg_cr_manu.op);
+				printf("Manual OP %d\n", msg_cr_manu.op);
 				switch(msg_cr_manu.op)
 				{
 					case MANU_FWD:
@@ -1101,7 +1101,7 @@ void* main_thread()
 //		if(cur_compass_ang != prev_compass_ang)
 //		{
 //			prev_compass_ang = cur_compass_ang;
-//			printf("INFO: Compass ang=%.1f deg\n", ANG32TOFDEG(cur_compass_ang));
+//			printf("Compass ang=%.1f deg\n", ANG32TOFDEG(cur_compass_ang));
 //		}
 
 		static int micronavi_stop_flags_printed = 0;
@@ -1111,7 +1111,7 @@ void* main_thread()
 			if(!micronavi_stop_flags_printed)
 			{
 				micronavi_stop_flags_printed = 1;
-				printf("INFO: MCU-level micronavigation: STOP. Reason flags:\n");
+				printf("MCU-level micronavigation: STOP. Reason flags:\n");
 				for(int i=0; i<32; i++)
 				{
 					if(cur_xymove.micronavi_stop_flags&(1UL<<i))
@@ -1143,7 +1143,7 @@ void* main_thread()
 			{
 				feedback_stop_flags_processed = 1;
 				int stop_reason = cur_xymove.feedback_stop_flags;
-				printf("INFO: Feedback module reported: %s\n", MCU_FEEDBACK_COLLISION_NAMES[stop_reason]);
+				printf("Feedback module reported: %s\n", MCU_FEEDBACK_COLLISION_NAMES[stop_reason]);
 				if(mapping_on)
 				{
 					map_collision_obstacle(&world, cur_ang, cur_x, cur_y, stop_reason, cur_xymove.stop_xcel_vector_valid,
@@ -1190,13 +1190,13 @@ void* main_thread()
 			{
 				if(sq(cur_x-charger_first_x) + sq(cur_y-charger_first_y) > sq(300))
 				{
-					printf("INFO: We are not at the first charger point, trying again.\n");
+					printf("We are not at the first charger point, trying again.\n");
 					find_charger_state = 1;
 				}
 				else
 				{
 					send_info(INFO_STATE_THINK);
-					printf("INFO: At first charger point, turning for charger.\n");
+					printf("At first charger point, turning for charger.\n");
 					turn_and_go_abs_rel(charger_ang, 0, 23, 1);
 					find_charger_state++;
 					chafind_timestamp = subsec_timestamp();
@@ -1213,7 +1213,7 @@ void* main_thread()
 
 				chafind_timestamp = stamp;
 
-				printf("INFO: Turned at first charger point, mapping lidars for exact pos.\n");
+				printf("Turned at first charger point, mapping lidars for exact pos.\n");
 
 				int32_t da, dx, dy;
 				map_lidars(&world, NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start, &da, &dx, &dy);
@@ -1227,7 +1227,7 @@ void* main_thread()
 		{
 			if(lidar_ignore_over && subsec_timestamp() > chafind_timestamp+3.0)
 			{
-				printf("INFO: Going to second charger point.\n");
+				printf("Going to second charger point.\n");
 				send_info(INFO_STATE_FWD);
 				move_to(charger_second_x, charger_second_y, 0, 0x7f, 20, 1);
 				find_charger_state++;
@@ -1239,7 +1239,7 @@ void* main_thread()
 			{
 				if(sq(cur_x-charger_second_x) + sq(cur_y-charger_second_y) > sq(180))
 				{
-					printf("INFO: We are not at the second charger point, trying again.\n");
+					printf("We are not at the second charger point, trying again.\n");
 					find_charger_state = 1;
 				}
 				else
@@ -1270,7 +1270,7 @@ void* main_thread()
 			{
 				chafind_timestamp = stamp;
 				send_info(INFO_STATE_THINK);
-				printf("INFO: Requesting charger mount.\n");
+				printf("Requesting charger mount.\n");
 				hw_find_charger();
 				find_charger_state++;
 			}
@@ -1289,7 +1289,7 @@ void* main_thread()
 			{
 				send_info(INFO_STATE_CHARGING);
 				find_charger_state = 0;
-				printf("INFO: Robot charging succesfully.\n");
+				printf("Robot charging succesfully.\n");
 			}
 		}
 
@@ -1454,7 +1454,7 @@ void* main_thread()
 				lidar_ignore_cnt++;
 
 //				if(p_lid->significant_for_mapping) 
-//				printf("INFO: Ignoring lidar scan with id=%d (significance=%d).\n", p_lid->id, p_lid->significant_for_mapping);
+//				printf("Ignoring lidar scan with id=%d (significance=%d).\n", p_lid->id, p_lid->significant_for_mapping);
 
 				if(lidar_ignore_cnt > 50)
 				{
@@ -1471,7 +1471,7 @@ void* main_thread()
 				lidar_ignore_over = 1;
 
 				int idx_x, idx_y, offs_x, offs_y;
-				//printf("INFO: Got lidar scan. (%d)\n", p_lid->significant_for_mapping);
+				//printf("Got lidar scan. (%d)\n", p_lid->significant_for_mapping);
 
 				static int curpos_send_cnt = 0;
 				curpos_send_cnt++;
@@ -1517,12 +1517,12 @@ void* main_thread()
 						{
 							if(n_lidars_to_map < 5)
 							{
-								printf("INFO: Got DISTORTED significant lidar scan, have too few lidars -> mapping queue reset\n");
+								printf("Got DISTORTED significant lidar scan, have too few lidars -> mapping queue reset\n");
 								n_lidars_to_map = 0;
 							}
 							else
 							{
-								printf("INFO: Got DISTORTED significant lidar scan, running mapping early on previous images\n");
+								printf("Got DISTORTED significant lidar scan, running mapping early on previous images\n");
 								int32_t da, dx, dy;
 								prevent_3dtoffing();
 								map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
@@ -1534,7 +1534,7 @@ void* main_thread()
 						}
 						else
 						{
-							//printf("INFO: Got significant(%d) lidar scan, adding to the mapping queue(%d).\n", p_lid->significant_for_mapping, n_lidars_to_map);
+							//printf("Got significant(%d) lidar scan, adding to the mapping queue(%d).\n", p_lid->significant_for_mapping, n_lidars_to_map);
 							lidars_to_map[n_lidars_to_map] = p_lid;
 
 							n_lidars_to_map++;

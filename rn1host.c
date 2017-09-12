@@ -961,8 +961,17 @@ void* main_thread()
 				read_charger_pos();
 				find_charger_state = 1;
 			}
-			else if(ret == TCP_CR_MODE_MID)
+			else if(ret == TCP_CR_ADDCONSTRAINT_MID)
 			{
+				printf("  ---> ADD CONSTRAINT params: X=%d Y=%d\n", msg_cr_addconstraint.x, msg_cr_addconstraint.y);
+				add_map_constraint(&world, msg_cr_addconstraint.x, msg_cr_addconstraint.y);
+			}
+			else if(ret == TCP_CR_REMCONSTRAINT_MID)
+			{
+				printf("  ---> REMOVE CONSTRAINT params: X=%d Y=%d\n", msg_cr_remconstraint.x, msg_cr_remconstraint.y);
+				remove_map_constraint(&world, msg_cr_remconstraint.x, msg_cr_remconstraint.y);
+			}
+			else if(ret == TCP_CR_MODE_MID)			{
 				printf("Request for MODE %d\n", msg_cr_mode.mode);
 				switch(msg_cr_mode.mode)
 				{

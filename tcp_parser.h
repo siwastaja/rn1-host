@@ -74,6 +74,23 @@ typedef struct __attribute__ ((packed))
 
 extern tcp_cr_manu_t   msg_cr_manu;
 
+#define TCP_CR_ADDCONSTRAINT_MID    60
+typedef struct __attribute__ ((packed))
+{
+	int32_t x;
+	int32_t y;
+} tcp_cr_addconstraint_t;
+
+extern tcp_cr_addconstraint_t   msg_cr_addconstraint;
+
+#define TCP_CR_REMCONSTRAINT_MID    61
+typedef struct __attribute__ ((packed))
+{
+	int32_t x;
+	int32_t y;
+} tcp_cr_remconstraint_t;
+
+extern tcp_cr_remconstraint_t   msg_cr_remconstraint;
 
 #define TCP_RC_POS_MID    130
 typedef struct __attribute__ ((packed))

@@ -2217,3 +2217,21 @@ void dbg_test()
 		printf("DBG_TEST: Automapping: can't go anywhere; daijuing needed.\n");
 	}
 }
+
+void add_map_constraint(world_t* w, int32_t x, int32_t y)
+{
+	int px, py, ox, oy;
+	page_coords(x, y, &px, &py, &ox, &oy);
+	load_1page(w, px, py);
+	w->pages[px][py]->units[ox][oy].constraints |= CONSTRAINT_FORBIDDEN;
+	w->changed[px][py] = 1;
+}
+
+void remove_map_constraint(world_t* w, int32_t x, int32_t y)
+{
+	int px, py, ox, oy;
+	page_coords(x, y, &px, &py, &ox, &oy);
+	load_1page(w, px, py);
+	w->pages[px][py]->units[ox][oy].constraints &= ~(CONSTRAINT_FORBIDDEN);
+	w->changed[px][py] = 1;
+}

@@ -145,5 +145,8 @@ void clear_within_robot(world_t* w, pos_t pos);
 void massive_search_area();
 int doing_autonomous_things();
 
+void add_map_constraint(world_t* w, int32_t x, int32_t y);
+void remove_map_constraint(world_t* w, int32_t x, int32_t y);
+
 
 #endif

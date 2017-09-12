@@ -53,6 +53,21 @@ tcp_message_t msgmeta_cr_manu =
 	1, "b"
 };
 
+tcp_cr_addconstraint_t msg_cr_addconstraint;
+tcp_message_t msgmeta_cr_addconstraint =
+{
+	&msg_cr_addconstraint,
+	TCP_CR_ADDCONSTRAINT_MID,
+	8, "ii"
+};
+
+tcp_cr_remconstraint_t msg_cr_remconstraint;
+tcp_message_t msgmeta_cr_remconstraint =
+{
+	&msg_cr_remconstraint,
+	TCP_CR_REMCONSTRAINT_MID,
+	8, "ii"
+};
 
 #define NUM_CR_MSGS 5
 tcp_message_t* CR_MSGS[NUM_CR_MSGS] =

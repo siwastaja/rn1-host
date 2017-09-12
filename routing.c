@@ -1310,8 +1310,9 @@ void gen_routing_page(world_t *w, int xpage, int ypage, int forgiveness)
 				for(int i = 0; i < 32; i++)
 				{
 					tmp<<=1;
-					uint8_t res = w->pages[xpage][ypage]->units[xx][yy*32+i].result;
-					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (res & UNIT_3D_WALL) || (res & UNIT_ITEM) || (res & UNIT_DROP);
+					uint8_t res  = w->pages[xpage][ypage]->units[xx][yy*32+i].result;
+					uint8_t cons = w->pages[xpage][ypage]->units[xx][yy*32+i].constraints;
+					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (res & UNIT_3D_WALL) || (res & UNIT_ITEM) || (res & UNIT_DROP) || (cons & CONSTRAINT_FORBIDDEN);
 				}
 				w->rpages[xpage][ypage]->obst_u32[xx][yy] = tmp;
 			}
@@ -1321,8 +1322,9 @@ void gen_routing_page(world_t *w, int xpage, int ypage, int forgiveness)
 				for(int i = 0; i < 32; i++)
 				{
 					tmp<<=1;
-					uint8_t res = w->pages[xpage][ypage+1]->units[xx][0*32+i].result;
-					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (res & UNIT_3D_WALL) || (res & UNIT_ITEM) || (res & UNIT_DROP);
+					uint8_t res  = w->pages[xpage][ypage+1]->units[xx][0*32+i].result;
+					uint8_t cons = w->pages[xpage][ypage+1]->units[xx][0*32+i].constraints;
+					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (res & UNIT_3D_WALL) || (res & UNIT_ITEM) || (res & UNIT_DROP) || (cons & CONSTRAINT_FORBIDDEN);
 				}
 				w->rpages[xpage][ypage]->obst_u32[xx][MAP_PAGE_W/32] = tmp;
 			}
@@ -1342,8 +1344,9 @@ void gen_routing_page(world_t *w, int xpage, int ypage, int forgiveness)
 				for(int i = 0; i < 32; i++)
 				{
 					tmp<<=1;
-					uint8_t res = w->pages[xpage][ypage]->units[xx][yy*32+i].result;
-					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (w->pages[xpage][ypage]->units[xx][yy*32+i].num_3d_obstacles < forgiveness);
+					uint8_t res =  w->pages[xpage][ypage]->units[xx][yy*32+i].result;
+					uint8_t cons = w->pages[xpage][ypage]->units[xx][yy*32+i].constraints;
+					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (w->pages[xpage][ypage]->units[xx][yy*32+i].num_3d_obstacles < forgiveness) || (cons & CONSTRAINT_FORBIDDEN);
 				}
 				w->rpages[xpage][ypage]->obst_u32[xx][yy] = tmp;
 			}
@@ -1353,8 +1356,9 @@ void gen_routing_page(world_t *w, int xpage, int ypage, int forgiveness)
 				for(int i = 0; i < 32; i++)
 				{
 					tmp<<=1;
-					uint8_t res = w->pages[xpage][ypage+1]->units[xx][0*32+i].result;
-					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (w->pages[xpage][ypage+1]->units[xx][0*32+i].num_3d_obstacles < forgiveness);
+					uint8_t res  = w->pages[xpage][ypage+1]->units[xx][0*32+i].result;
+					uint8_t cons = w->pages[xpage][ypage+1]->units[xx][0*32+i].constraints;
+					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (w->pages[xpage][ypage+1]->units[xx][0*32+i].num_3d_obstacles < forgiveness) || (cons & CONSTRAINT_FORBIDDEN);
 				}
 				w->rpages[xpage][ypage]->obst_u32[xx][MAP_PAGE_W/32] = tmp;
 			}

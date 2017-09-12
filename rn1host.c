@@ -969,7 +969,13 @@ void* main_thread()
 			else if(ret == TCP_CR_REMCONSTRAINT_MID)
 			{
 				printf("  ---> REMOVE CONSTRAINT params: X=%d Y=%d\n", msg_cr_remconstraint.x, msg_cr_remconstraint.y);
-				remove_map_constraint(&world, msg_cr_remconstraint.x, msg_cr_remconstraint.y);
+				for(int xx=-2; xx<=2; xx++)
+				{
+					for(int yy = -2; yy<=2; yy++)
+					{
+						remove_map_constraint(&world, msg_cr_remconstraint.x + xx*40, msg_cr_remconstraint.y + yy*40);
+					}
+				}
 			}
 			else if(ret == TCP_CR_MODE_MID)			{
 				printf("Request for MODE %d\n", msg_cr_mode.mode);

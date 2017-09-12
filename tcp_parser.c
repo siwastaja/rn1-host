@@ -69,14 +69,16 @@ tcp_message_t msgmeta_cr_remconstraint =
 	8, "ii"
 };
 
-#define NUM_CR_MSGS 5
+#define NUM_CR_MSGS 7
 tcp_message_t* CR_MSGS[NUM_CR_MSGS] =
 {
 	&msgmeta_cr_dest,
 	&msgmeta_cr_route,
 	&msgmeta_cr_charge,
 	&msgmeta_cr_mode,
-	&msgmeta_cr_manu
+	&msgmeta_cr_manu,
+	&msgmeta_cr_addconstraint,
+	&msgmeta_cr_remconstraint
 };
 
 // Robot->Client messages

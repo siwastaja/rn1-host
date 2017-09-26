@@ -590,10 +590,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 						avg_cnt++;
 
 					}
-
-					printf("%4d ", hmap_calib[sx][sy]);
 				}
-				printf("\n");
 			}
 
 			int32_t avg = avg_accum / avg_cnt;
@@ -604,30 +601,43 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 			memcpy(hmap_calib_copy, hmap_calib, sizeof(hmap_calib));
 
 			// Generate robot body ignores:
-			for(int sx = 0; sx < 8; sx++)
+			for(int sx = 0; sx < 10; sx++)
 			{
-				for(int sy = 0; sy < TOF3D_HMAP_YSPOTS-3; sy++)
+				for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
 				{
 					if(hmap_calib_copy[sx][sy] > avg + 70)
 					{
 						body_ignores++;
 						hmap_calib[sx+0][sy+0] = -9999;
 						if(sy>0) hmap_calib[sx+0][sy-1] = -9999;
-						hmap_calib[sx+0][sy+1] = -9999;
+						if(sy<TOF3D_HMAP_YSPOTS-1) hmap_calib[sx+0][sy+1] = -9999;
 						hmap_calib[sx+1][sy+0] = -9999;
 						if(sy>0) hmap_calib[sx+1][sy-1] = -9999;
-						hmap_calib[sx+1][sy+1] = -9999;
+						if(sy<TOF3D_HMAP_YSPOTS-1) hmap_calib[sx+1][sy+1] = -9999;
 						if(sx > 0)
 						{
 							hmap_calib[sx-1][sy+0] = -9999;
 							if(sy>0) hmap_calib[sx-1][sy-1] = -9999;
-							hmap_calib[sx-1][sy+1] = -9999;
+							if(sy<TOF3D_HMAP_YSPOTS-1) hmap_calib[sx-1][sy+1] = -9999;
 						}
 					}
 				}
 			}
 			fwrite(hmap_calib, 2, TOF3D_HMAP_XSPOTS*TOF3D_HMAP_YSPOTS, floor);
 			fclose(floor);
+
+			for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
+			{
+				for(int sx = 0; sx < TOF3D_HMAP_YSPOTS; sx++)
+				{
+					if(hmap_calib[sx][sy] == -9999)
+						printf(" --  ");
+					else
+						printf("%4d ", hmap_calib[sx][sy]);
+				}
+				printf("\n");
+			}
+
 			printf("------------------------------------------------------------------------\n");
 			printf("------------------------- CALIBRATION FINISHED -------------------------\n");
 			printf("------------------------------------------------------------------------\n");

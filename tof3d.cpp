@@ -456,8 +456,11 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 		for(int px=0+2; px < 320-2; px+=2)
 		{
 			float pxang  = (float)(px-160) * ang_per_pixel;
+			#ifdef PULU1
 			float pyang  = (float)(120-py) * ang_per_pixel;
-
+			#else
+			float pyang  = (float)(py-120) * ang_per_pixel;
+			#endif
 			float d = 0;
 
 			if(confiMap[py*320+px] < (_calibrating?(_mode30?75:120):(_mode30?150:240)))

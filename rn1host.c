@@ -1417,7 +1417,7 @@ void* main_thread()
 				#ifdef PULU1
 				if(n_tofs_to_map >= (robot_moving?3:24))
 				#else
-				if(n_tofs_to_map >= (robot_moving?3:12))
+				if(n_tofs_to_map >= (robot_moving?4:20))
 				#endif
 				{
 					int32_t mid_x, mid_y;

@@ -631,7 +631,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 
 			for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
 			{
-				for(int sx = 0; sx < TOF3D_HMAP_YSPOTS; sx++)
+				for(int sx = 0; sx < TOF3D_HMAP_XSPOTS; sx++)
 				{
 					if(hmap_calib[sx][sy] == -9999)
 						printf(" --  ");

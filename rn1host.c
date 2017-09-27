@@ -1346,25 +1346,25 @@ void* main_thread()
 				}
 				else if(obstacle_levels[1] > 70)
 				{
-					if(cur_speedlim > 30)
+					if(cur_speedlim > 25)
 					{
-						cur_speedlim = 30;
+						cur_speedlim = 25;
 						limit_speed(cur_speedlim);
 					}
 				}
 				else if(obstacle_levels[1] > 7)
 				{
-					if(cur_speedlim > 37)
+					if(cur_speedlim > 35)
 					{
-						cur_speedlim = 37;
+						cur_speedlim = 35;
 						limit_speed(cur_speedlim);
 					}
 				}
 				else if(obstacle_levels[0] > 20)
 				{
-					if(cur_speedlim > 45)
+					if(cur_speedlim > 42)
 					{
-						cur_speedlim = 45;
+						cur_speedlim = 42;
 						limit_speed(cur_speedlim);
 					}
 				}

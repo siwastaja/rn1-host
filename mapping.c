@@ -1290,7 +1290,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 	int item_limit = n_tofs/2+1;
 	int drop_limit = n_tofs/3+1;
 	int seen_total_removal_limit = (2*n_tofs)/3+1;
-	int seen_removal_limit = n_tofs/4+1;
+	int seen_removal_limit = 1; //n_tofs/4+1;
 
 	int py = start_py; int oy = start_oy;
 	for(int iy=0; iy < MAP_PAGE_W; iy++)

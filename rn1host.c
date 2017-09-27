@@ -277,7 +277,7 @@ void do_live_obstacle_checking()
 
 					// Do the steer
 					id_cnt = 0; // id0 is reserved for special maneuvers during route following.
-					move_to(best_new_x, best_new_y, 0, (id_cnt<<4) | ((route_pos)&0b1111), 12, 0);
+					move_to(best_new_x, best_new_y, 0, (id_cnt<<4) | ((route_pos)&0b1111), 12, 2 /* auto backmode*/);
 					send_info((side_drifts[best_drift_idx] > 0)?INFO_STATE_RIGHT:INFO_STATE_LEFT);
 					maneuver_cnt++;
 				}

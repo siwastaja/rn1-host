@@ -218,12 +218,12 @@ void do_live_obstacle_checking()
 			int best_new_x = 0, best_new_y = 0;
 
 			const int side_drifts[12] = {320,-320, 240,-240,200,-200,160,-160,120,-120,80,-80};
-			const float drift_angles[5] = {M_PI/4.0, M_PI/6.0, M_PI/8.0, M_PI/12.0, M_PI/16.0};
+			const float drift_angles[4] = {M_PI/6.0, M_PI/8.0, M_PI/12.0, M_PI/16.0};
 
 			int predicted_cur_x = cur_x + cos(ANG32TORAD(cur_ang))*(float)cur_speedlim*2.0;
 			int predicted_cur_y = cur_y + sin(ANG32TORAD(cur_ang))*(float)cur_speedlim*2.0;
 
-			for(int angle_idx=0; angle_idx<5; angle_idx++)
+			for(int angle_idx=0; angle_idx<4; angle_idx++)
 			{
 				for(int drift_idx=0; drift_idx<12; drift_idx++)
 				{

@@ -208,7 +208,7 @@ void do_live_obstacle_checking()
 
 		int hitcnt = check_direct_route_non_turning_hitcnt_mm(cur_x, cur_y, target_x, target_y);
 
-		if(hitcnt > 0 && maneuver_cnt < 3)
+		if(hitcnt > 0 && maneuver_cnt < 2)
 		{
 			// See what happens if we steer left or right
 

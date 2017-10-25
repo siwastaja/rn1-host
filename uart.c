@@ -99,31 +99,86 @@ int send_uart(uint8_t* buf, int len)
 	return 0;
 }
 
+#define UART_RX_BUF_SIZE 65536
+uint8_t uart_rx_buf[UART_RX_BUF_SIZE];
+int uart_rx_wr;
+int uart_rx_rd;
+
+#if SSIZE_MAX > 1000
+#define SECOND_FETCH_AMOUNT 1000
+#else
+#define SECOND_FETCH_AMOUNT SSIZE_MAX
+#endif
+
+/*
+UART packet structure
+
+1 byte: Packet type header
+2 bytes: Packet payload size (little endian)
+Payload 1 to 16384 bytes (arbitrary limitation right now.)
+1 byte: CRC8 over the payload
+
+
+resynchronization sequence:
+0xaa (header) 0x08 0x00 (payload size) 0xff,0xff,0xff,0xff,0xff,0xff,0x12,0xab (payload)  + CRC8 (should be 0x83)
+*/
+
+
+typedef enum
+{
+	S_UART_RESYNC = 0,
+} uart_state_t;
+
+uart_state_t cur_uart_state;
+
 // Call this when there is data in the uart read buffer (using select, for example)
 void handle_uart()
 {
-	static int rxloc = 0;
-	static uint8_t uart_rx_buf[MAXBUF];
-
-	uint8_t byte;
-
-	// TODO: Write this to read as much as there is at once.
-	if(read(uart, &byte, 1) < 0)
+	int amount = UART_RX_BUF_SIZE - uart_rx_wr;
+	if(amount > SSIZE_MAX) amount = SSIZE_MAX; // requirement by read()
+	int ret = read(uart, &uart_rx_fifo[uart_rx_wr], amount);
+	if(ret < 0)
 	{
 		printf("read() (uart) failed");
 		return;
 	}
 
-	if(rxloc > 2000)
-		rxloc = 0;
+	uart_rx_wr += ret;
 
-	if(byte > 127)
+	if(uart_rx_wr > 65536)
 	{
-		parse_uart_msg(uart_rx_buf, rxloc);
-		rxloc = 0;
+		printf("ERROR: uart_wr > 65536! Trying to recover.\n");
+		uart_rx_wr = 0;
+		return;
 	}
 
-	uart_rx_buf[rxloc] = byte;
-	rxloc++;
+	if(uart_rx_wr == 65536)
+	{
+		uart_rx_wr = 0;
+		// We still might have something in the read buffer, try to fetch it:
+		int ret2 = read(uart, &uart_rx_fifo[uart_rx_wr], SECOND_FETCH_AMOUNT);
+		if(ret2 >= 0)
+		{
+			uart_rx_wr += ret2;
+		}
+	}
+
+	// Process everything we have in the buffer
+	while(uart_rx_rd != uart_rx_wr)
+	{
+		static int resync_cnt = 0;
+		static const uint8_t expected_resync[12] = {0xaa,0x80,0x00, 0xff,0xff,0xff,0xff,0xff,0xff,0x12,0xab, 0x83};
+		switch(cur_uart_state)
+		{
+			case S_UART_RESYNC:
+			{
+				if(uart_
+			}
+			break;
+		}
+	}
+
+
+		parse_uart_msg(uart_rx_buf, rxloc);
 }
 

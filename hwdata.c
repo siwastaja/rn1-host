@@ -83,6 +83,7 @@ extern double robot_pos_timestamp;
 pthread_mutex_t cur_pos_mutex = PTHREAD_MUTEX_INITIALIZER;
 int update_robot_pos(int32_t ang, int32_t x, int32_t y)
 {
+	//printf("update_robot_pos(%d, %d, %d)\n", ang, x, y);
 	static int error_cnt = 0;
 	if(   x <= -1*(MAP_PAGE_W_MM*(MAP_W/2-1)) || x >= MAP_PAGE_W_MM*(MAP_W/2-1)
 	   || y <= -1*(MAP_PAGE_W_MM*(MAP_W/2-1)) || y >= MAP_PAGE_W_MM*(MAP_W/2-1) )
@@ -121,54 +122,44 @@ void prevent_3dtoffing()
 
 #define sq(x) ((x)*(x))
 
-int parse_uart_msg(uint8_t* buf, int len)
+#define I16FROMBUFLE(b_, s_)  ( ((uint16_t)b_[(s_)+1]<<8) | ((uint16_t)b_[(s_)+0]<<0) )
+#define I32FROMBUFLE(b_, s_)  ( ((uint32_t)b_[(s_)+3]<<24) | ((uint32_t)b_[(s_)+2]<<16) | ((uint32_t)b_[(s_)+1]<<8) | ((uint32_t)b_[(s_)+0]<<0) )
+
+int parse_uart_msg(uint8_t* buf, int msgid, int len)
 {
-	switch(buf[0])
+	switch(msgid)
 	{
 		case 0x84:
 		{
 			/*
 			 Lidar-based 2D MAP on uart:
+				uint8_t status;
+				uint8_t id;
+				int16_t n_points;
+				pos_t pos_at_start;
+				pos_t pos_at_end;
 
-			num_bytes
-			 1	uint8 start byte
-			 1	uint7 status
-			 1      uint7 id
-			 2	int14 cur_ang (at the middle point of the lidar scan)  (not used for turning the image, just to include robot coords)
-			 5	int32 cur_x   ( " " )
-			 5	int32 cur_y   ( " " )
-			 1	int7  correction return value
-			 2	int14 ang_corr (for information only)
-			 2	int14 x_corr (for information only)
-			 2	int14 y_corr (for information only) 
-			1440	360 * point
-				  2	int14  x referenced to cur_x
-				  2	int14  y referenced to cur_y
-
-				Total: 1461
-				Time to tx at 115200: ~130 ms
-
+				xy_i32_t refxy;
+				xy_i16_t scan[LIDAR_MAX_POINTS];
 			*/
 
-			int32_t mid_ang = (I7I7_U16_lossy(buf[3], buf[4]))<<16;
-			int32_t mid_x = I7x5_I32(buf[5],buf[6],buf[7],buf[8],buf[9]);
-			int32_t mid_y = I7x5_I32(buf[10],buf[11],buf[12],buf[13],buf[14]);
+			int32_t start_ang = I32FROMBUFLE(buf, 4);
+			int32_t start_x   = I32FROMBUFLE(buf, 8);
+			int32_t start_y   = I32FROMBUFLE(buf, 12);
 
-			static int32_t prev_mid_ang, prev_mid_x, prev_mid_y;
+			static int32_t prev_start_ang, prev_start_x, prev_start_y;
 
-			int32_t da = mid_ang - prev_mid_ang; int32_t dx = mid_x - prev_mid_x; int32_t dy = mid_y - prev_mid_y;
+			int32_t da = start_ang - prev_start_ang; int32_t dx = start_x - prev_start_x; int32_t dy = start_y - prev_start_y;
 
-
-			int is_significant = 0; // = buf[1]&0b11;
+			int is_significant = 0;
 
 			if(da < -15*ANG_1_DEG || da > 15*ANG_1_DEG || (sq(dx)+sq(dy)) > sq(50))
 			{ 
 				is_significant = 1;
-				prev_mid_ang = mid_ang;
-				prev_mid_x = mid_x;
-				prev_mid_y = mid_y;
+				prev_start_ang = start_ang;
+				prev_start_x = start_x;
+				prev_start_y = start_y;
 			}
-
 
 			if(is_significant)
 			{
@@ -192,14 +183,14 @@ int parse_uart_msg(uint8_t* buf, int len)
 			lidar_scan_t* lid = is_significant?&significant_lidars[significant_lidar_wr]:&lidars[lidar_wr];
 			latest_lidar = lid;
 			lid->filtered = 0;
-			lid->is_invalid = (buf[1]&4)?1:0;
+			lid->is_invalid = (buf[0]&4)?1:0;
 			lid->significant_for_mapping = is_significant;
-			lid->id = buf[2];
-			lid->robot_pos.ang = mid_ang; 
-			lid->robot_pos.x = mid_x;
-			lid->robot_pos.y = mid_y;
+			lid->id = buf[1];
+			lid->robot_pos.ang = start_ang; 
+			lid->robot_pos.x = start_x;
+			lid->robot_pos.y = start_y;
 
-			if(update_robot_pos(lid->robot_pos.ang, mid_x, mid_y) < 0)
+			if(update_robot_pos(lid->robot_pos.ang, start_x, start_y) < 0)
 			{
 //				printf("UART frame:");
 //				for(int i = 0; i < len; i++) printf(" %02x", buf[i]);
@@ -207,20 +198,24 @@ int parse_uart_msg(uint8_t* buf, int len)
 				break;
 			}
 
-			for(int i = 0; i < 360; i++)
+			int ref_x = I32FROMBUFLE(buf, 28);
+			int ref_y = I32FROMBUFLE(buf, 32);
+
+			lid->n_points = I16FROMBUFLE(buf, 2);
+
+			if(lid->n_points > MAX_LIDAR_POINTS || lid->n_points < 0)
 			{
-				int x = I14x2_I16(buf[22+4*i+0], buf[22+4*i+1])>>2;
-				int y = I14x2_I16(buf[22+4*i+2], buf[22+4*i+3])>>2;
-				if(x != 0 && y != 0)
-				{
-					lid->scan[i].x = x + mid_x;
-					lid->scan[i].y = y + mid_y;
-					lid->scan[i].valid = 1;
-				}
-				else
-				{
-					lid->scan[i].valid = 0;
-				}
+				printf("WARN: Ignoring lidar with invalid n_points=%d\n", lid->n_points);
+				break;
+			}
+
+			for(int i = 0; i < lid->n_points; i++)
+			{
+				int x = (int16_t)I16FROMBUFLE(buf, 36+0+i*4);
+				int y = (int16_t)I16FROMBUFLE(buf, 36+2+i*4);
+				lid->scan[i].x = x + ref_x;
+				lid->scan[i].y = y + ref_y;
+				lid->scan[i].valid = 1;
 			}
 
 			if(is_significant)
@@ -234,11 +229,10 @@ int parse_uart_msg(uint8_t* buf, int len)
 		}
 		break;
 
+/*
 		case 0x85:
 		{
-			/*
-				Sonar-based 2D map
-			*/
+			//	Sonar-based 2D map
 			sonars[sonar_wr].robot_pos.x = I7x5_I32(buf[2],buf[3],buf[4],buf[5],buf[6]);
 			sonars[sonar_wr].robot_pos.y = I7x5_I32(buf[7],buf[8],buf[9],buf[10],buf[11]);
 
@@ -253,12 +247,12 @@ int parse_uart_msg(uint8_t* buf, int len)
 
 		}
 		break;
-
+*/
 		case 0xa0: // current coords without lidar image
 		{
-			if(update_robot_pos((I7I7_U16_lossy(buf[2], buf[3]))<<16, 
-				I7x5_I32(buf[4],buf[5],buf[6],buf[7],buf[8]),
-				I7x5_I32(buf[9],buf[10],buf[11],buf[12],buf[13])) < 0)
+			if(update_robot_pos((I7I7_U16_lossy(buf[1], buf[2]))<<16, 
+				I7x5_I32(buf[3],buf[4],buf[5],buf[6],buf[7]),
+				I7x5_I32(buf[8],buf[9],buf[10],buf[11],buf[12])) < 0)
 			{
 //				printf("UART frame:");
 //				for(int i = 0; i < len; i++) printf(" %02x", buf[i]);
@@ -271,10 +265,10 @@ int parse_uart_msg(uint8_t* buf, int len)
 
 		case 0xa2:
 		{
-			pwr_status.charging = buf[1]&1;
-			pwr_status.charged = buf[1]&2;
-			pwr_status.bat_mv = I7I7_U16_lossy(buf[2], buf[3]);
-			pwr_status.bat_percentage = buf[4];
+			pwr_status.charging = buf[0]&1;
+			pwr_status.charged = buf[0]&2;
+			pwr_status.bat_mv = I7I7_U16_lossy(buf[1], buf[2]);
+			pwr_status.bat_percentage = buf[3];
 		}
 		break;
 
@@ -282,8 +276,8 @@ int parse_uart_msg(uint8_t* buf, int len)
 		{
 			extern int32_t cur_compass_ang;
 			extern int compass_round_active;
-			compass_round_active = buf[1];
-			cur_compass_ang = I7I7_U16_lossy(buf[2], buf[3])<<16;
+			compass_round_active = buf[0];
+			cur_compass_ang = I7I7_U16_lossy(buf[1], buf[2])<<16;
 
 //			printf("cur_compass_ang = %6.1fdeg  %s\n", ANG32TOFDEG(cur_compass_ang), compass_round_active?"CALIBRATING":"");
 		}
@@ -291,17 +285,17 @@ int parse_uart_msg(uint8_t* buf, int len)
 
 		case 0xa5:
 		{
-			cur_xymove.status = buf[1];
-			cur_xymove.id = buf[2];
-			cur_xymove.remaining = I7I7_U16_lossy(buf[3], buf[4]);
-			cur_xymove.micronavi_stop_flags = I7x5_I32(buf[5],buf[6],buf[7],buf[8],buf[9]);
-			cur_xymove.micronavi_action_flags = I7x5_I32(buf[10],buf[11],buf[12],buf[13],buf[14]);
-			cur_xymove.feedback_stop_flags = buf[15];
-			cur_xymove.stop_xcel_vector_valid = buf[16] || buf[17] || buf[18] || buf[19];
+			cur_xymove.status = buf[0];
+			cur_xymove.id = buf[1];
+			cur_xymove.remaining = I7I7_U16_lossy(buf[2], buf[3]);
+			cur_xymove.micronavi_stop_flags = I7x5_I32(buf[4],buf[5],buf[6],buf[7],buf[8]);
+			cur_xymove.micronavi_action_flags = I7x5_I32(buf[9],buf[10],buf[11],buf[12],buf[13]);
+			cur_xymove.feedback_stop_flags = buf[14];
+			cur_xymove.stop_xcel_vector_valid = buf[15] || buf[16] || buf[17] || buf[18];
 			if(cur_xymove.stop_xcel_vector_valid)
 			{
-				int x = I7I7_U16_lossy(buf[16], buf[17]);
-				int y = I7I7_U16_lossy(buf[18], buf[19]);
+				int x = I7I7_U16_lossy(buf[15], buf[16]);
+				int y = I7I7_U16_lossy(buf[17], buf[18]);
 				float ang = atan2(y, x) - M_PI/2.0;
 				if(ang < 0.0) ang += 2.0*M_PI;
 				if(ang < 0.0) ang += 2.0*M_PI;
@@ -315,7 +309,7 @@ int parse_uart_msg(uint8_t* buf, int len)
 		{
 			for(int i=0; i<10; i++)
 			{
-				hwdbg[i] = I7x5_I32(buf[i*5+1],buf[i*5+2],buf[i*5+3],buf[i*5+4],buf[i*5+5]);
+				hwdbg[i] = I7x5_I32(buf[i*5+0],buf[i*5+1],buf[i*5+2],buf[i*5+3],buf[i*5+4]);
 			}
 		}
 		break;

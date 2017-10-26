@@ -36,7 +36,7 @@ typedef struct
 	int32_t y;
 } point_t;
 
-#define LIDAR_SCAN_POINTS 360
+#define MAX_LIDAR_POINTS 720
 
 typedef struct
 {
@@ -45,7 +45,8 @@ typedef struct
 	int is_invalid; // May be distorted due to excessive robot acceleration (collision, drop, etc.)
 	int id; // id can be updated with the correct position message; this way we know when the scan has recent coordinate update done or not.
 	pos_t robot_pos;
-	point_t scan[LIDAR_SCAN_POINTS];
+	int n_points;
+	point_t scan[MAX_LIDAR_POINTS];
 } lidar_scan_t;
 
 typedef struct

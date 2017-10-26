@@ -135,11 +135,41 @@ void tcp_send_info_state(info_state_t state)
 	}
 }
 
-void tcp_send_lidar(lidar_scan_t* p_lid)
+void tcp_send_lidar_lowres(lidar_scan_t* p_lid)
 {
-	const int size = 13+180*2;
+	int points = p_lid->n_points;
+
+	// Use some hysteresis to change the decimation level
+	static int decimation = 2;
+
+	if(decimation == 1)
+	{
+		if(points > 200)
+			decimation = 2;
+	}
+	else if(decimation == 2)
+	{
+		if(points > 200*2)
+			decimation = 3;
+		else if(points < 110*2)
+			decimation = 1;
+	}
+	else if(decimation == 3)
+	{
+		if(points > 200*3)
+			decimation = 4;
+		else if(points < 110*3)
+			decimation = 2;
+	}
+	else if(decimation == 4)
+	{
+		if(points < 110/2)
+			decimation = 3;
+	}
+
+	int size = 13+points/decimation*2;
 	uint8_t buf[size];
-	buf[0] = TCP_RC_LIDAR_MID;
+	buf[0] = TCP_RC_LIDAR_LOWRES_MID;
 	buf[1] = ((size-3)>>8)&0xff;
 	buf[2] = (size-3)&0xff;
 
@@ -151,40 +181,67 @@ void tcp_send_lidar(lidar_scan_t* p_lid)
 	I32TOBUF(r_x, buf, 5);
 	I32TOBUF(r_y, buf, 9);
 
-	for(int i=0; i<360; i+=2)
+	int bufidx = 13;
+	for(int i=0; i<points; i+=decimation)
 	{
-		int x = 0;
-		int y = 0;
-		// to save space, send every other sample; if the first is invalid, the second will be ok.
-		// Also, to save space, send offsets to the middle.
-		// Convert measurements to 4cm/unit so that int8 is enough. range=508cm. Saturate measurements over that.
-		if(p_lid->scan[i].valid)
-		{
-			x = p_lid->scan[i].x - r_x;
-			y = p_lid->scan[i].y - r_y;
-		}
-		else if(p_lid->scan[i+1].valid)
-		{
-			x = p_lid->scan[i+1].x;
-			y = p_lid->scan[i+1].y;
-		}
-		// else send 0,0 to denote invalid point.
+		// save space, send offsets to the middle. Saturate long readings.
+		// Convert measurements to 16cm/unit so that int8 is enough.
+		int x = p_lid->scan[i].x - r_x;
+		int y = p_lid->scan[i].y - r_y;
 
-		x/=40;
-		y/=40;
+		x/=160;
+		y/=160;
 
 		if(x>127) x = 127; else if(x<-128) x=-128;
 		if(y>127) y = 127; else if(y<-128) y=-128;
 
-		// i goes += 2, which is handy here:
-		buf[13+i] = (int8_t)x;
-		buf[13+i+1] = (int8_t)y;
-
+		buf[bufidx] = (int8_t)x;
+		buf[bufidx+1] = (int8_t)y;
+		bufidx+=2;
 	}
 
 	tcp_send(buf, size);
-
 }
+
+
+void tcp_send_lidar_highres(lidar_scan_t* p_lid)
+{
+	int points = p_lid->n_points;
+
+	int size = 13+points*4;
+	uint8_t buf[size];
+	buf[0] = TCP_RC_LIDAR_HIGHRES_MID;
+	buf[1] = ((size-3)>>8)&0xff;
+	buf[2] = (size-3)&0xff;
+
+	int r_ang = p_lid->robot_pos.ang>>16;
+	int r_x = p_lid->robot_pos.x;
+	int r_y = p_lid->robot_pos.y;
+
+	I16TOBUF(r_ang, buf, 3);
+	I32TOBUF(r_x, buf, 5);
+	I32TOBUF(r_y, buf, 9);
+
+	int bufidx = 13;
+	for(int i=0; i<points; i++)
+	{
+		// save space, send offsets to the middle. Saturate long readings.
+		int x = p_lid->scan[i].x - r_x;
+		int y = p_lid->scan[i].y - r_y;
+
+		//printf("(%d, %d) -> (%d, %d)\n", p_lid->scan[i].x, p_lid->scan[i].y, x, y);
+
+		if(x>32767) x = 32767; else if(x<-32768) x=-32768;
+		if(y>32767) y = 32767; else if(y<-32768) y=-32768;
+
+		I16TOBUF(x, buf, bufidx);
+		I16TOBUF(y, buf, bufidx+2);
+		bufidx+=4;
+	}
+
+	tcp_send(buf, size);
+}
+
 
 void tcp_send_sync_request()
 {

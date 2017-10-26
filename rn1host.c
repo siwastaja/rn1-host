@@ -24,11 +24,15 @@
 #include "tcp_parser.h"
 #include "routing.h"
 #include "utlist.h"
+#ifdef DEPTHSENSE
 #include "tof3d.h"
+#endif
 
 #include "mcu_micronavi_docu.c"
 
+#ifdef DEPTHSENSE
 tof3d_scan_t* get_tof3d(void);
+#endif
 
 int max_speedlim = 45;
 int cur_speedlim = 45;
@@ -764,7 +768,9 @@ float cal_y_offset = 0.0;
 float cal_x_sin_mult = 1.125;
 float cal_y_sin_mult = 1.125;
 
+#ifdef DEPTHSENSE
 void request_tof_quit(void);
+#endif
 
 void* main_thread()
 {
@@ -1313,12 +1319,14 @@ void* main_thread()
 		route_fsm();
 		autofsm();
 
+#ifdef DEPTHSENSE
 		{
 			static double prev_incr = 0.0;
 			double stamp;
 			if( (stamp=subsec_timestamp()) > prev_incr+0.15)
 			{
 				prev_incr = stamp;
+
 				extern int32_t tof3d_obstacle_levels[3];
 				extern pthread_mutex_t cur_pos_mutex;
 				int obstacle_levels[3];
@@ -1442,6 +1450,7 @@ void* main_thread()
 			}
 
 		}
+#endif
 
 		lidar_scan_t* p_lid;
 
@@ -1457,9 +1466,9 @@ void* main_thread()
 
 			static int lidar_send_cnt = 0;
 			lidar_send_cnt++;
-			if(lidar_send_cnt > 8)
+			if(lidar_send_cnt > 1)
 			{
-				if(tcp_client_sock >= 0) tcp_send_lidar(p_lid);
+				if(tcp_client_sock >= 0) tcp_send_lidar_highres(p_lid);
 				lidar_send_cnt = 0;
 			}
 
@@ -1473,7 +1482,7 @@ void* main_thread()
 //				if(p_lid->significant_for_mapping) 
 //				printf("Ignoring lidar scan with id=%d (significance=%d).\n", p_lid->id, p_lid->significant_for_mapping);
 
-				if(lidar_ignore_cnt > 50)
+				if(lidar_ignore_cnt > 20)
 				{
 					lidar_ignore_cnt = 0;
 					printf("WARN: lidar id was stuck, fixing...\n");
@@ -1541,7 +1550,9 @@ void* main_thread()
 							{
 								printf("Got DISTORTED significant lidar scan, running mapping early on previous images\n");
 								int32_t da, dx, dy;
+#ifdef DEPTHSENSE
 								prevent_3dtoffing();
+#endif
 								map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
 								INCR_POS_CORR_ID();
 								correct_robot_pos(da, dx, dy, pos_corr_id);
@@ -1559,7 +1570,9 @@ void* main_thread()
 							{
 								if(good_time_for_lidar_mapping) good_time_for_lidar_mapping = 0;
 								int32_t da, dx, dy;
+#ifdef DEPTHSENSE
 								prevent_3dtoffing();
+#endif
 								map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
 								INCR_POS_CORR_ID();
 								correct_robot_pos(da, dx, dy, pos_corr_id);
@@ -1648,15 +1661,17 @@ void* main_thread()
 		}
 	}
 
-
+#ifdef DEPTHSENSE
 	request_tof_quit();
+#endif
 
 	return NULL;
 }
 
 
-
+#ifdef DEPTHSENSE
 void* start_tof(void*);
+#endif
 
 int main(int argc, char** argv)
 {
@@ -1676,16 +1691,20 @@ int main(int argc, char** argv)
 			return -1;
 		}
 	}
+
+#ifdef DEPTHSENSE
 	if( (ret = pthread_create(&thread_tof, NULL, start_tof, (void*)&calib_tof)) )
 	{
 		printf("ERROR: tof3d thread creation, ret = %d\n", ret);
 		return -1;
 	}
-
+#endif
 	if(!calib_tof)
 		pthread_join(thread_main, NULL);
 
+#ifdef DEPTHSENSE
 	pthread_join(thread_tof, NULL);
+#endif
 
 	return 0;
 }

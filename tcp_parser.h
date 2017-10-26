@@ -103,7 +103,7 @@ typedef struct __attribute__ ((packed))
 extern tcp_message_t   msgmeta_rc_pos;
 extern tcp_rc_pos_t    msg_rc_pos;
 
-#define TCP_RC_LIDAR_MID     131
+#define TCP_RC_LIDAR_LOWRES_MID     131
 #define TCP_RC_DBG_MID       132
 #define TCP_RC_SONAR_MID     133
 #define TCP_RC_BATTERY_MID   134
@@ -113,12 +113,14 @@ extern tcp_rc_pos_t    msg_rc_pos;
 #define TCP_RC_HMAP_MID      138
 #define TCP_RC_INFOSTATE_MID 139
 #define TCP_RC_ROBOTINFO_MID 140
+#define TCP_RC_LIDAR_HIGHRES_MID     141
 
 int tcp_parser(int sock);
 
 int tcp_send_msg(tcp_message_t* msg_type, void* msg);
 
-void tcp_send_lidar(lidar_scan_t* p_lid);
+void tcp_send_lidar_lowres(lidar_scan_t* p_lid);
+void tcp_send_lidar_highres(lidar_scan_t* p_lid);
 void tcp_send_hwdbg(int32_t* dbg);
 void tcp_send_sonar(sonar_scan_t* p_son);
 void tcp_send_battery();

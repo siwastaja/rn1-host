@@ -153,7 +153,7 @@ static int prefilter_lidar_list(int n_lidars, lidar_scan_t** lidar_list)
 		lidar_scan_t* lida = lidar_list[la];
 		if(lida->filtered) continue;
 		lida->filtered = 1;
-		for(int pa=0; pa<LIDAR_SCAN_POINTS; pa++)
+		for(int pa=0; pa<lida->n_points; pa++)
 		{
 			if(!lida->scan[pa].valid)
 				continue;
@@ -164,7 +164,7 @@ static int prefilter_lidar_list(int n_lidars, lidar_scan_t** lidar_list)
 
 				lidar_scan_t* lidb = lidar_list[lb];
 
-				for(int pb=0; pb<LIDAR_SCAN_POINTS; pb++)
+				for(int pb=0; pb<lidb->n_points; pb++)
 				{
 					if(!lidb->scan[pb].valid)
 						continue;
@@ -201,7 +201,7 @@ static int prefilter_lidar_list_aggressive(int n_lidars, lidar_scan_t** lidar_li
 	{
 		lidar_scan_t* lida = lidar_list[la];
 
-		for(int pa=0; pa<LIDAR_SCAN_POINTS; pa++)
+		for(int pa=0; pa<lida->n_points; pa++)
 		{
 			if(!lida->scan[pa].valid)
 				continue;
@@ -213,7 +213,7 @@ static int prefilter_lidar_list_aggressive(int n_lidars, lidar_scan_t** lidar_li
 
 				lidar_scan_t* lidb = lidar_list[lb];
 
-				for(int pb=0; pb<LIDAR_SCAN_POINTS; pb++)
+				for(int pb=0; pb<lidb->n_points; pb++)
 				{
 					if(!lidb->scan[pb].valid)
 						continue;
@@ -407,7 +407,7 @@ static int32_t score_quick_search_xy(int8_t *scoremap, int n_lidars, lidar_scan_
 	{
 		lidar_scan_t* lid = lidar_list[l];
 
-		for(int p=0; p<LIDAR_SCAN_POINTS; p++)
+		for(int p=0; p<lid->n_points; p++)
 		{
 			if(!lid->scan[p].valid)
 				continue;
@@ -533,7 +533,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			return -2;
 		}
 		
-		for(int p=0; p<LIDAR_SCAN_POINTS; p++)
+		for(int p=0; p<lid->n_points; p++)
 		{
 			if(!lid->scan[p].valid)
 				continue;
@@ -681,7 +681,7 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		robot_x /= MAP_UNIT_W; robot_y /= MAP_UNIT_W;
 		robot_x += TEMP_MAP_MIDDLE; robot_y += TEMP_MAP_MIDDLE;
 
-		for(int p=0; p<LIDAR_SCAN_POINTS; p++)
+		for(int p=0; p<lid->n_points; p++)
 		{
 			if(!lid->scan[p].valid)
 				continue;
@@ -1391,7 +1391,7 @@ int map_lidar_to_minimap(lidar_scan_t *p_lid)
 
 //	printf("mapping lidar to minimap\n");
 	memset(minimap, 0, MINIMAP_SIZE*(MINIMAP_SIZE/32+1)*sizeof(uint32_t));
-	for(int p=0; p<LIDAR_SCAN_POINTS; p++)
+	for(int p=0; p<p_lid->n_points; p++)
 	{
 		if(!p_lid->scan[p].valid)
 			continue;

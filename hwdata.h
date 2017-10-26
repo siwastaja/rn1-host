@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "datatypes.h"
 
-int parse_uart_msg(uint8_t* buf, int len);
+int parse_uart_msg(uint8_t* buf, int msgid, int len);
 lidar_scan_t* get_basic_lidar();
 lidar_scan_t* get_significant_lidar();
 extern lidar_scan_t* latest_lidar;

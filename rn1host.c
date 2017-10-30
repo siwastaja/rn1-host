@@ -266,8 +266,8 @@ void do_live_obstacle_checking()
 				{
 					cur_speedlim = 18;
 					limit_speed(cur_speedlim);
-//					printf("!!!!!!!!!!   Steering is almost needed (not performed) to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n",
-//						hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
+					printf("!!!!!!!!!!   Steering is almost needed (not performed) to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n",
+						hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
 //					if(tcp_client_sock > 0) tcp_send_dbgpoint(cur_x, cur_y, 210, 210,   110, 1);
 //					if(tcp_client_sock > 0) tcp_send_dbgpoint(best_new_x, best_new_y,   0, 255,   110, 1);
 				}
@@ -291,7 +291,7 @@ void do_live_obstacle_checking()
 //				printf("!!!!!!!!  Steering cannot help in improving line-of-sight.\n");
 				if(hitcnt < 3)
 				{
-//					printf("!!!!!!!!!!!  Direct line-of-sight to the next point has 1..2 obstacles, slowing down.\n");
+					printf("!!!!!!!!!!!  Direct line-of-sight to the next point has 1..2 obstacles, slowing down.\n");
 					cur_speedlim = 18;
 					limit_speed(cur_speedlim);
 				}
@@ -1495,6 +1495,22 @@ void* main_thread()
 				}
 			}
 
+		}
+#else
+		{
+			static double prev_incr = 0.0;
+			double stamp;
+			if( (stamp=subsec_timestamp()) > prev_incr+0.15)
+			{
+				prev_incr = stamp;
+
+				if(cur_speedlim < max_speedlim)
+				{
+					cur_speedlim++;
+					printf("cur_speedlim++ to %d\n", cur_speedlim);
+					limit_speed(cur_speedlim);
+				}
+			}
 		}
 #endif
 

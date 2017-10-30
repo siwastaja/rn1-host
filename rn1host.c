@@ -914,6 +914,25 @@ void* main_thread()
 			{
 				dbg_test();
 			}
+			if(cmd == '1')
+			{
+				printf("Sending dev msg: d1\n");
+				uint8_t bufings[3];
+				bufings[0] = 0xd1;
+				bufings[1] = 0;
+				bufings[2] = 0xff;
+				send_uart(bufings, 3);				
+			}
+			if(cmd == '2')
+			{
+				printf("Sending dev msg: d2\n");
+				uint8_t bufings[3];
+				bufings[0] = 0xd2;
+				bufings[1] = 0;
+				bufings[2] = 0xff;
+				send_uart(bufings, 3);				
+			}
+
 		}
 
 		if(FD_ISSET(uart, &fds))

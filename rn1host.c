@@ -932,6 +932,33 @@ void* main_thread()
 				bufings[2] = 0xff;
 				send_uart(bufings, 3);				
 			}
+			if(cmd == '3')
+			{
+				printf("Sending dev msg: d3\n");
+				uint8_t bufings[3];
+				bufings[0] = 0xd3;
+				bufings[1] = 0;
+				bufings[2] = 0xff;
+				send_uart(bufings, 3);				
+			}
+			if(cmd == '4')
+			{
+				printf("Sending dev msg: d4\n");
+				uint8_t bufings[3];
+				bufings[0] = 0xd4;
+				bufings[1] = 0;
+				bufings[2] = 0xff;
+				send_uart(bufings, 3);				
+			}
+			if(cmd == '5')
+			{
+				printf("Sending dev msg: d5\n");
+				uint8_t bufings[3];
+				bufings[0] = 0xd5;
+				bufings[1] = 0;
+				bufings[2] = 0xff;
+				send_uart(bufings, 3);				
+			}
 
 		}
 

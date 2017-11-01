@@ -197,7 +197,7 @@ void do_live_obstacle_checking()
 		// obstacles are minimized.
 		// so target_x, target_y is only the target which is looked at. It's never a move_to target directly, the next waypoint is.
 
-		const int32_t max_dist_to_next = 1500;
+		const int32_t max_dist_to_next = 1200;
 		if(dist_to_next < max_dist_to_next)
 		{
 			target_x = the_route[route_pos].x;
@@ -596,7 +596,8 @@ void route_fsm()
 				{
 					while(the_route[route_pos].backmode == 0 && route_pos < the_route_len-1)
 					{
-						if(check_direct_route_mm(cur_ang, cur_x, cur_y, the_route[route_pos+1].x, the_route[route_pos+1].y))
+						if( (sq(cur_x-the_route[route_pos+1].x)+sq(cur_y-the_route[route_pos+1].y) < sq(800) )
+						    && check_direct_route_mm(cur_ang, cur_x, cur_y, the_route[route_pos+1].x, the_route[route_pos+1].y))
 						{
 							printf("Maneuver done; skipping point (%d, %d), going directly to (%d, %d)\n", the_route[route_pos].x,
 							       the_route[route_pos].y, the_route[route_pos+1].x, the_route[route_pos+1].y);
@@ -631,7 +632,8 @@ void route_fsm()
 						// Check if we can skip some points:
 						while(the_route[route_pos].backmode == 0 && route_pos < the_route_len-1)
 						{
-							if(check_direct_route_mm(cur_ang, cur_x, cur_y, the_route[route_pos+1].x, the_route[route_pos+1].y))
+							if( (sq(cur_x-the_route[route_pos+1].x)+sq(cur_y-the_route[route_pos+1].y) < sq(800) )
+							  && check_direct_route_mm(cur_ang, cur_x, cur_y, the_route[route_pos+1].x, the_route[route_pos+1].y))
 							{
 								printf("skipping point (%d, %d), going directly to (%d, %d)\n", the_route[route_pos].x,
 								       the_route[route_pos].y, the_route[route_pos+1].x, the_route[route_pos+1].y);
@@ -668,7 +670,7 @@ void route_fsm()
 
 						if(robot_pos_timestamp < stamp-0.20)
 						{
-							printf("Skipping live obstacle checking due to stale robot pos.\n");
+							//printf("Skipping live obstacle checking due to stale robot pos.\n");
 						}
 						else
 						{
@@ -1673,18 +1675,12 @@ void* main_thread()
 				release_motors();
 		}
 
-		sonar_scan_t* p_son;
+		sonar_point_t* p_son;
 		if( (p_son = get_sonar()) )
 		{
-			static int sonar_send_cnt = 0;
-			sonar_send_cnt++;
-			if(sonar_send_cnt > 8)
-			{
-				if(tcp_client_sock >= 0) tcp_send_sonar(p_son);
-				sonar_send_cnt = 0;
-			}
-//			if(mapping_on)
-//				map_sonar(&world, p_son);
+			if(tcp_client_sock >= 0) tcp_send_sonar(p_son);
+			if(mapping_on)
+				map_sonars(&world, 1, p_son);
 		}
 
 		static double prev_sync = 0;

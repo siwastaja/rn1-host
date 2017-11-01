@@ -129,7 +129,7 @@ void page_coords_from_unit_coords(int unit_x, int unit_y, int* pageidx_x, int* p
 int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy);
 void map_next_with_larger_search_area();
 
-void map_sonar(world_t* w, sonar_scan_t* p_son);
+void map_sonars(world_t* w, int n_sonars, sonar_point_t* p_sonars);
 void map_collision_obstacle(world_t* w, int32_t cur_ang, int cur_x, int cur_y, int stop_reason, int vect_valid, float vect_ang_rad);
 
 int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int32_t *my);

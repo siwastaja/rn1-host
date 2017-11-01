@@ -10,7 +10,7 @@ lidar_scan_t* get_significant_lidar();
 extern lidar_scan_t* latest_lidar;
 
 
-sonar_scan_t* get_sonar();
+sonar_point_t* get_sonar();
 
 void send_keepalive();
 void release_motors();

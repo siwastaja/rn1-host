@@ -1611,12 +1611,24 @@ void clear_within_robot(world_t* w, pos_t pos)
 }
 
 
-void map_sonar(world_t* w, sonar_scan_t* p_son)
+void map_sonars(world_t* w, int n_sonars, sonar_point_t* p_sonars)
 {
 	int idx_x, idx_y, offs_x, offs_y;
 
-	// Erase old items, but only if all three sonars show a ping from farther away.
+	for(int i=0; i<n_sonars; i++)
+	{
+		if(p_sonars[i].c >= 2)
+		{
+			page_coords(p_sonars[i].x,p_sonars[i].y, &idx_x, &idx_y, &offs_x, &offs_y);
+			world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM;
+		}
+	}
 
+//	printf("Mapping an item\n");
+
+
+	// Erase old items, but only if all three sonars show a ping from farther away.
+/*
 	if(p_son->scan[0].valid && p_son->scan[1].valid && p_son->scan[2].valid)
 	{
 		float nearest = 2000.0;
@@ -1705,6 +1717,8 @@ void map_sonar(world_t* w, sonar_scan_t* p_son)
 
 		ALREADY_MAPPED_ITEM: ;
 	}
+
+	*/
 }
 
 int unfamiliarity_score(world_t* w, int x, int y)

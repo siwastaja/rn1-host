@@ -270,20 +270,17 @@ void tcp_send_hwdbg(int32_t* dbg)
 	tcp_send(buf, size);
 }
 
-void tcp_send_sonar(sonar_scan_t* p_son)
+void tcp_send_sonar(sonar_point_t* p_son)
 {
-	const int size = 3+1+3*2*4;
+	const int size = 3+4+4+2+1;
 	uint8_t buf[size];
 	buf[0] = TCP_RC_SONAR_MID;
 	buf[1] = ((size-3)>>8)&0xff;
 	buf[2] = (size-3)&0xff;
-	buf[3] = (p_son->scan[2].valid<<2) | (p_son->scan[1].valid<<1) | (p_son->scan[0].valid);
-
-	for(int i=0; i<3; i++)
-	{
-		I32TOBUF(p_son->scan[i].x, buf, 4+i*8);
-		I32TOBUF(p_son->scan[i].y, buf, 8+i*8);
-	}
+	I32TOBUF(p_son->x, buf, 3);
+	I32TOBUF(p_son->y, buf, 3+4);
+	I16TOBUF(p_son->z, buf, 3+4+4);
+	buf[3+4+4+2] = p_son->c;
 	tcp_send(buf, size);
 }
 

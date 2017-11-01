@@ -51,9 +51,11 @@ typedef struct
 
 typedef struct
 {
-	pos_t   robot_pos;
-	point_t scan[3];
-} sonar_scan_t;
+	int32_t x;
+	int32_t y;
+	int16_t z;
+	int8_t c;
+} sonar_point_t;
 
 extern int32_t hwdbg[10];
 

@@ -16,7 +16,7 @@
 
 #define SIGNIFICANT_LIDAR_RING_BUF_LEN 32
 #define LIDAR_RING_BUF_LEN 16
-#define SONAR_RING_BUF_LEN 16
+#define SONAR_RING_BUF_LEN 128
 
 extern double subsec_timestamp();
 
@@ -31,7 +31,7 @@ int sonar_rd = 0;
 lidar_scan_t* latest_lidar;
 lidar_scan_t lidars[LIDAR_RING_BUF_LEN];
 lidar_scan_t significant_lidars[SIGNIFICANT_LIDAR_RING_BUF_LEN];
-sonar_scan_t sonars[SONAR_RING_BUF_LEN];
+sonar_point_t sonars[SONAR_RING_BUF_LEN];
 xymove_t cur_xymove;
 
 int32_t cur_pos_invalid_for_3dtof = 0;
@@ -63,14 +63,14 @@ lidar_scan_t* get_significant_lidar()
 }
 
 
-sonar_scan_t* get_sonar()
+sonar_point_t* get_sonar()
 {
 	if(sonar_wr == sonar_rd)
 	{
 		return 0;
 	}
 	
-	sonar_scan_t* ret = &sonars[sonar_rd];
+	sonar_point_t* ret = &sonars[sonar_rd];
 	sonar_rd++; if(sonar_rd >= SONAR_RING_BUF_LEN) sonar_rd = 0;
 	return ret;
 }
@@ -229,25 +229,20 @@ int parse_uart_msg(uint8_t* buf, int msgid, int len)
 		}
 		break;
 
-/*
 		case 0x85:
 		{
-			//	Sonar-based 2D map
-			sonars[sonar_wr].robot_pos.x = I7x5_I32(buf[2],buf[3],buf[4],buf[5],buf[6]);
-			sonars[sonar_wr].robot_pos.y = I7x5_I32(buf[7],buf[8],buf[9],buf[10],buf[11]);
+			// Sonar-based 2D point
+			sonars[sonar_wr].x = (int32_t)I32FROMBUFLE(buf, 0);
+			sonars[sonar_wr].y = (int32_t)I32FROMBUFLE(buf, 4);
+			sonars[sonar_wr].z = (int16_t)I16FROMBUFLE(buf, 8);
+			sonars[sonar_wr].c = buf[10];
 
-			for(int i = 0; i < 3; i++)
-			{
-				sonars[sonar_wr].scan[i].valid = (buf[1]&(1<<i))?1:0;
-				sonars[sonar_wr].scan[i].x = I7x5_I32(buf[12+10*i],buf[13+10*i],buf[14+10*i],buf[15+10*i],buf[16+10*i]);
-				sonars[sonar_wr].scan[i].y = I7x5_I32(buf[17+10*i],buf[18+10*i],buf[19+10*i],buf[20+10*i],buf[21+10*i]);
-			}
+			printf("SONAR: x=%d   y=%d   z=%d   c=%d\n", sonars[sonar_wr].x, sonars[sonar_wr].y, sonars[sonar_wr].z, sonars[sonar_wr].c);
 
 			sonar_wr++; if(sonar_wr >= SONAR_RING_BUF_LEN) sonar_wr = 0;
-
 		}
 		break;
-*/
+
 		case 0xa0: // current coords without lidar image
 		{
 			if(update_robot_pos((I7I7_U16_lossy(buf[1], buf[2]))<<16, 

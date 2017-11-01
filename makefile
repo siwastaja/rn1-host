@@ -16,7 +16,8 @@ tof3d.o: tof3d.cpp tof3d.h
 	gcc -c -o $@ $< $(CFLAGS) -pthread
 
 rn1host: $(OBJ) tof3d.o
-	c++ $(LDFLAGS) -o rn1host $^ -lm -L/opt/softkinetic/DepthSenseSDK/lib -lDepthSense -pthreadrn1host: $(OBJ) tof3d.o
+	c++ $(LDFLAGS) -o rn1host $^ -lm -L/opt/softkinetic/DepthSenseSDK/lib -lDepthSense -pthread
+
 #rn1host: $(OBJ)
 #	gcc $(LDFLAGS) -o rn1host $^ -lm -pthread
 

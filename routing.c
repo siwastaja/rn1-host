@@ -18,10 +18,16 @@
 float main_robot_xs = 300.0;
 float main_robot_ys = 330.0;
 float main_robot_middle_to_lidar = -90.0;
+
+#elif defined(DELIVERY_BOY)
+float main_robot_xs = 650.0;
+float main_robot_ys = 480.0;
+float main_robot_middle_to_lidar = -120.0;
+
 #else
 float main_robot_xs = 524.0;
 float main_robot_ys = 480.0;
-float main_robot_middle_to_lidar = -120.0;
+float main_robot_middle_to_lidar = -183.0;
 #endif
 
 static void wide_search_mode();

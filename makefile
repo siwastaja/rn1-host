@@ -1,4 +1,4 @@
-MODEL=RN1P4
+MODEL=DELIVERY_BOY
 
 CFLAGS = -D$(MODEL) -Wall -Winline -std=c99 -g
 LDFLAGS = 

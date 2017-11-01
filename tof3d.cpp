@@ -444,6 +444,8 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 	const float top_cam_ang = 
 		#ifdef PULU1
 		(39.0)/360.0*2.0*M_PI;
+		#elif defined(DELIVERY_BOY)
+		(15.0)/360.0*2.0*M_PI;
 		#else
 		(32.0)/360.0*2.0*M_PI;
 		#endif
@@ -455,7 +457,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 	{
 		for(int px=0+2; px < 320-2; px+=2)
 		{
-			#ifdef PULU1
+			#if defined(PULU1) || defined(DELIVERY_BOY)
 			float pxang  = (float)(px-160) * ang_per_pixel;
 			float pyang  = (float)(120-py) * ang_per_pixel;
 			#else
@@ -496,14 +498,20 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 			#ifdef PULU1
 				if(d < 0 || d > 1000) continue;
 			#else
-				if(d < 0 || d > 1800) continue;
+				if(d < 0 || d > 2000) continue;
 			#endif
 
 //			float x = ((d+cal_x_d_offset) * (1.0/cos(pyang)) * sin(pyang+top_cam_ang))*cal_x_sin_mult + cal_x_offset;
 //			float y = ((d+cal_y_d_offset) * (1.0/cos(pxang)) * sin(pxang))*cal_y_sin_mult + cal_y_offset;
 //			float z = -1.0 * d * (1.0/cos(pyang)) * (1.0/cos(pxang)) * cos(pyang+top_cam_ang) + 900.0;
 
-			float x = ((d) * (1.0/cos(pyang)) * sin(pyang+top_cam_ang))*1.15;
+			float x = ((d) * (1.0/cos(pyang)) * sin(pyang+top_cam_ang))*1.15
+				#ifdef DELIVERY_BOY
+					+100.0;
+				#else
+					;
+				#endif
+
 			float y = ((d) * (1.0/cos(pxang)) * sin(pxang))*1.15
 				#ifdef PULU1
 					-20.0;
@@ -513,6 +521,8 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 			float z = -1.0 * d * (1.0/cos(pyang)) * (1.0/cos(pxang)) * cos(pyang+top_cam_ang) + 
 				#ifdef PULU1
 					280.0;
+				#elif defined(DELIVERY_BOY)
+					1050.0;
 				#else
 					900.0;
 				#endif
@@ -562,7 +572,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 		}
 	}
 
-	#define NUM_CALIB_CNT 500
+	#define NUM_CALIB_CNT 400
 	if(_calibrating)
 	{
 		static int calib_cnt = 0;

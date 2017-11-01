@@ -237,7 +237,7 @@ int parse_uart_msg(uint8_t* buf, int msgid, int len)
 			sonars[sonar_wr].z = (int16_t)I16FROMBUFLE(buf, 8);
 			sonars[sonar_wr].c = buf[10];
 
-			printf("SONAR: x=%d   y=%d   z=%d   c=%d\n", sonars[sonar_wr].x, sonars[sonar_wr].y, sonars[sonar_wr].z, sonars[sonar_wr].c);
+			//printf("SONAR: x=%d   y=%d   z=%d   c=%d\n", sonars[sonar_wr].x, sonars[sonar_wr].y, sonars[sonar_wr].z, sonars[sonar_wr].c);
 
 			sonar_wr++; if(sonar_wr >= SONAR_RING_BUF_LEN) sonar_wr = 0;
 		}

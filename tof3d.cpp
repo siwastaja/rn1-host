@@ -522,7 +522,7 @@ void Softkinetic_tof::onNewDepthNodeSampleReceived(DepthSense::DepthNode node, D
 				#ifdef PULU1
 					280.0;
 				#elif defined(DELIVERY_BOY)
-					1050.0;
+					914.0;
 				#else
 					900.0;
 				#endif

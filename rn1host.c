@@ -1487,7 +1487,7 @@ void* main_thread()
 		{
 			static int hwdbg_cnt = 0;
 			hwdbg_cnt++;
-			if(hwdbg_cnt > 4)
+			if(hwdbg_cnt > 0)
 			{
 				if(tcp_client_sock >= 0) tcp_send_hwdbg(hwdbg);
 				hwdbg_cnt = 0;

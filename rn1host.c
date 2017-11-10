@@ -1412,7 +1412,7 @@ void* main_thread()
 				if(hmap_cnt >= 12)
 				{
 //					printf("Send hmap\n");
-					tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, cur_ang, cur_x, cur_y, TOF3D_HMAP_SPOT_SIZE, p_tof->objmap);
+//					tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, cur_ang, cur_x, cur_y, TOF3D_HMAP_SPOT_SIZE, p_tof->objmap);
 //					printf("Done\n");
 					hmap_cnt = 0;
 				}
@@ -1495,7 +1495,7 @@ void* main_thread()
 
 			static int lidar_send_cnt = 0;
 			lidar_send_cnt++;
-			if(lidar_send_cnt > 1)
+			if(lidar_send_cnt > 3)
 			{
 				if(tcp_client_sock >= 0) tcp_send_lidar_highres(p_lid);
 				lidar_send_cnt = 0;

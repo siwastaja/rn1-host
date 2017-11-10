@@ -896,8 +896,10 @@ void* main_thread()
 			}
 			if(cmd == 'l')
 			{
-				read_charger_pos();
-				find_charger_state = 1;
+				hw_find_charger();
+
+//				read_charger_pos();
+//				find_charger_state = 1;
 			}
 			if(cmd == 'v')
 			{
@@ -916,52 +918,15 @@ void* main_thread()
 			{
 				dbg_test();
 			}
-			if(cmd == '1')
+			if(cmd >= '1' && cmd <= '9')
 			{
-				printf("Sending dev msg: d1\n");
 				uint8_t bufings[3];
-				bufings[0] = 0xd1;
+				bufings[0] = 0xd0 + cmd-'0';
 				bufings[1] = 0;
 				bufings[2] = 0xff;
+				printf("Sending dev msg: %x\n", bufings[0]);
 				send_uart(bufings, 3);				
 			}
-			if(cmd == '2')
-			{
-				printf("Sending dev msg: d2\n");
-				uint8_t bufings[3];
-				bufings[0] = 0xd2;
-				bufings[1] = 0;
-				bufings[2] = 0xff;
-				send_uart(bufings, 3);				
-			}
-			if(cmd == '3')
-			{
-				printf("Sending dev msg: d3\n");
-				uint8_t bufings[3];
-				bufings[0] = 0xd3;
-				bufings[1] = 0;
-				bufings[2] = 0xff;
-				send_uart(bufings, 3);				
-			}
-			if(cmd == '4')
-			{
-				printf("Sending dev msg: d4\n");
-				uint8_t bufings[3];
-				bufings[0] = 0xd4;
-				bufings[1] = 0;
-				bufings[2] = 0xff;
-				send_uart(bufings, 3);				
-			}
-			if(cmd == '5')
-			{
-				printf("Sending dev msg: d5\n");
-				uint8_t bufings[3];
-				bufings[0] = 0xd5;
-				bufings[1] = 0;
-				bufings[2] = 0xff;
-				send_uart(bufings, 3);				
-			}
-
 		}
 
 		if(FD_ISSET(uart, &fds))

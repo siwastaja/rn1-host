@@ -69,7 +69,16 @@ tcp_message_t msgmeta_cr_remconstraint =
 	8, "ii"
 };
 
-#define NUM_CR_MSGS 7
+tcp_cr_maintenance_t msg_cr_maintenance;
+tcp_message_t msgmeta_cr_maintenance =
+{
+	&msg_cr_maintenance,
+	TCP_CR_MAINTENANCE_MID,
+	8, "ii"
+};
+
+
+#define NUM_CR_MSGS 8
 tcp_message_t* CR_MSGS[NUM_CR_MSGS] =
 {
 	&msgmeta_cr_dest,
@@ -78,7 +87,8 @@ tcp_message_t* CR_MSGS[NUM_CR_MSGS] =
 	&msgmeta_cr_mode,
 	&msgmeta_cr_manu,
 	&msgmeta_cr_addconstraint,
-	&msgmeta_cr_remconstraint
+	&msgmeta_cr_remconstraint,
+	&msgmeta_cr_maintenance
 };
 
 // Robot->Client messages

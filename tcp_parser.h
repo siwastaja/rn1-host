@@ -92,6 +92,16 @@ typedef struct __attribute__ ((packed))
 
 extern tcp_cr_remconstraint_t   msg_cr_remconstraint;
 
+#define TCP_CR_MAINTENANCE_MID    62
+typedef struct __attribute__ ((packed))
+{
+	int32_t magic;
+	int32_t retval;
+} tcp_cr_maintenance_t;
+
+extern tcp_cr_maintenance_t   msg_cr_maintenance;
+
+
 #define TCP_RC_POS_MID    130
 typedef struct __attribute__ ((packed))
 {

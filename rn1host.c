@@ -774,6 +774,8 @@ float cal_y_sin_mult = 1.125;
 void request_tof_quit(void);
 #endif
 
+volatile int retval = 0;
+
 void* main_thread()
 {
 	int find_charger_state = 0;
@@ -838,7 +840,10 @@ void* main_thread()
 		{
 			int cmd = fgetc(stdin);
 			if(cmd == 'q')
+			{
+				retval = 1;
 				break;
+			}
 			if(cmd == 'S')
 			{
 				save_robot_pos();
@@ -1123,6 +1128,18 @@ void* main_thread()
 					break;
 					default:
 					break;
+				}
+			}		
+			else if(ret == TCP_CR_MAINTENANCE)
+			{
+				if(msg_cr_maintenance.magic == 0x12345678)
+				{
+					retval = msg_cr_maintenance.retval;
+					break;
+				}
+				else
+				{
+					printf("WARN: Illegal maintenance message magic number 0x%08x.\n", msg_cr_maintenance.magic);
 				}
 			}		
 		}
@@ -1729,5 +1746,5 @@ int main(int argc, char** argv)
 	pthread_join(thread_tof, NULL);
 #endif
 
-	return 0;
+	return retval;
 }

@@ -23,6 +23,13 @@ do
 		break
 		;;
 
+	6)	echo "Updating rn1host from github & compiling..."
+		cd ${hostdir}
+		git pull
+		make
+		sleep 1
+		;;
+
 	*)	echo "Restarting rn1host..."
 		;;
 	esac

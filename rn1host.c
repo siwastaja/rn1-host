@@ -841,7 +841,12 @@ void* main_thread()
 			int cmd = fgetc(stdin);
 			if(cmd == 'q')
 			{
-				retval = 1;
+				retval = 0;
+				break;
+			}
+			if(cmd == 'Q')
+			{
+				retval = 5;
 				break;
 			}
 			if(cmd == 'S')

@@ -1519,7 +1519,7 @@ void* main_thread()
 			lidar_send_cnt++;
 			if(lidar_send_cnt > 3)
 			{
-				if(tcp_client_sock >= 0) tcp_send_lidar_highres(p_lid);
+				if(tcp_client_sock >= 0) tcp_send_lidar_lowres(p_lid);
 				lidar_send_cnt = 0;
 			}
 

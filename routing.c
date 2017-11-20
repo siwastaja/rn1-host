@@ -20,8 +20,8 @@ float main_robot_ys = 330.0;
 float main_robot_middle_to_lidar = -90.0;
 
 #elif defined(DELIVERY_BOY)
-float main_robot_xs = 650.0;
-float main_robot_ys = 480.0;
+float main_robot_xs = 650.0 + 40.0;
+float main_robot_ys = 480.0 + 60.0;
 float main_robot_middle_to_lidar = -120.0;
 
 #else
@@ -1388,7 +1388,7 @@ void gen_all_routing_pages(world_t *w, int forgiveness)
 	}
 }
 
-int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_mm, int start_y_mm, int end_x_mm, int end_y_mm)
+int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_mm, int start_y_mm, int end_x_mm, int end_y_mm, int no_tight)
 {
 	routing_world = w;
 
@@ -1398,29 +1398,42 @@ int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_
 	gen_all_routing_pages(w, 0);
 //	printf("done.\n");
 
-	normal_search_mode();
-//	printf("Searching with normal limits...\n");
-
-	int ret;
+	wide_search_mode();
 	if(search2(route, start_ang, start_x_mm, start_y_mm, end_x_mm, end_y_mm))
 	{
-//		printf("Search failed - retrying with tighter limits.\n");
-		tight_search_mode();
-		if( (ret = search2(route, start_ang, start_x_mm, start_y_mm, end_x_mm, end_y_mm)) ) 
+		normal_search_mode();
+	//	printf("Searching with normal limits...\n");
+
+		int ret;
+		if( (ret = search2(route, start_ang, start_x_mm, start_y_mm, end_x_mm, end_y_mm)) )
 		{
-			printf("There is no route.\n");
-			return ret;
+			if(no_tight)
+			{
+				printf("There is no route - didn't try tight search because no_tight was set.\n");
+				return ret;
+			}
+			else
+			{
+		//		printf("Search failed - retrying with tighter limits.\n");
+				tight_search_mode();
+				if( (ret = search2(route, start_ang, start_x_mm, start_y_mm, end_x_mm, end_y_mm)) ) 
+				{
+					printf("There is no route.\n");
+					return ret;
+				}
+				else
+					printf("Found route with TIGHT limits\n");
+			}
 		}
 		else
-			printf("Found route with TIGHT limits\n");
+			printf("Found route with normal limits\n");
 	}
-	else
-		printf("Found route with normal limits\n");
+	printf("Found route with WIDE limits\n");
 
 
 	// tight_search_mode is put into action so that collision avoidance / step skipping/rounding can use it.
 	// TODO: fix this state horror. 
-	tight_search_mode();
+	//tight_search_mode();
 	return 0;
 }
 

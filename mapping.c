@@ -1943,7 +1943,7 @@ void start_automap_only_compass()
 
 extern double subsec_timestamp();
 
-extern int run_search(int32_t dest_x, int32_t dest_y, int dont_map_lidars);
+extern int run_search(int32_t dest_x, int32_t dest_y, int dont_map_lidars, int no_tight);
 
 extern int max_speedlim;
 void autofsm()
@@ -2169,7 +2169,7 @@ void autofsm()
 				max_speedlim = 50;
 			}
 
-			int ret = run_search(desired_x, desired_y, !map_lidars_when_searched);
+			int ret = run_search(desired_x, desired_y, !map_lidars_when_searched, 1 /*no tight search*/);
 			map_lidars_when_searched = 0;
 
 			if(ret == 1)

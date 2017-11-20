@@ -337,16 +337,16 @@ void tcp_send_battery()
 	tcp_send(buf, size);
 }
 
-void tcp_send_route(route_unit_t **route)
+void tcp_send_route(int32_t first_x, int32_t first_y, route_unit_t **route)
 {
 	uint8_t buf[2000];
 	buf[0] = TCP_RC_ROUTEINFO_MID;
 
-	int i = 3;
+	int i = 3+4+4;
 	route_unit_t *rt;
 	DL_FOREACH(*route, rt)
 	{
-		if(i > 1999-9)
+		if(i > 1900)
 		{
 			printf("WARNING: Route too long to be sent to the client. Ignoring the rest.\n");
 			break;
@@ -362,6 +362,8 @@ void tcp_send_route(route_unit_t **route)
 
 	buf[1] = ((i-3)>>8)&0xff;
 	buf[2] = (i-3)&0xff;
+	I32TOBUF(first_x, buf, 3);
+	I32TOBUF(first_y, buf, 7);
 
 	tcp_send(buf, i);
 }

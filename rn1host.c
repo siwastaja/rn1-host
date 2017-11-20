@@ -151,7 +151,7 @@ int run_search(int32_t dest_x, int32_t dest_y, int dont_map_lidars)
 	the_route[len-1].take_next_early = 20;
 
 
-	tcp_send_route(&some_route);
+	tcp_send_route(cur_x, cur_y, &some_route);
 
 	if(some_route)
 	{

@@ -134,7 +134,7 @@ void tcp_send_lidar_highres(lidar_scan_t* p_lid);
 void tcp_send_hwdbg(int32_t* dbg);
 void tcp_send_sonar(sonar_point_t* p_son);
 void tcp_send_battery();
-void tcp_send_route(route_unit_t **route);
+void tcp_send_route(int32_t first_x, int32_t first_y, route_unit_t **route);
 void tcp_send_sync_request();
 void tcp_send_dbgpoint(int x, int y, uint8_t r, uint8_t g, uint8_t b, int persistence);
 void tcp_send_hmap(int xsamps, int ysamps, int32_t ang, int xorig_mm, int yorig_mm, int unit_size_mm, int8_t *hmap);

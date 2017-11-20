@@ -2170,11 +2170,17 @@ void autofsm()
 			}
 
 			int ret = run_search(desired_x, desired_y, !map_lidars_when_searched, 1 /*no tight search*/);
+
+			if(ret == 1)
+				ret = run_search(desired_x, desired_y, !map_lidars_when_searched, 0 /* tight search*/);
+
+
 			map_lidars_when_searched = 0;
 
 			if(ret == 1)
 			{
 				printf("Automapping: run_search() fails in the start due to close obstacles (nonroutable), daijuing for a while.\n");
+
 				send_info(INFO_STATE_DAIJUING);
 				daiju_mode(1);
 				cur_autostate = S_DAIJUING;

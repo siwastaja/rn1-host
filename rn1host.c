@@ -1135,7 +1135,7 @@ void* main_thread()
 					break;
 				}
 			}		
-			else if(ret == TCP_CR_MAINTENANCE)
+			else if(ret == TCP_CR_MAINTENANCE_MID)
 			{
 				if(msg_cr_maintenance.magic == 0x12345678)
 				{

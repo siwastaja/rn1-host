@@ -17,6 +17,8 @@ do
 	10)	echo "Running flasher..."
 		sleep 1
 		$prog
+		sleep 5
+		echo "Restarting rn1host..."
 		;;
 
 	5)	echo "Quitting..."
@@ -28,6 +30,7 @@ do
 		git pull
 		make
 		sleep 1
+		echo "Restarting rn1host..."
 		;;
 
 	*)	echo "Restarting rn1host..."

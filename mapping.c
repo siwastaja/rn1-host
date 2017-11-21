@@ -551,9 +551,10 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 			if(x < 0 || x >= TEMP_MAP_W || y < 0 || y > TEMP_MAP_W)
 			{
-				printf("ERROR: out of range temp map coords (%d, %d) (scan point)\n", x, y);
-				free(temp_map);
-				return -2;
+//				printf("WARN: ignoring out of range temp map coords (%d, %d) (scan point)\n", x, y);
+//				free(temp_map);
+//				return -2;
+				continue;
 			}
 
 			// Mark areas between the robot coords and the current point: "seen".

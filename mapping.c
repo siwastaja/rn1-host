@@ -721,6 +721,11 @@ static int do_mapping(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 			}
 
 			int w_cnt_at_next = 0;
+
+			if(next_x < 1 || next_x >= TEMP_MAP_W-1 || next_y < 1 || next_y >= TEMP_MAP_W-1)
+			{
+				continue;
+			}
 			uint32_t tmp = temp_map[next_y*TEMP_MAP_W+next_x].wall;
 			while(tmp) { w_cnt_at_next++; tmp>>=1;}
 

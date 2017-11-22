@@ -11,9 +11,12 @@ while true
 do
 	touch ${hostdir}/rn1host.lock
 	${hostdir}/rn1host
+	HOSTRET=$?
 	rm -f ${hostdir}/rn1host.lock
 
-	case "$?" in
+	echo "rn1host returned ${HOSTRET}"
+
+	case "$HOSTRET" in
 	10)	echo "Running flasher..."
 		sleep 1
 		$prog

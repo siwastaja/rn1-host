@@ -9,8 +9,12 @@ rm -f ${hostdir}/*.map
 
 while true
 do
+	mv ${hostdir}/log.3.txt ${hostdir}/log.4.txt
+	mv ${hostdir}/log.2.txt ${hostdir}/log.3.txt
+	mv ${hostdir}/log.1.txt ${hostdir}/log.2.txt
+	mv ${hostdir}/log.txt ${hostdir}/log.1.txt
 	touch ${hostdir}/rn1host.lock
-	${hostdir}/rn1host
+	${hostdir}/rn1host > ${hostdir}/log.txt
 	HOSTRET=$?
 	rm -f ${hostdir}/rn1host.lock
 

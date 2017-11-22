@@ -31,6 +31,12 @@ int build_socket(uint16_t port)
 		exit(EXIT_FAILURE);
 	}
 
+	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int)) < 0)
+	{
+    		perror("setsockopt(SO_REUSEADDR) failed");
+		exit(EXIT_FAILURE);
+	}
+
 	name.sin_family = AF_INET;
 	name.sin_port = htons (port);
 	name.sin_addr.s_addr = htonl (INADDR_ANY);

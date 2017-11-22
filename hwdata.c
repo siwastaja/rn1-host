@@ -264,6 +264,7 @@ int parse_uart_msg(uint8_t* buf, int msgid, int len)
 			pwr_status.charged = buf[0]&2;
 			pwr_status.bat_mv = I7I7_U16_lossy(buf[1], buf[2]);
 			pwr_status.bat_percentage = buf[3];
+			printf("bat mv = %d\n", pwr_status.bat_mv);
 		}
 		break;
 

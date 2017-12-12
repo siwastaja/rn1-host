@@ -5,6 +5,7 @@
 #include <math.h>
 #include <unistd.h> // for sleep
 #include <pthread.h> // for mutexing current coords.
+#include <string.h>
 
 #include "mapping.h"
 #include "datatypes.h"
@@ -124,6 +125,22 @@ void prevent_3dtoffing()
 
 #define I16FROMBUFLE(b_, s_)  ( ((uint16_t)b_[(s_)+1]<<8) | ((uint16_t)b_[(s_)+0]<<0) )
 #define I32FROMBUFLE(b_, s_)  ( ((uint32_t)b_[(s_)+3]<<24) | ((uint32_t)b_[(s_)+2]<<16) | ((uint32_t)b_[(s_)+1]<<8) | ((uint32_t)b_[(s_)+0]<<0) )
+
+typedef struct __attribute__((packed))
+{
+	int32_t id;
+	int32_t prev_id;
+	int32_t prev2_id;
+	int32_t prev3_id;
+	int32_t prev4_id;
+	int64_t prev_x;
+	int64_t prev_y;
+	int64_t cur_x;
+	int64_t cur_y;
+} dbg_teleportation_bug_data_t;
+
+dbg_teleportation_bug_data_t buglog;
+
 
 int parse_uart_msg(uint8_t* buf, int msgid, int len)
 {
@@ -307,6 +324,21 @@ int parse_uart_msg(uint8_t* buf, int msgid, int len)
 				hwdbg[i] = I7x5_I32(buf[i*5+0],buf[i*5+1],buf[i*5+2],buf[i*5+3],buf[i*5+4]);
 			}
 		}
+		break;
+
+		case 0xee:
+		{
+			printf("DBG: Got TELEPORTATION BUG ANALYSIS packet: len=%d (expected=%d)\n", len, (int)sizeof(buglog));
+			memcpy(&buglog, buf, len);
+
+			printf("DBG: ID sequence: Last: %d <- %d <- %d <- %d <- %d\n", buglog.id, buglog.prev_id, buglog.prev2_id, buglog.prev3_id, buglog.prev4_id);
+ 			printf("DBG: prev_coords raw: (%lld, %lld) mm: (%ld, %ld), cur_coords raw (%lld, %lld) mm: (%ld, %ld)\n", (long long int)buglog.prev_x, (long long int)buglog.prev_y, buglog.prev_x>>16, buglog.prev_y>>16,
+				(long long int)buglog.cur_x, (long long int)buglog.cur_y, buglog.cur_x>>16, buglog.cur_y>>16);
+
+		}
+		break;
+
+		default:
 		break;
 	}
 

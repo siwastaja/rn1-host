@@ -1,5 +1,6 @@
 
-#include <stdint.h>
+//#include <stdint.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -139,8 +140,19 @@ typedef struct __attribute__((packed))
 	int64_t cur_y;
 } dbg_teleportation_bug_data_t;
 
-dbg_teleportation_bug_data_t buglog;
+typedef struct __attribute__((packed))
+{
+	int32_t wd0;
+	int32_t wd1;
+	int32_t movement;
+	int32_t x_idx;
+	int32_t y_idx;
+	int64_t dx;
+	int64_t dy;
+} dbg_teleportation_extra_t;
 
+dbg_teleportation_bug_data_t buglog;
+dbg_teleportation_extra_t bugextra;
 
 int parse_uart_msg(uint8_t* buf, int msgid, int len)
 {
@@ -332,9 +344,17 @@ int parse_uart_msg(uint8_t* buf, int msgid, int len)
 			memcpy(&buglog, buf, len);
 
 			printf("DBG: ID sequence: Last: %d <- %d <- %d <- %d <- %d\n", buglog.id, buglog.prev_id, buglog.prev2_id, buglog.prev3_id, buglog.prev4_id);
- 			printf("DBG: prev_coords raw: (%lld, %lld) mm: (%ld, %ld), cur_coords raw (%lld, %lld) mm: (%ld, %ld)\n", (long long int)buglog.prev_x, (long long int)buglog.prev_y, buglog.prev_x>>16, buglog.prev_y>>16,
-				(long long int)buglog.cur_x, (long long int)buglog.cur_y, buglog.cur_x>>16, buglog.cur_y>>16);
+ 			printf("DBG: prev_coords raw: (%" PRId64 ", %" PRId64 ") mm: (%d, %d), cur_coords raw (%" PRId64 ", %" PRId64 ") mm: (%d, %d)\n", buglog.prev_x, buglog.prev_y, (int)(buglog.prev_x>>16), (int)(buglog.prev_y>>16),
+				buglog.cur_x, buglog.cur_y, (int)(buglog.cur_x>>16), (int)(buglog.cur_y>>16));
 
+		}
+		break;
+
+		case 0xef:
+		{
+			printf("DBG: Extra info packet: len=%d (expected=%d)\n", len, (int)sizeof(bugextra));
+			memcpy(&bugextra, buf, len);
+			printf("DBG: wd0=%d  wd1=%d  movement=%d  x_idx=%d  y_idx=%d,  dx=%" PRId64 "  dy=%" PRId64 "\n", bugextra.wd0, bugextra.wd1, bugextra.movement, bugextra.x_idx, bugextra.y_idx, bugextra.dx, bugextra.dy);
 		}
 		break;
 

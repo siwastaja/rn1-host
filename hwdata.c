@@ -149,6 +149,10 @@ typedef struct __attribute__((packed))
 	int32_t y_idx;
 	int64_t dx;
 	int64_t dy;
+	int64_t x_before;
+	int64_t y_before;
+	int64_t x_after;
+	int64_t y_after;
 } dbg_teleportation_extra_t;
 
 dbg_teleportation_bug_data_t buglog;
@@ -354,7 +358,10 @@ int parse_uart_msg(uint8_t* buf, int msgid, int len)
 		{
 			printf("DBG: Extra info packet: len=%d (expected=%d)\n", len, (int)sizeof(bugextra));
 			memcpy(&bugextra, buf, len);
-			printf("DBG: wd0=%d  wd1=%d  movement=%d  x_idx=%d  y_idx=%d,  dx=%" PRId64 "  dy=%" PRId64 "\n", bugextra.wd0, bugextra.wd1, bugextra.movement, bugextra.x_idx, bugextra.y_idx, bugextra.dx, bugextra.dy);
+			printf("DBG: wd0=%d  wd1=%d  movement=%d  x_idx=%d  y_idx=%d,  dx=%" PRId64 "  dy=%" PRId64 "  before raw: (%" PRId64 ", %" PRId64 ") mm: (%d, %d) after raw: (%" PRId64 ", %" PRId64 ") mm: (%d, %d)\n",
+				bugextra.wd0, bugextra.wd1, bugextra.movement, bugextra.x_idx, bugextra.y_idx, bugextra.dx, bugextra.dy,
+				bugextra.x_before,bugextra.y_before,(int)(bugextra.x_before>>16),(int)(bugextra.y_before>>16),
+				bugextra.x_after,bugextra.y_after,(int)(bugextra.x_after>>16),(int)(bugextra.y_after>>16));
 		}
 		break;
 

@@ -1339,7 +1339,7 @@ void* main_thread()
 		{
 			if(!pwr_status.charging && !pwr_status.charged)
 			{
-				if(subsec_timestamp() > chafind_timestamp+25.0)
+				if(subsec_timestamp() > chafind_timestamp+90.0)
 				{
 					printf("WARNING: Not charging (charger mount failure?). Retrying driving to charger.\n");
 					find_charger_state = 1;

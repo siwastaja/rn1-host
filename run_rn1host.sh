@@ -22,11 +22,11 @@ do
 	echo "rn1host returned ${HOSTRET}"
 
 	case "$HOSTRET" in
-	1235)	echo "Rebooting the computer..."
+	135)	echo "Rebooting the computer..."
 		shutdown -r now
 		;;
 
-	1236)	echo "Shutting down the computer..."
+	136)	echo "Shutting down the computer..."
 		shutdown -h now
 		;;
 

@@ -22,6 +22,14 @@ do
 	echo "rn1host returned ${HOSTRET}"
 
 	case "$HOSTRET" in
+	1235)	echo "Rebooting the computer..."
+		shutdown -r now
+		;;
+
+	1236)	echo "Shutting down the computer..."
+		shutdown -h now
+		;;
+
 	10)	echo "Running flasher..."
 		sleep 1
 		$prog

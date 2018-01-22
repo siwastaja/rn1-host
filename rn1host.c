@@ -692,16 +692,6 @@ int charger_first_x, charger_first_y, charger_second_x, charger_second_y;
 #define CHARGER_SECOND_DIST 500
 #define CHARGER_THIRD_DIST  170
 
-/*
-void conf_charger_pos_pre()  // call when the robot is *in* the charger.
-{
-	int32_t da, dx, dy;
-	map_lidars(&world, NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start, &da, &dx, &dy);
-	INCR_POS_CORR_ID();
-	correct_robot_pos(da, dx, dy, pos_corr_id);
-}
-*/
-
 void save_robot_pos()
 {
 	FILE* f_cha = fopen("/home/hrst/rn1-host/robot_pos.txt", "w");
@@ -898,10 +888,6 @@ void* main_thread()
 				massive_search_area();
 				printf("Requesting massive search.\n");
 			}
-//			if(cmd == 'K')
-//			{
-//				conf_charger_pos_pre();
-//			}
 			if(cmd == 'L')
 			{
 				conf_charger_pos();

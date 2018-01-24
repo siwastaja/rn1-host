@@ -63,6 +63,7 @@ typedef struct
 {
 	int bat_mv;
 	int bat_percentage;
+	int cha_mv;
 	int charging;
 	int charged;
 } pwr_status_t;

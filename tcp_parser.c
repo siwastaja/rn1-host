@@ -324,7 +324,7 @@ void tcp_send_hmap(int xsamps, int ysamps, int32_t ang, int xorig_mm, int yorig_
 
 void tcp_send_battery()
 {
-	const int size = 7;
+	const int size = 9;
 	uint8_t buf[size];
 	buf[0] = TCP_RC_BATTERY_MID;
 	buf[1] = ((size-3)>>8)&0xff;
@@ -333,6 +333,8 @@ void tcp_send_battery()
 	buf[4] = (pwr_status.bat_mv>>8)&0xff;
 	buf[5] = (pwr_status.bat_mv)&0xff;
 	buf[6] = (pwr_status.bat_percentage)&0xff;
+	buf[7] = (pwr_status.cha_mv>>8)&0xff;
+	buf[8] = (pwr_status.cha_mv)&0xff;
 
 	tcp_send(buf, size);
 }

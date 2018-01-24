@@ -10,6 +10,7 @@ int init_tcp_comm();
 int handle_tcp_client();
 int handle_tcp_listener();
 int tcp_send(uint8_t* buf, int len);
+void tcp_comm_close();
 
 
 

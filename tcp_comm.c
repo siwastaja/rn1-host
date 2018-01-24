@@ -113,6 +113,12 @@ int handle_tcp_client()
 	return ret;
 }
 
+void tcp_comm_close()
+{
+	close(tcp_client_sock);
+	tcp_client_sock = -1;
+}
+
 int tcp_send(uint8_t* buf, int len)
 {
 	int timeout = 100;
@@ -123,15 +129,13 @@ int tcp_send(uint8_t* buf, int len)
 		if(ret < 0)
 		{
 			fprintf(stderr, "ERROR: tcp_send(): socket write error %d (%s). Closing TCP connection.\n", errno, strerror(errno));
-			close(tcp_client_sock);
-			tcp_client_sock = -1;
+			tcp_comm_close();
 			return -1;
 		}
 		else if(ret == 0)
 		{
 			printf("INFO: tcp_send(): write() returned 0, closing TCP connection.\n");
-			close(tcp_client_sock);
-			tcp_client_sock = -1;
+			tcp_comm_close();
 			return -2;
 		}
 		
@@ -146,8 +150,7 @@ int tcp_send(uint8_t* buf, int len)
 			if(timeout == 0)
 			{
 				fprintf(stderr, "ERROR: tcp_send() timeouted because write() doesn't seem to do anything useful. Closing TCP connection.\n");
-				close(tcp_client_sock);
-				tcp_client_sock = -1;
+				tcp_comm_close();
 				return -1;
 			}
 		}

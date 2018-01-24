@@ -531,11 +531,13 @@ int tcp_parser(int sock)
 			ret = read(sock, p_buf, bytes_left);
 			if(ret < 0)
 			{
-				fprintf(stderr, "ERROR: TCP stream read error %d (%s)\n", errno, strerror(errno));
+				fprintf(stderr, "ERROR: TCP stream read error %d (%s), closing socket.\n", errno, strerror(errno));
+				tcp_comm_close();
 			}
 			else if(ret == 0)
 			{
-				fprintf(stderr, "ERROR: TCP stream read() returned 0 bytes even when it shoudln't.\n");
+				fprintf(stderr, "ERROR: TCP stream read() returned 0 bytes even when it shoudln't, closing socket.\n");
+				tcp_comm_close();
 			}
 			else
 			{
@@ -546,7 +548,8 @@ int tcp_parser(int sock)
 
 		if(bytes_left < 0)
 		{
-			fprintf(stderr, "ERROR: bytes_left < 0\n");
+			fprintf(stderr, "ERROR: bytes_left < 0, closing socket.\n");
+			tcp_comm_close();
 			bytes_left = 0;
 		}
 

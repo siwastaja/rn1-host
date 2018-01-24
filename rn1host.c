@@ -828,6 +828,12 @@ void* main_thread()
 			return NULL;
 		}
 
+		static uint8_t pid_i_max = 60;
+		static uint8_t pid_feedfwd = 30;
+		static uint8_t pid_p = 50;
+		static uint8_t pid_i = 50;
+		static uint8_t pid_d = 50;
+
 		if(FD_ISSET(STDIN_FILENO, &fds))
 		{
 			int cmd = fgetc(stdin);
@@ -841,6 +847,7 @@ void* main_thread()
 				retval = 5;
 				break;
 			}
+/*
 			if(cmd == 'S')
 			{
 				save_robot_pos();
@@ -849,7 +856,8 @@ void* main_thread()
 			{
 				retrieve_robot_pos();
 			}
-			if(cmd == 'c')
+*/
+/*			if(cmd == 'c')
 			{
 				printf("Starting automapping from compass round.\n");
 				routing_set_world(&world);
@@ -866,7 +874,7 @@ void* main_thread()
 				printf("Stopping automapping.\n");
 				stop_automapping();
 			}
-			if(cmd == '0')
+*/			if(cmd == '0')
 			{
 				set_robot_pos(0,0,0);
 			}
@@ -912,10 +920,6 @@ void* main_thread()
 					printf("Robot motors enabled again.\n");
 				}
 			}
-			if(cmd == 'd')
-			{
-				dbg_test();
-			}
 			if(cmd >= '1' && cmd <= '9')
 			{
 				uint8_t bufings[3];
@@ -925,6 +929,16 @@ void* main_thread()
 				printf("Sending dev msg: %x\n", bufings[0]);
 				send_uart(bufings, 3);				
 			}
+			if(cmd == 'A') {int tmp = (int)pid_i_max*5/4; if(tmp>255) tmp=255; pid_i_max=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
+			if(cmd == 'a') {int tmp = (int)pid_i_max*3/4; if(tmp<4) tmp=4;     pid_i_max=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
+			if(cmd == 'S') {int tmp = (int)pid_feedfwd*5/4; if(tmp>255) tmp=255; pid_feedfwd=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
+			if(cmd == 's') {int tmp = (int)pid_feedfwd*3/4; if(tmp<3) tmp=4;     pid_feedfwd=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
+			if(cmd == 'D') {int tmp = (int)pid_p*5/4; if(tmp>255) tmp=255; pid_p=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
+			if(cmd == 'd') {int tmp = (int)pid_p*3/4; if(tmp<4) tmp=4;     pid_p=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
+			if(cmd == 'F') {int tmp = (int)pid_i*5/4; if(tmp>255) tmp=255; pid_i=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
+			if(cmd == 'f') {int tmp = (int)pid_i*3/4; if(tmp<4) tmp=4;     pid_i=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
+			if(cmd == 'G') {int tmp = (int)pid_d*5/4; if(tmp>255) tmp=255; pid_d=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
+			if(cmd == 'g') {int tmp = (int)pid_d*3/4; if(tmp<4) tmp=4;     pid_d=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
 		}
 
 		if(FD_ISSET(uart, &fds))

@@ -29,5 +29,7 @@ void stop_movement();
 void limit_speed(int speedlimit);
 void prevent_3dtoffing();
 
+void send_motcon_pid(uint8_t i_max, uint8_t feedfwd, uint8_t p, uint8_t i, uint8_t d);
+
 
 #endif

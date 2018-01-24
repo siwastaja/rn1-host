@@ -473,6 +473,22 @@ void stop_movement()
 	send_uart(buf, 3);
 }
 
+void send_motcon_pid(uint8_t i_max, uint8_t feedfwd, uint8_t p, uint8_t i, uint8_t d)
+{
+	uint8_t buf[6];
+
+	printf("INFO: send_motcon_pid: i_max=%3d  feedfwd=%3d  p=%3d  i=%3d  d=%3d\n", i_max, feedfwd, p, i, d);
+
+	buf[0] = 0xd2;
+	buf[1] = i_max>>1;
+	buf[2] = feedfwd>>1;
+	buf[3] = p>>1;
+	buf[4] = i>>1;
+	buf[5] = d>>1;
+	buf[6] = 0xff;
+	send_uart(buf, 7);
+}
+
 
 void correct_robot_pos(int32_t da, int32_t dx, int32_t dy, int id)
 {

@@ -939,6 +939,8 @@ void* main_thread()
 			if(cmd == 'f') {int tmp = (int)pid_i*3/4; if(tmp<4) tmp=4;     pid_i=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
 			if(cmd == 'G') {int tmp = (int)pid_d*5/4; if(tmp>255) tmp=255; pid_d=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
 			if(cmd == 'g') {int tmp = (int)pid_d*3/4; if(tmp<4) tmp=4;     pid_d=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
+			if(cmd == 'z') {turn_and_go_rel_rel(0, 2000, 25, 1);}
+			if(cmd == 'Z') {turn_and_go_rel_rel(0, -2000, 25, 1);}
 		}
 
 		if(FD_ISSET(uart, &fds))

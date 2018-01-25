@@ -828,11 +828,11 @@ void* main_thread()
 			return NULL;
 		}
 
-		static uint8_t pid_i_max = 60;
+		static uint8_t pid_i_max = 30;
 		static uint8_t pid_feedfwd = 30;
-		static uint8_t pid_p = 50;
-		static uint8_t pid_i = 50;
-		static uint8_t pid_d = 50;
+		static uint8_t pid_p = 100;
+		static uint8_t pid_i = 20;
+		static uint8_t pid_d = 20;
 
 		if(FD_ISSET(STDIN_FILENO, &fds))
 		{

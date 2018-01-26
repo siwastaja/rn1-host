@@ -1625,7 +1625,7 @@ void map_sonars(world_t* w, int n_sonars, sonar_point_t* p_sonars)
 	{
 		if(p_sonars[i].c >= 2 && p_sonars[i].z > 40 && p_sonars[i].z < 1600)
 		{
-			printf("Mapping a sonar item at (%d, %d) z=%d c=%d\n", p_sonars[i].x, p_sonars[i].y, p_sonars[i].z, p_sonars[i].c);
+			//printf("Mapping a sonar item at (%d, %d) z=%d c=%d\n", p_sonars[i].x, p_sonars[i].y, p_sonars[i].z, p_sonars[i].c);
 			page_coords(p_sonars[i].x,p_sonars[i].y, &idx_x, &idx_y, &offs_x, &offs_y);
 			world.pages[idx_x][idx_y]->units[offs_x][offs_y].result |= UNIT_ITEM;
 		}

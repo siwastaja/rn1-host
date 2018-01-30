@@ -1,10 +1,34 @@
+/*
+	PULUROBOT RN1-HOST Computer-on-RobotBoard main software
 
-//#include <stdint.h>
+	(c) 2017-2018 Pulu Robotics and other contributors
+	Maintainer: Antti Alhonen <antti.alhonen@iki.fi>
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License version 2, as 
+	published by the Free Software Foundation.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	GNU General Public License version 2 is supplied in file LICENSING.
+
+
+
+	Hardware (embedded, i.e., rn-1brain) access layer.
+	This module is one level up from uart.c
+	Provides abstract functions for giving commands to the microcontroller
+	Parses data coming from the microcontroller.
+
+*/
+
+
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <unistd.h> // for sleep
 #include <pthread.h> // for mutexing current coords.
 #include <string.h>
 

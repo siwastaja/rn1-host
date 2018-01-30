@@ -1,3 +1,26 @@
+/*
+	PULUROBOT RN1-HOST Computer-on-RobotBoard main software
+
+	(c) 2017-2018 Pulu Robotics and other contributors
+	Maintainer: Antti Alhonen <antti.alhonen@iki.fi>
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License version 2, as 
+	published by the Free Software Foundation.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	GNU General Public License version 2 is supplied in file LICENSING.
+
+
+	UART communication module:
+	configures the serial port
+	parses the datastream framing structure, checks for errors
+*/
+
 #define _BSD_SOURCE  // glibc backwards incompatibility workaround to bring usleep back.
 #include <stdint.h>
 #include <termios.h>
@@ -50,16 +73,13 @@ static int set_uart_attribs(int fd, int speed)
 
 int uart;
 
-//const char serial_dev[] = "/dev/serial0";
-const char serial_dev[] = "/dev/ttyUSB0";
-
 int init_uart()
 {
-	uart = open(serial_dev, O_RDWR | O_NOCTTY | O_NONBLOCK);
+	uart = open(SERIAL_DEV, O_RDWR | O_NOCTTY | O_NONBLOCK);
 
 	if(uart < 0)
 	{
-		printf("error %d opening %s: %s\n", errno, serial_dev, strerror(errno));
+		printf("error %d opening %s: %s\n", errno, SERIAL_DEV, strerror(errno));
 		return 1;
 	}
 

@@ -1,3 +1,42 @@
+/*
+	PULUROBOT RN1-HOST Computer-on-RobotBoard main software
+
+	(c) 2017-2018 Pulu Robotics and other contributors
+	Maintainer: Antti Alhonen <antti.alhonen@iki.fi>
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License version 2, as 
+	published by the Free Software Foundation.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	GNU General Public License version 2 is supplied in file LICENSING.
+
+
+	Routefinding/routeplanning module
+
+	A modified version of Theta Star algorithm is implemented. This algorithm
+	takes the robot shape into account: any shape is programmable in the discrete
+	lookup table! Shape lookup generation code is supplied for any rectangular shape.
+
+	This algorithm understand how the robot needs to turn around its origin fairly
+	well. So, in addition to line-of-sight checks, turning check is performed as well.
+
+	Backing off mid-route is not supported, but it's a very rare case anyway (mostly
+	only seen in puzzles, not real world). Backing off in the beginning of the route
+	works well. This also works mid route in case the robot gets stuck, as
+	the routing will be redone.
+
+	A 60x speed increase has already been optimized in compared to the first dumb
+	implementation,	but I'm sure there's still a lot to do.
+
+	One "routing unit" is 40x40mm.
+
+*/
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1200,6 +1239,9 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 }
 
 /*
+
+search2():
+
 Return values:
 
 0 success
@@ -1218,12 +1260,12 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 {
 
 #define SRCH_NUM_A 23
-	static const int a_s[SRCH_NUM_A] = 
+	static const int a_s[SRCH_NUM_A] =   // back-off angles in degs
 	{	0,	-4,	4,	-8,	8,	-12,	12,	-18,	18,	-24,	24,	-36,	36,	-48,	48,	-60,	60,	-72,	72, 	-84,	84,	-96,	96	};
 
 
 #define SRCH_NUM_BACK 18
-	static const int b_s[SRCH_NUM_BACK] = 
+	static const int b_s[SRCH_NUM_BACK] = // back-offs in mm - positive backoffs are actually forward :-).
 	{	80,	120,	160,	240,	280,	320,	400,	480,	-320,	-400,	-280,	-240,	-200,	-480,	-160,	-120,	-80,	-560	};
 
 
@@ -1293,16 +1335,12 @@ int search2(route_unit_t **route, float start_ang, int start_x_mm, int start_y_m
 
 void gen_routing_page(world_t *w, int xpage, int ypage, int forgiveness)
 {
-//	if((xpage > 124 && xpage < 130) && (ypage > 124 && ypage < 130)) printf("gen_routing_page (%d, %d)\n", xpage, ypage);
 	if(!w->pages[xpage][ypage])
 	{
-//		if((xpage > 124 && xpage < 130) && (ypage > 124 && ypage < 130)) printf("Unallocated page.\n");
 		return;
 	}
 	if(!w->rpages[xpage][ypage])
 	{
-//		if((xpage > 124 && xpage < 130) && (ypage > 124 && ypage < 130)) printf("mallocing...\n");
-
 		w->rpages[xpage][ypage] = malloc(sizeof(routing_page_t));
 	}
 
@@ -1431,9 +1469,9 @@ int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_
 	printf("Found route with WIDE limits\n");
 
 
-	// tight_search_mode is put into action so that collision avoidance / step skipping/rounding can use it.
+	// normal_search_mode is put into action so that collision avoidance / step skipping/rounding can use it.
 	// TODO: fix this state horror. 
-	//tight_search_mode();
+	normal_search_mode();
 	return 0;
 }
 

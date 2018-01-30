@@ -1,4 +1,22 @@
 /*
+	PULUROBOT RN1-HOST Computer-on-RobotBoard main software
+
+	(c) 2017-2018 Pulu Robotics and other contributors
+	Maintainer: Antti Alhonen <antti.alhonen@iki.fi>
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License version 2, as 
+	published by the Free Software Foundation.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	GNU General Public License version 2 is supplied in file LICENSING.
+
+
+
 	This module connects to a SoftKinetic DS325 camera, processes the depthmap and forms an object map.
 
 	Object map values defined in tof3d.h.
@@ -15,7 +33,10 @@
 	is developed, the DS325 and lidar will be both replaced with a few of those.
 
 	This module is in C++ because the DS325 SDK is in C++.
+
+
 */
+
 
 #include "DepthSense.hxx"
 #include <list>

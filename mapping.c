@@ -1,3 +1,29 @@
+/*
+	PULUROBOT RN1-HOST Computer-on-RobotBoard main software
+
+	(c) 2017-2018 Pulu Robotics and other contributors
+	Maintainer: Antti Alhonen <antti.alhonen@iki.fi>
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License version 2, as 
+	published by the Free Software Foundation.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	GNU General Public License version 2 is supplied in file LICENSING.
+
+
+	SLAM module:
+	- 2D LIDAR scan prefiltering
+	- 2D LIDAR scan matching algorithm
+	- Sonar, mechanical obstacle, 3DTOF mapping (no localization based on these)
+	- Exploration (autonomous mapping) - consider refactoring to its own module
+
+*/
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1728,6 +1754,12 @@ void map_sonars(world_t* w, int n_sonars, sonar_point_t* p_sonars)
 	*/
 }
 
+
+
+/*
+	Autonomous Exploration code starts here
+*/
+
 int unfamiliarity_score(world_t* w, int x, int y)
 {
 	int n_walls = 0;
@@ -1768,7 +1800,7 @@ typedef struct
 // This list is populated when going towards a (desired_x,desired_y) destination leads to stop, or the dest is not reached within sensible time.
 // Places near the ones in this list are ignored when finding unfamiliar places.
 // The list is purposedly overwritten so that we try again older places, in case the conditions have changed.
-// TODO: move this to work per every world.
+// TODO: make this work per every world, now only one world supported.
 
 #define CANT_GOTO_PLACE_LIST_LEN 64
 cant_goto_place_t cant_goto_places[CANT_GOTO_PLACE_LIST_LEN];

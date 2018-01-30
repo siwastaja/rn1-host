@@ -1,10 +1,29 @@
+/*
+	PULUROBOT RN1-HOST Computer-on-RobotBoard main software
+
+	(c) 2017-2018 Pulu Robotics and other contributors
+	Maintainer: Antti Alhonen <antti.alhonen@iki.fi>
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License version 2, as 
+	published by the Free Software Foundation.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	GNU General Public License version 2 is supplied in file LICENSING.
+
+
+
+*/
+
 #ifndef MAP_MEMDISK_H
 #define MAP_MEMDISK_H
 
 #include <stdint.h>
 #include "mapping.h"
-
-#define MAP_DIR "/home/hrst/rn1-host"
 
 // Disk access; file name is generated and the page is stored/read.
 int write_map_page(world_t* w, int pagex, int pagey);

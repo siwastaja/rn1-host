@@ -43,14 +43,14 @@
 #define DEGTORAD(x) ((x)*((2.0*M_PI)/360.0))
 #define RADTOANG32(x) ( (int32_t)((((float)(x)) / (2.0*M_PI)) * 4294967296.0))
 
-typedef struct
+typedef struct __attribute__((packed))
 {
 	int32_t ang; // int32_t range --> -180..+180 deg; let it overflow freely. 1 unit = 83.81903171539 ndeg
 	int32_t x;   // in mm
 	int32_t y;
 } pos_t;
 
-typedef struct
+typedef struct __attribute__((packed))
 {
 	int valid;
 	int32_t x;   // in mm

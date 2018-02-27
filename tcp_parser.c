@@ -127,6 +127,39 @@ tcp_rc_pos_t    msg_rc_pos;
 #define I32TOBUF(i_, b_, s_) {b_[(s_)] = ((i_)>>24)&0xff; b_[(s_)+1] = ((i_)>>16)&0xff; b_[(s_)+2] = ((i_)>>8)&0xff; b_[(s_)+3] = ((i_)>>0)&0xff; }
 #define I16TOBUF(i_, b_, s_) {b_[(s_)] = ((i_)>>8)&0xff; b_[(s_)+1] = ((i_)>>0)&0xff; }
 
+void tcp_send_picture(int16_t id, uint8_t bytes_per_pixel, int xs, int ys, uint8_t *pict)
+{
+	if(xs < 1 || ys < 1 || xs > 10000 || ys > 10000 || bytes_per_pixel < 1 || bytes_per_pixel > 4 )
+	{
+		printf("ERROR: tcp_send_picture: invalid params\n.");
+		return;
+	}
+
+	int size=3+2+1+2+2+(xs*ys)*bytes_per_pixel;
+	uint8_t *buf = malloc(size);
+
+	if(!buf)
+	{
+		printf("ERROR: Out of memory in tcp_send_picture\n");
+		return;
+	}
+
+	buf[0] = TCP_RC_PICTURE_MID;
+	buf[1] = ((size-3)>>8)&0xff;
+	buf[2] = (size-3)&0xff;
+
+	I16TOBUF(id, buf, 3);
+	buf[5] = bytes_per_pixel;
+	I16TOBUF(xs, buf, 6);
+	I16TOBUF(ys, buf, 8);
+
+	memcpy(&buf[10], pict, bytes_per_pixel*xs*ys);
+
+	tcp_send(buf, size);
+
+	free(buf);
+}
+
 void tcp_send_robot_info()
 {
 	const int size = 3+8;

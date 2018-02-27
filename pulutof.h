@@ -60,6 +60,7 @@ typedef struct __attribute__((packed))
 
 void request_tof_quit();
 void* pulutof_poll_thread();
+pulutof_frame_t* get_pulutof_frame();
 
 
 #endif

@@ -135,16 +135,17 @@ extern tcp_message_t   msgmeta_rc_pos;
 extern tcp_rc_pos_t    msg_rc_pos;
 
 #define TCP_RC_LIDAR_LOWRES_MID     131
-#define TCP_RC_DBG_MID       132
-#define TCP_RC_SONAR_MID     133
-#define TCP_RC_BATTERY_MID   134
-#define TCP_RC_ROUTEINFO_MID 135
-#define TCP_RC_SYNCREQ_MID   136
-#define TCP_RC_DBGPOINT_MID  137
-#define TCP_RC_HMAP_MID      138
-#define TCP_RC_INFOSTATE_MID 139
-#define TCP_RC_ROBOTINFO_MID 140
-#define TCP_RC_LIDAR_HIGHRES_MID     141
+#define TCP_RC_DBG_MID              132
+#define TCP_RC_SONAR_MID            133
+#define TCP_RC_BATTERY_MID          134
+#define TCP_RC_ROUTEINFO_MID        135
+#define TCP_RC_SYNCREQ_MID          136
+#define TCP_RC_DBGPOINT_MID         137
+#define TCP_RC_HMAP_MID             138
+#define TCP_RC_INFOSTATE_MID        139
+#define TCP_RC_ROBOTINFO_MID        140
+#define TCP_RC_LIDAR_HIGHRES_MID    141
+#define TCP_RC_PICTURE_MID	    142
 
 int tcp_parser(int sock);
 
@@ -161,6 +162,7 @@ void tcp_send_dbgpoint(int x, int y, uint8_t r, uint8_t g, uint8_t b, int persis
 void tcp_send_hmap(int xsamps, int ysamps, int32_t ang, int xorig_mm, int yorig_mm, int unit_size_mm, int8_t *hmap);
 void tcp_send_info_state(info_state_t state);
 void tcp_send_robot_info();
+void tcp_send_picture(int16_t id, uint8_t bytes_per_pixel, int xs, int ys, uint8_t *pict);
 
 
 #endif

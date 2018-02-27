@@ -201,8 +201,11 @@ static int read_frame()
 	}
 	printf("\n");
 
-	// todo: ringbuf_wr++
-	return pulutof_ringbuf[pulutof_ringbuf_wr].status;
+	int ret = pulutof_ringbuf[pulutof_ringbuf_wr].status;
+
+	pulutof_ringbuf_wr++; if(pulutof_ringbuf_wr >= PULUTOF_RINGBUF_LEN) pulutof_ringbuf_wr = 0;
+
+	return ret;
 }
 
 int running = 1;

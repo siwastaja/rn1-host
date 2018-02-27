@@ -1693,6 +1693,16 @@ void* main_thread()
 				release_motors();
 		}
 
+		pulutof_frame_t* p_tof;
+		if( (p_tof = get_pulutof_frame()) )
+		{
+			if(tcp_client_sock >= 0)
+			{
+				tcp_send_picture(1, 1, 160, 60, p_tof->ambient);
+			}
+
+		}
+
 		sonar_point_t* p_son;
 		if( (p_son = get_sonar()) )
 		{

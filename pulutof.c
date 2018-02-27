@@ -23,9 +23,11 @@
 	dtparam=spi=on     is in /boot/config.txt uncommented
 	/dev/spidev0.0 should exist
 
-	If needed:
-	/boot/cmdline.txt:  spidev.bufsiz=xxxxx
-
+	Also:
+	/boot/cmdline.txt:  spidev.bufsiz=65536
+	This often defaults to 4096, which is ridiculously too small.
+	(65535 is hardware maximum for STM32 DMA transfer, so bigger transfers
+	couldn't be easily utilized, anyway.)
 
 */
 
@@ -49,7 +51,7 @@ static int spi_fd;
 
 static const unsigned char spi_mode = SPI_MODE_0;
 static const unsigned char spi_bits_per_word = 8;
-static const unsigned int spi_speed = 10000000; // Hz
+static const unsigned int spi_speed = 25000000; // Hz
 
 static int init_spi()
 {
@@ -99,26 +101,6 @@ static int init_spi()
 	return 0;
 }
 
-/*
-Alternative:
-static int init_spi()
-{
-	
-	if(!bcm2835_init() || !bcm2835_spi_begin())
-	{
-		printf("ERROR: Starting PULUTOF SPI device failed. If not running as root, try that.\n");
-		return -1;
-	}
-
-	bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
-	bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);
-	bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_65536);
-	bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
-	bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);
-
-	return 0;
-}
-*/
 
 static int deinit_spi()
 {
@@ -165,20 +147,27 @@ pulutof_frame_t* get_pulutof_frame()
 static int poll_availability()
 {
 	struct spi_ioc_transfer xfer;
-	uint8_t response;
+	struct response { uint32_t header; uint8_t status;} response;
 
 	memset(&xfer, 0, sizeof(xfer)); // unused fields need to be initialized zero.
 	//xfer.tx_buf left at 0 - documented spidev feature to send out zeroes - we don't have anything to send, just want to get what the sensor wants to send us!
 	xfer.rx_buf = &response;
-	xfer.len = 1;
-	xfer.cs_change = 1; // deassert chip select after the transfer
+	xfer.len = sizeof response;
+	xfer.cs_change = 0; // deassert chip select after the transfer
 
 	if(ioctl(spi_fd, SPI_IOC_MESSAGE(1), &xfer) < 0)
 	{
 		printf("ERROR: spi ioctl transfer operation failed: %d (%s)\n", errno, strerror(errno));
 		return -1;
 	}
-	return response;
+
+	if(response.header != 0x11223344 || response.status == 0)
+	{
+		printf("ERROR: Illegal response in poll_availability: header=0x%08x  status=%d\n", response.header, response.status);
+		return -1;
+	}
+
+	return response.status;
 }
 
 static int read_frame()
@@ -189,7 +178,7 @@ static int read_frame()
 	//xfer.tx_buf left at 0 - documented spidev feature to send out zeroes - we don't have anything to send, just want to get what the sensor wants to send us!
 	xfer.rx_buf = &pulutof_ringbuf[pulutof_ringbuf_wr];
 	xfer.len = sizeof(pulutof_frame_t);
-	xfer.cs_change = 1; // deassert chip select after the transfer
+	xfer.cs_change = 0; // deassert chip select after the transfer
 
 	if(ioctl(spi_fd, SPI_IOC_MESSAGE(1), &xfer) < 0)
 	{
@@ -227,6 +216,8 @@ static int pulutof_poll_thread()
 		}
 
 		read_frame();
+
+
 
 		usleep(1000);
 	}

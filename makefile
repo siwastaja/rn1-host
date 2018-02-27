@@ -1,6 +1,6 @@
 MODEL=DELIVERY_BOY
 
-CFLAGS = -D$(MODEL) -DMAP_DIR=\"/home/hrst/rn1-host\" -DSERIAL_DEV=\"/dev/serial0\" -Wall -Winline -std=c99 -g
+CFLAGS = -D$(MODEL) -DMAP_DIR=\"/home/hrst/rn1-host\" -DSERIAL_DEV=\"/dev/ttyUSB0\" -Wall -Winline -std=c99 -g
 LDFLAGS = 
 
 DEPS = mapping.h uart.h map_memdisk.h datatypes.h hwdata.h tcp_comm.h tcp_parser.h routing.h map_opers.h
@@ -22,4 +22,4 @@ rn1host_without_depthsense: $(OBJ)
 	gcc $(LDFLAGS) -o rn1host $^ -lm -pthread
 
 e:
-	gedit --new-window rn1host.c datatypes.h mapping.h mapping.c hwdata.h hwdata.c tcp_parser.h tcp_parser.c routing.c routing.h tof3d.h tof3d.cpp tcp_comm.c tcp_comm.h uart.c uart.h mcu_micronavi_docu.c map_memdisk.c map_memdisk.h &
+	gedit --new-window rn1host.c datatypes.h mapping.h mapping.c hwdata.h hwdata.c tcp_parser.h tcp_parser.c routing.c routing.h tof3d.h tof3d.cpp tcp_comm.c tcp_comm.h uart.c uart.h mcu_micronavi_docu.c map_memdisk.c map_memdisk.h pulutof.h pulutof.c &

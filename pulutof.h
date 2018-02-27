@@ -42,6 +42,7 @@
 */
 typedef struct __attribute__((packed))
 {
+	uint32_t header;
 	uint8_t status; // Only read this and deassert chip select for polling the status
 	uint8_t dummy1;
 	uint8_t dummy2;
@@ -53,7 +54,7 @@ typedef struct __attribute__((packed))
 	uint8_t  ampl[TOF_XS*TOF_YS];
 	uint8_t  ambient[TOF_XS*TOF_YS];
 
-	uint16_t timestamps[10]; // 0.1ms unit timestamps of various steps for analyzing the timing of low-level processing
+	uint16_t timestamps[24]; // 0.1ms unit timestamps of various steps for analyzing the timing of low-level processing
 
 } pulutof_frame_t;
 

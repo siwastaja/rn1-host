@@ -168,7 +168,7 @@ static int poll_availability()
 		printf("ERROR: Illegal response in poll_availability: header=0x%08x  status=%d\n", response.header, response.status);
 		return -1;
 	}
-
+	//printf("status=%d\n", response.status);
 	return response.status;
 }
 
@@ -191,13 +191,13 @@ static int read_frame()
 	printf("Frame read ok, timing:\n");
 	for(int i=0; i<24; i++)
 	{
-		printf("[%d]:%.1fms ", i, (float)pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]/10.0);
+		printf("%d:%.1f ", i, (float)pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]/10.0);
 	}
 	printf("\n");
 	printf("Time deltas:\n");
 	for(int i=1; i<24; i++)
 	{
-		printf("[%d->%d]:%.1fms ", i-1, i, (float)(pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]-pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i-1])/10.0);
+		printf("%d->%d:%.1f ", i-1, i, (float)(pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]-pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i-1])/10.0);
 	}
 	printf("\n");
 
@@ -235,7 +235,7 @@ void* pulutof_poll_thread()
 
 		if(avail < 250)
 		{
-			printf("Sleeping %d ms\n", avail);
+	//		printf("Sleeping %d ms\n", avail);
 			usleep(1000*avail);
 			continue;
 		}

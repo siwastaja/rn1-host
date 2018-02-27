@@ -46,15 +46,11 @@
 #include "tcp_parser.h"
 #include "routing.h"
 #include "utlist.h"
-#ifdef DEPTHSENSE
-#include "tof3d.h"
-#endif
+
+#include "pulutof.h"
 
 #include "mcu_micronavi_docu.c"
 
-#ifdef DEPTHSENSE
-tof3d_scan_t* get_tof3d(void);
-#endif
 
 int max_speedlim = 45;
 int cur_speedlim = 45;
@@ -782,7 +778,7 @@ float cal_y_offset = 0.0;
 float cal_x_sin_mult = 1.125;
 float cal_y_sin_mult = 1.125;
 
-#ifdef DEPTHSENSE
+#ifdef PULUTOF1
 void request_tof_quit(void);
 #endif
 
@@ -827,7 +823,12 @@ void* main_thread()
 	while(1)
 	{
 		// Calculate fd_set size (biggest fd+1)
-		int fds_size = uart;
+		int fds_size = 
+#ifdef SIMULATE_SERIAL
+			0;
+#else		
+			uart;
+#endif
 		if(tcp_listener_sock > fds_size) fds_size = tcp_listener_sock;
 		if(tcp_client_sock > fds_size) fds_size = tcp_client_sock;
 		if(STDIN_FILENO > fds_size) fds_size = STDIN_FILENO;
@@ -836,7 +837,9 @@ void* main_thread()
 
 		fd_set fds;
 		FD_ZERO(&fds);
+#ifndef SIMULATE_SERIAL
 		FD_SET(uart, &fds);
+#endif
 		FD_SET(STDIN_FILENO, &fds);
 		FD_SET(tcp_listener_sock, &fds);
 		if(tcp_client_sock >= 0)
@@ -965,10 +968,12 @@ void* main_thread()
 			if(cmd == 'Z') {turn_and_go_rel_rel(0, -2000, 25, 1);}
 		}
 
+#ifndef SIMULATE_SERIAL
 		if(FD_ISSET(uart, &fds))
 		{
 			handle_uart();
 		}
+#endif
 
 		if(tcp_client_sock >= 0 && FD_ISSET(tcp_client_sock, &fds))
 		{
@@ -1380,7 +1385,7 @@ void* main_thread()
 		route_fsm();
 		autofsm();
 
-#ifdef DEPTHSENSE
+#if 0 //def PULUTOF1
 		{
 			static double prev_incr = 0.0;
 			double stamp;
@@ -1627,7 +1632,7 @@ void* main_thread()
 							{
 								printf("Got DISTORTED significant lidar scan, running mapping early on previous images\n");
 								int32_t da, dx, dy;
-#ifdef DEPTHSENSE
+#ifdef PULUTOF1
 								prevent_3dtoffing();
 #endif
 								map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
@@ -1647,7 +1652,7 @@ void* main_thread()
 							{
 								if(good_time_for_lidar_mapping) good_time_for_lidar_mapping = 0;
 								int32_t da, dx, dy;
-#ifdef DEPTHSENSE
+#ifdef PULUTOF1
 								prevent_3dtoffing();
 #endif
 								map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
@@ -1732,7 +1737,7 @@ void* main_thread()
 		}
 	}
 
-#ifdef DEPTHSENSE
+#ifdef PULUTOF1
 	request_tof_quit();
 #endif
 
@@ -1740,7 +1745,7 @@ void* main_thread()
 }
 
 
-#ifdef DEPTHSENSE
+#ifdef PULUTOF1
 void* start_tof(void*);
 #endif
 
@@ -1763,8 +1768,8 @@ int main(int argc, char** argv)
 		}
 	}
 
-#ifdef DEPTHSENSE
-	if( (ret = pthread_create(&thread_tof, NULL, start_tof, (void*)&calib_tof)) )
+#ifdef PULUTOF1
+	if( (ret = pthread_create(&thread_tof, NULL, pulutof_poll_thread, NULL)) )
 	{
 		printf("ERROR: tof3d thread creation, ret = %d\n", ret);
 		return -1;
@@ -1773,7 +1778,7 @@ int main(int argc, char** argv)
 	if(!calib_tof)
 		pthread_join(thread_main, NULL);
 
-#ifdef DEPTHSENSE
+#ifdef PULUTOF1
 	pthread_join(thread_tof, NULL);
 #endif
 

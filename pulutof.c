@@ -31,6 +31,8 @@
 
 */
 
+#define _BSD_SOURCE  // glibc backwards incompatibility workaround to bring usleep back.
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -186,12 +188,34 @@ static int read_frame()
 		return -1;
 	}
 
+	printf("Frame read ok, timing:\n");
+	for(int i=0; i<24; i++)
+	{
+		printf("[%d]:%.1fms ", i, (float)pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]/10.0);
+	}
+	printf("\n");
+	printf("Time deltas:\n");
+	for(int i=1; i<24; i++)
+	{
+		printf("[%d->%d]:%.1fms ", i-1, i, (float)(pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]-pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i-1])/10.0);
+	}
+	printf("\n");
+
+	// todo: ringbuf_wr++
 	return pulutof_ringbuf[pulutof_ringbuf_wr].status;
 }
 
-static int pulutof_poll_thread()
+int running = 1;
+
+void request_tof_quit()
 {
-	while(1)
+	running = 0;
+}
+
+void* pulutof_poll_thread()
+{
+	init_spi();
+	while(running)
 	{
 		int next = pulutof_ringbuf_wr+1; if(next >= PULUTOF_RINGBUF_LEN) next = 0;
 		if(next == pulutof_ringbuf_rd)
@@ -211,6 +235,7 @@ static int pulutof_poll_thread()
 
 		if(avail < 250)
 		{
+			printf("Sleeping %d ms\n", avail);
 			usleep(1000*avail);
 			continue;
 		}
@@ -221,8 +246,8 @@ static int pulutof_poll_thread()
 
 		usleep(1000);
 	}
+	deinit_spi();
+
+	return NULL;
 }
-
-
-
 

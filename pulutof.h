@@ -58,6 +58,8 @@ typedef struct __attribute__((packed))
 
 } pulutof_frame_t;
 
+void request_tof_quit();
+void* pulutof_poll_thread();
 
 
 #endif

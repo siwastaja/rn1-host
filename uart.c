@@ -75,6 +75,10 @@ int uart;
 
 int init_uart()
 {
+
+#ifdef SIMULATE_SERIAL
+	return 0;
+#else
 	uart = open(SERIAL_DEV, O_RDWR | O_NOCTTY | O_NONBLOCK);
 
 	if(uart < 0)
@@ -86,11 +90,14 @@ int init_uart()
 	set_uart_attribs(uart, B115200);
 
 	return 0;
-
+#endif
 }
 
 int send_uart(uint8_t* buf, int len)
 {
+#ifdef SIMULATE_SERIAL
+	return 0;
+#else
 	int timeout = 100;
 	while(len > 0)
 	{
@@ -118,6 +125,7 @@ int send_uart(uint8_t* buf, int len)
 	}
 
 	return 0;
+#endif
 }
 
 #define UART_RX_BUF_SIZE 65536

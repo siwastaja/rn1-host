@@ -1713,7 +1713,8 @@ void* main_thread()
 			if(tcp_client_sock >= 0)
 			{
 				tcp_send_picture(p_tof->dbg_id, 2, 160, 60, p_tof->dbg);
-//				tcp_send_picture(99, 1, 160, 60, p_tof->ambient);
+				tcp_send_picture(100,           2, 160, 60, (uint8_t*)p_tof->depth);
+				tcp_send_picture(101,           1, 160, 60, p_tof->ambient);
 			}
 
 		}

@@ -236,6 +236,30 @@ void request_tof_quit()
 	running = 0;
 }
 
+void pulutof_cal_offset()
+{
+	printf("Requesting offset calib\n");
+	struct spi_ioc_transfer xfer;
+	struct cmd { uint32_t header; uint32_t dummy;} cmd;
+
+	cmd.header = 0xca0ff5e7;
+	cmd.dummy = 0;
+
+	memset(&xfer, 0, sizeof(xfer)); // unused fields need to be initialized zero.
+	xfer.tx_buf = &cmd;
+	xfer.rx_buf = NULL;
+	xfer.len = sizeof cmd;
+	xfer.cs_change = 0; // deassert chip select after the transfer
+
+	if(ioctl(spi_fd, SPI_IOC_MESSAGE(1), &xfer) < 0)
+	{
+		printf("ERROR: spi ioctl transfer operation failed: %d (%s)\n", errno, strerror(errno));
+		return;
+	}
+
+}
+
+
 void* pulutof_poll_thread()
 {
 	init_spi();

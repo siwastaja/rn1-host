@@ -67,6 +67,7 @@ pulutof_frame_t* get_pulutof_frame();
 
 void pulutof_decr_dbg();
 void pulutof_incr_dbg();
+void pulutof_cal_offset();
 
 
 #endif

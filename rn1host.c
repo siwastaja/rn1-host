@@ -945,7 +945,15 @@ void* main_thread()
 					printf("Robot motors enabled again.\n");
 				}
 			}
-			if(cmd >= '1' && cmd <= '9')
+			if(cmd == 'z')
+			{
+				pulutof_decr_dbg();
+			}
+			if(cmd == 'x')
+			{
+				pulutof_incr_dbg();
+			}
+/*			if(cmd >= '1' && cmd <= '9')
 			{
 				uint8_t bufings[3];
 				bufings[0] = 0xd0 + cmd-'0';
@@ -966,6 +974,7 @@ void* main_thread()
 			if(cmd == 'g') {int tmp = (int)pid_d*3/4; if(tmp<4) tmp=4;     pid_d=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
 			if(cmd == 'z') {turn_and_go_rel_rel(0, 2000, 25, 1);}
 			if(cmd == 'Z') {turn_and_go_rel_rel(0, -2000, 25, 1);}
+*/
 		}
 
 #ifndef SIMULATE_SERIAL
@@ -1698,7 +1707,7 @@ void* main_thread()
 		{
 			if(tcp_client_sock >= 0)
 			{
-				tcp_send_picture(1, 1, 160, 60, p_tof->ambient);
+				tcp_send_picture(p_tof->dbg_id, 2, 160, 60, p_tof->dbg);
 			}
 
 		}

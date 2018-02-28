@@ -115,6 +115,19 @@ static int deinit_spi()
 	return 0;
 }
 
+volatile int dbg_id = 0;
+
+void pulutof_decr_dbg()
+{
+	if(dbg_id) dbg_id--;
+	printf("PULUTOF dbg_id=%d\n", dbg_id);
+}
+
+void pulutof_incr_dbg()
+{
+	dbg_id++;
+	printf("PULUTOF dbg_id=%d\n", dbg_id);
+}
 
 #define PULUTOF_RINGBUF_LEN 16
 pulutof_frame_t pulutof_ringbuf[PULUTOF_RINGBUF_LEN];
@@ -146,13 +159,19 @@ pulutof_frame_t* get_pulutof_frame()
 	frame read (if the data is not available, you'll hit an old frame, or possibly a corrupted combination of two frames).
 */
 
+
+static uint8_t txbuf[65536];
+
+
 static int poll_availability()
 {
+	txbuf[4] = dbg_id&0xff;	
 	struct spi_ioc_transfer xfer;
 	struct response { uint32_t header; uint8_t status;} response;
 
 	memset(&xfer, 0, sizeof(xfer)); // unused fields need to be initialized zero.
 	//xfer.tx_buf left at 0 - documented spidev feature to send out zeroes - we don't have anything to send, just want to get what the sensor wants to send us!
+	xfer.tx_buf = txbuf;
 	xfer.rx_buf = &response;
 	xfer.len = sizeof response;
 	xfer.cs_change = 0; // deassert chip select after the transfer
@@ -174,10 +193,12 @@ static int poll_availability()
 
 static int read_frame()
 {
+	txbuf[4] = dbg_id&0xff;	
 	struct spi_ioc_transfer xfer;
 	memset(&xfer, 0, sizeof(xfer)); // unused fields need to be initialized zero.
 
 	//xfer.tx_buf left at 0 - documented spidev feature to send out zeroes - we don't have anything to send, just want to get what the sensor wants to send us!
+	xfer.tx_buf = txbuf;
 	xfer.rx_buf = &pulutof_ringbuf[pulutof_ringbuf_wr];
 	xfer.len = sizeof(pulutof_frame_t);
 	xfer.cs_change = 0; // deassert chip select after the transfer

@@ -953,6 +953,11 @@ void* main_thread()
 			{
 				pulutof_incr_dbg();
 			}
+			if(cmd == '1')
+			{
+				pulutof_cal_offset();
+			}
+
 /*			if(cmd >= '1' && cmd <= '9')
 			{
 				uint8_t bufings[3];

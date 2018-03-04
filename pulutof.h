@@ -51,8 +51,9 @@ typedef struct __attribute__((packed))
 	pos_t robot_pos; // Robot pose during the acquisition
 
 	uint16_t depth[TOF_XS*TOF_YS];
-	uint8_t  ampl[TOF_XS*TOF_YS];
-	uint8_t  ambient[TOF_XS*TOF_YS];
+//	uint8_t  ampl[EPC_XS*EPC_YS];
+//	uint8_t  ambient[EPC_XS*EPC_YS];
+	uint16_t uncorrected_depth[TOF_XS*TOF_YS];
 
 	uint8_t dbg_id;
 	uint8_t dbg[2*TOF_XS*TOF_YS];

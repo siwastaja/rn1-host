@@ -215,11 +215,18 @@ static int read_frame()
 		printf("%d:%.1f ", i, (float)pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]/10.0);
 	}
 	printf("\n");
-	printf("Time deltas:\n");
+	printf("Time deltas to:\n");
 	for(int i=1; i<24; i++)
 	{
-		printf("%d->%d:%.1f ", i-1, i, (float)(pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]-pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i-1])/10.0);
+		printf(">%d:%.1f ", i, (float)(pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]-pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i-1])/10.0);
 	}
+	printf("\n");
+	printf("dbg_i32:\n");
+	for(int i=0; i<8; i++)
+	{
+		printf("[%d] %11d  ", i, pulutof_ringbuf[pulutof_ringbuf_wr].dbg_i32[i]);
+	}
+	printf("\n");
 	printf("\n");
 
 	int ret = pulutof_ringbuf[pulutof_ringbuf_wr].status;

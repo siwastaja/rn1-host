@@ -58,6 +58,7 @@ typedef struct __attribute__((packed))
 	uint8_t dbg[2*TOF_XS*TOF_YS];
 
 	uint16_t timestamps[24]; // 0.1ms unit timestamps of various steps for analyzing the timing of low-level processing
+	int32_t  dbg_i32[8];
 
 } pulutof_frame_t;
 

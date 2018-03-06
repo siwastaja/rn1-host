@@ -153,13 +153,13 @@ static float y_angs[TOF_XS*TOF_YS];
 #define GEOCAL_N_X 5
 #define GEOCAL_N_Y 6
 
-typedef struct geocal_point_t
+typedef struct
 {
 	int sens_x;
 	int sens_y;
 	float ang_x;
 	float ang_y;
-};
+} geocal_point_t;
 
 /*
 	Pixel coordinates
@@ -169,17 +169,35 @@ static const geocal_point_t lens_quadrant_coords[GEOCAL_N_Y+1][GEOCAL_N_X+1] =
 	{ { 12,   2,   50.0, 25.0}, { 19,   1,   45.0, 25.0}, { 28,   0,   40.0, 25.0}, { 43,  -1,   30.0, 25.0}, { 62,  -2,   15.0, 25.0}, { 80,  -2,   0, 25.0} },
 	{ { 11,   5,   50.0, 22.5}, { 19,   4,   45.0, 22.5}, { 27,   3,   40.0, 22.5}, { 42,   2,   30.0, 22.5}, { 62,   1,   15.0, 22.5}, { 80,   1,   0, 22.5} },
 	{ { 11,   8,   50.0, 20.0}, { 19,   6,   45.0, 20.0}, { 27,   6,   40.0, 20.0}, { 42,   5,   30.0, 20.0}, { 62,   4,   15.0, 20.0}, { 80,   4,   0, 20.0} },
-	{ { 10,  10,   50.0, 17.5}, { 19,   9,   45.0, 17.5}, { 27,   9,   40.0, 17.5}, { 42,   8,   30.0, 17.5}, { 62,   8,   15.0, 17.5}, { 80,   8,   0, 17.5} },
-	{ { 10,  13,   50.0, 15.0}, { 19,  12,   45.0, 15.0}, { 27,  12,   40.0, 15.0}, { 42,  11,   30.0, 15.0}, { 62,  11,   15.0, 15.0}, { 80,  11,   0, 15.0} },
-	{ { 10,  19,   50.0, 10.0}, { 19,  18,   45.0, 10.0}, { 26,  18,   40.0, 10.0}, { 42,  17,   30.0, 10.0}, { 62,  17,   15.0, 10.0}, { 80,  17,   0, 10.0} },
-	{ { 10,  29,   50.0,  0.0}, { 19,  29,   45.0,  0.0}, { 26,  29,   40.0,  0.0}, { 42,  29,   30.0,  0.0}, { 62,  29,   15.0,  0.0}, { 80,  29,   0,  0.0} }
+	{ { 10,  10,   50.0, 17.5}, { 18,   9,   45.0, 17.5}, { 27,   9,   40.0, 17.5}, { 42,   8,   30.0, 17.5}, { 62,   8,   15.0, 17.5}, { 80,   8,   0, 17.5} },
+	{ { 10,  13,   50.0, 15.0}, { 18,  12,   45.0, 15.0}, { 27,  12,   40.0, 15.0}, { 42,  11,   30.0, 15.0}, { 62,  11,   15.0, 15.0}, { 80,  11,   0, 15.0} },
+	{ { 10,  19,   50.0, 10.0}, { 18,  18,   45.0, 10.0}, { 26,  18,   40.0, 10.0}, { 42,  17,   30.0, 10.0}, { 62,  17,   15.0, 10.0}, { 80,  17,   0, 10.0} },
+	{ { 10,  29,   50.0,  0.0}, { 18,  29,   45.0,  0.0}, { 26,  29,   40.0,  0.0}, { 42,  29,   30.0,  0.0}, { 62,  29,   15.0,  0.0}, { 80,  29,   0,  0.0} }
 };
 
 static float x_angs[TOF_XS*TOF_YS];
 static float y_angs[TOF_XS*TOF_YS];
 
+
+static void print_table()
+{
+	for(int yy = 0; yy < TOF_YS; yy++)
+	{
+		for(int xx=150; xx < 160; xx++)
+		{
+			printf("(%5.1f, %5.1f) ", x_angs[yy*TOF_XS+xx], y_angs[yy*TOF_XS+xx]);
+		}
+		printf("\n");
+	}
+
+	printf("\n");
+	printf("\n");
+}
+
 static void outp_ang(int px, int py, float ax, float ay)
 {
+//	printf("(%3d, %3d)=(%5.1f, %5.1f)\n", px, py, ax, ay);
+
 	if(py < 0 || py > TOF_YS-1 || px < 0 || px > TOF_XS-1)
 		return;
 
@@ -189,43 +207,146 @@ static void outp_ang(int px, int py, float ax, float ay)
 
 static void gen_ang_tables()
 {
-	int cyy = 0;
-	for(int calyy=0; calyy<GEOCAL_N_Y*2+1; calyy++)
+	for(int i=0; i<TOF_XS*TOF_YS; i++)
+	{
+		x_angs[i] = 999.0; // uninit marker
+		y_angs[i] = 999.0;
+	}
+
+	for(int calyy=0; calyy<GEOCAL_N_Y+1; calyy++)
 	{
 		// Left half, extrapolate the first X record
 		{
-			float dpx = lens_quadrant_coords[cyy][1].sens_x - lens_quadrant_coords[cyy][0].sens_x;
-			float dpy = lens_quadrant_coords[cyy][1].sens_y - lens_quadrant_coords[cyy][0].sens_y;
-			float dax = lens_quadrant_coords[cyy][1].ang_x - lens_quadrant_coords[cyy][0].ang_x;
+			float dpx = lens_quadrant_coords[calyy][1].sens_x - lens_quadrant_coords[calyy][0].sens_x;
+			float dpy = lens_quadrant_coords[calyy][1].sens_y - lens_quadrant_coords[calyy][0].sens_y;
+			float dax = lens_quadrant_coords[calyy][1].ang_x - lens_quadrant_coords[calyy][0].ang_x;
 			float ax_per_px = dax/dpx;
 			float py_per_px = dpy/dpx;
-			float cur_ax = -1*lens_quadrant_coords[cyy][0].ang_x - ax_per_px*lens_quadrant_coords[cyy][0].sens_x;
-			float cur_ay = -1*lens_quadrant_coords[cyy][0].ang_y;
-			float cur_py = lens_quadrant_coors[cyy][0].sens_y - py_per_px*lens_quadrant_coords[cyy][0].sens_x;
-			for(int pxx=0; pxx<lens_quadrant_coords[cyy][0].sens_x; pxx++)
+			float cur_ax = -1*lens_quadrant_coords[calyy][0].ang_x + ax_per_px*lens_quadrant_coords[calyy][0].sens_x;
+			float cur_ay = -1*lens_quadrant_coords[calyy][0].ang_y;
+			float cur_py = lens_quadrant_coords[calyy][0].sens_y - py_per_px*lens_quadrant_coords[calyy][0].sens_x;
+			for(int pxx=0; pxx<lens_quadrant_coords[calyy][0].sens_x; pxx++)
 			{
-				outp_ang(pxx, pyy, cur_ax, cur_ay);
+				outp_ang(pxx, (int)(cur_py+0.5), cur_ax, cur_ay);
+				cur_py += py_per_px;
+				cur_ax -= ax_per_px;
 			}
 		}
-		for(int calxx=0; calxx<GEOCAL_N_X*2+1; calxx++)
+		for(int calxx=0; calxx<GEOCAL_N_X; calxx++)
 		{
+			// Interpolate between the two
+			float dpx = lens_quadrant_coords[calyy][calxx+1].sens_x - lens_quadrant_coords[calyy][calxx+0].sens_x;
+			float dpy = lens_quadrant_coords[calyy][calxx+1].sens_y - lens_quadrant_coords[calyy][calxx+0].sens_y;
+			float dax = lens_quadrant_coords[calyy][calxx+1].ang_x - lens_quadrant_coords[calyy][calxx+0].ang_x;
+			float ax_per_px = dax/dpx;
+			float py_per_px = dpy/dpx;
+			float cur_ax = -1*lens_quadrant_coords[calyy][calxx].ang_x;
+			float cur_ay = -1*lens_quadrant_coords[calyy][calxx].ang_y;
+			float cur_py = lens_quadrant_coords[calyy][calxx].sens_y;
+
+			for(int pxx=lens_quadrant_coords[calyy][calxx].sens_x; pxx<lens_quadrant_coords[calyy][calxx+1].sens_x; pxx++)
+			{
+				outp_ang(pxx, (int)(cur_py+0.5), cur_ax, cur_ay);
+				cur_py += py_per_px;
+				cur_ax -= ax_per_px;
+			}
 			
 		}
 
+		outp_ang(lens_quadrant_coords[calyy][GEOCAL_N_X].sens_x, lens_quadrant_coords[calyy][GEOCAL_N_X].sens_y, lens_quadrant_coords[calyy][GEOCAL_N_X].ang_x, -1*lens_quadrant_coords[calyy][GEOCAL_N_X].ang_y);
 
-		if(calyy < GEOCAL_N_Y+1)
-			cyy++;
-		else
-			cyy--;
+		printf("\n\n");
+
 	}
 
-	for(int yy=0; yy<TOF_YS; yy++)
+	// Fill the missing cells in Y direction
+	// Extrapolates at the start if necessary; but expects the last cell (at TOF_XS/2-1) to be populated.
+	for(int pxx=0; pxx<TOF_XS/2+1; pxx++)
 	{
-		for(int xx=0; xx<TOF_XS; xx++)
+		float prev_ax, prev_ay;
+		int prev_at = 999;
+		for(int pyy=0; pyy < TOF_YS/2; pyy++)
 		{
-			// Find nearest calibration point in x dir
+			if(x_angs[pyy*TOF_XS+pxx] != 999.0)
+			{
+				if(prev_at == 999 && pyy > 0) // need to extrapolate - there were empty spots before this
+				{
+					// Find next:
+					int next_py = pyy+1;
+					while(x_angs[next_py*TOF_XS+pxx] == 999.0) next_py++;
+
+					float first_ax = x_angs[pyy*TOF_XS+pxx];
+					float first_ay = y_angs[pyy*TOF_XS+pxx];
+					float second_ax = x_angs[next_py*TOF_XS+pxx];
+					float second_ay = y_angs[next_py*TOF_XS+pxx];
+					float dax_per_step = (second_ax - first_ax) / (next_py - pyy);
+					float day_per_step = (second_ay - first_ay) / (next_py - pyy);
+					float cur_ax = first_ax - dax_per_step*pyy; 
+					float cur_ay = first_ay - day_per_step*pyy;
+
+					for(int iy=0; iy<pyy; iy++)
+					{
+						x_angs[iy*TOF_XS+pxx] = cur_ax;
+						y_angs[iy*TOF_XS+pxx] = cur_ay;
+						cur_ax += dax_per_step;
+						cur_ay += day_per_step;
+					}
+				}
+
+				if(prev_at != 999) // interpolate
+				{
+					float now_ax = x_angs[pyy*TOF_XS+pxx];
+					float now_ay = y_angs[pyy*TOF_XS+pxx];
+					float dax_per_step = (prev_ax - now_ax) / (prev_at - pyy);
+					float day_per_step = (prev_ay - now_ay) / (prev_at - pyy);
+					float cur_ax = prev_ax;
+					float cur_ay = prev_ay;
+					for(int iy=prev_at+1; iy<pyy; iy++)
+					{
+						cur_ax += dax_per_step;
+						cur_ay += day_per_step;
+						x_angs[iy*TOF_XS+pxx] = cur_ax;
+						y_angs[iy*TOF_XS+pxx] = cur_ay;
+					}
+				}
+
+				prev_ax = x_angs[pyy*TOF_XS+pxx];
+				prev_ay = y_angs[pyy*TOF_XS+pxx];
+				prev_at = pyy;
+			}
 		}
 	}
+
+	// Fill all four quadrants by mirroring
+	// Fill bottom left
+	for(int pxx=0; pxx<TOF_XS/2+1; pxx++)
+	{
+		for(int pyy=0; pyy < TOF_YS/2; pyy++)
+		{
+			int out_pyy = TOF_YS-pyy-2;
+			x_angs[out_pyy*TOF_XS+pxx] = x_angs[pyy*TOF_XS+pxx];
+			y_angs[out_pyy*TOF_XS+pxx] = -1*y_angs[pyy*TOF_XS+pxx];
+		}
+		// Extrapolate the last line:
+		
+		x_angs[(TOF_YS-1)*TOF_XS+pxx] = x_angs[(TOF_YS-2)*TOF_XS+pxx] - (x_angs[(TOF_YS-3)*TOF_XS+pxx] - x_angs[(TOF_YS-2)*TOF_XS+pxx]);
+		y_angs[(TOF_YS-1)*TOF_XS+pxx] = y_angs[(TOF_YS-2)*TOF_XS+pxx] - (y_angs[(TOF_YS-3)*TOF_XS+pxx] - y_angs[(TOF_YS-2)*TOF_XS+pxx]);
+	}
+
+	// Fill the right half
+
+	for(int pyy=0; pyy<TOF_YS; pyy++)
+	{
+		for(int pxx=0; pxx < TOF_XS/2; pxx++)
+		{
+			int out_pxx = TOF_XS-pxx-0;
+			x_angs[pyy*TOF_XS+out_pxx] = -1*x_angs[pyy*TOF_XS+pxx];
+			y_angs[pyy*TOF_XS+out_pxx] = y_angs[pyy*TOF_XS+pxx];	
+		}
+	}
+
+	print_table();
+
 }
 
 /*

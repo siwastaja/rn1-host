@@ -72,4 +72,54 @@ void pulutof_incr_dbg();
 void pulutof_cal_offset();
 
 
+/*
+	objmap: 2.5D object/obstacle map (similar to what was formerly called "hmap" when we still used DepthSense, in tof3d.cpp, now deprecated)
+
+	----> +x
+	|
+	|
+	v +y
+
+
+        ################
+	################
+        ############O###           Robot origin at OBSTMAP_X_MID, OBSTMAP_Y_MID
+	################
+	################
+
+*/
+
+
+#define TOF3D_WALL           5    // Tall obstacle, count as wall
+#define TOF3D_BIG_ITEM       4    // Large obstacle
+#define TOF3D_SMALL_ITEM     3    // Small object. Could be a step, but most likely something to be avoided.
+#define TOF3D_POSSIBLE_ITEM  2    // Possibility of a small step; could be a false positive, too.
+#define TOF3D_SEEN           1    // Nothing special
+#define TOF3D_POSSIBLE_DROP -1    // Small hole or drop. Could be a false positive, too.
+#define TOF3D_DROP          -2    // Significant hole or drop.
+#define TOF3D_UNSEEN         0
+
+#define TOF3D_OBJMAP_SPOT_SIZE 40
+
+
+#define TOF3D_OBJMAP_YSPOTS 256
+#define TOF3D_OBJMAP_YMIDDLE 128
+#define TOF3D_OBJMAP_XSPOTS 256
+#define TOF3D_OBJMAP_XMIDDLE 128
+
+#define OBJMAP_BLOCK_MM 40
+
+typedef struct
+{
+	pos_t robot_pos;
+//	int n_points;
+//	xyz_t cloud[TOF_XS*TOF_YS];
+	int8_t objmap[TOF3D_OBJMAP_YSPOTS*TOF3D_OBJMAP_XSPOTS];
+} tof3d_scan_t;
+
+tof3d_scan_t* get_tof3d();
+
+
+
+
 #endif

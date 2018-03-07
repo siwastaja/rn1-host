@@ -78,6 +78,15 @@ typedef struct
 	int8_t c;
 } sonar_point_t;
 
+
+typedef struct
+{
+	int32_t x;
+	int32_t y;
+	int16_t z;
+} xyz_t;
+
+
 extern int32_t hwdbg[10];
 
 typedef struct

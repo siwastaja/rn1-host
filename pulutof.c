@@ -179,6 +179,578 @@ static float x_angs[TOF_XS*TOF_YS];
 static float y_angs[TOF_XS*TOF_YS];
 
 
+/*
+	Sensor mount position 1:
+	 _ _
+	| | |
+	| |L|
+	|O|L|
+	| |L|
+	|_|_|  (front view)
+
+	Sensor mount position 2:
+	 _ _
+	| | |
+	|L| |
+	|L|O|
+	|L| |
+	|_|_|  (front view)
+
+	Sensor mount position 3:
+
+	-------------
+	|  L  L  L  |
+	-------------
+	|     O     |
+	-------------
+
+	Sensor mount position 4:
+
+	-------------
+	|     O     |
+	-------------
+	|  L  L  L  |
+	-------------
+*/
+
+typedef struct
+{
+	int mount_mode;             // mount position 1,2,3 or 4
+	float x_rel_robot;          // zero = robot origin. Positive = robot front (forward)
+	float y_rel_robot;          // zero = robot origin. Positive = to the right of the robot
+	float ang_rel_robot;        // zero = robot forward direction. positive = ccw
+	float vert_ang_rel_ground;  // zero = looks directly forward. positive = looks up. negative = looks down
+	float z_rel_ground;         // sensor height from the ground	
+} sensor_mount_t;
+
+#define NUM_PULUTOFS 4
+
+#ifdef PULUTOF_ROBOT_SER_1_TO_4  // Retrofitted sensors
+static const sensor_mount_t sensor_mounts[NUM_PULUTOFS] =
+{          //      mountmode    x     y       hor ang           ver ang      height    
+ /*0: Left rear      */ { 2,  -276,  -233, DEGTORAD(      90), DEGTORAD( 0), 227 },
+ /*1: Right rear     */ { 1,  -276,   233, DEGTORAD(     270), DEGTORAD( 0), 227 },
+ /*2: Right front    */ { 2,   154,   164, DEGTORAD(       0), DEGTORAD( 0), 228 },
+ /*3: Left front     */ { 1,   154,  -164, DEGTORAD(       0), DEGTORAD( 0), 228 }
+};
+#endif
+
+#ifdef PULUTOF_ROBOT_SER_5_UP
+static const sensor_mount_t sensor_mounts[NUM_PULUTOFS] =
+{          //      mountmode    x     y       hor ang           ver ang      height    
+ /*0: Left rear      */ { 2,  -183,  -218, DEGTORAD(90  + 30), DEGTORAD( 0), 234 },
+ /*1: Right rear     */ { 1,  -183,   218, DEGTORAD(270 - 30), DEGTORAD( 0), 234 },
+ /*2: Right front    */ { 1,   138,   115, DEGTORAD(     -10), DEGTORAD(10), 170 },
+ /*3: Left front     */ { 2,   138,  -115, DEGTORAD(     +10), DEGTORAD(10), 170 }
+};
+#endif
+
+int32_t hmap_accum[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+int16_t hmap_nsamples[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+int16_t hmap[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+static int32_t hmap_calib_accum[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+static int16_t hmap_calib_cnt[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+static int16_t hmap_calib[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+int16_t hmap_avgd[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+
+static void distances_to_objmap(pulutof_frame_t *in)
+{
+	int sidx = in->sensor_idx;
+	if(sidx > NUM_PULUTOFS-1)
+	{
+		printf("WARNING: distances_to_objmap: illegal sensor idx coming from hw.\n");
+		return;
+	}
+
+	/*
+		for converting to absolute world coordinates, if that's needed in the future:
+	
+	float robot_ang = ANG32TORAD(in->robot_pos.ang);
+	float robot_x = in->robot_pos.x;
+	float robot_y = in->robot_pos.y;
+
+	float sensor_ang = robot_ang + sensor_mounts[sidx].ang_rel_robot;
+	float sensor_x = robot_x + cos(robot_ang)*sensor_mounts[sidx].x_rel_robot;
+	float sensor_y = robot_y + sin(robot_ang)*sensor_mounts[sidx].y_rel_robot;
+	*/
+
+	float sensor_ang = sensor_mounts[sidx].ang_rel_robot;
+	float sensor_x = sensor_mounts[sidx].x_rel_robot;
+	float sensor_y = sensor_mounts[sidx].y_rel_robot;
+	float sensor_yang = sensor_mounts[sidx].vert_ang_rel_ground;
+	float sensor_z = sensor_mounts[sidx].z_rel_ground;
+	
+
+
+	for(int pyy = 1; pyy < TOF_YS-1; pyy++)
+	{
+		for(int pxx = 1; pxx < TOF_XS-1; pxx++)
+		{
+			int n_valids = 0;
+			int avg = 0;
+			for(int dyy=-1; dyy<=1; dyy++)
+			{
+				for(int dxx=-1; dxx<=1; dxx++)
+				{
+					int dist = in->depth[(pyy+dyy)*TOF_XS+(pxx+dxx)];
+					if(dist != 0)
+					{
+						n_valids++;
+						avg += dist;
+					}
+				}
+			}
+
+			if(n_valids > 6)
+			{
+				avg /= n_valids;
+				int n_conforming = 0;
+				int avg_conforming = 0;
+				int cumul_dxx = 0, cumul_dyy = 0;
+				for(int dyy=-1; dyy<=1; dyy++)
+				{
+					for(int dxx=-1; dxx<=1; dxx++)
+					{
+						int dist = in->depth[(pyy+dyy)*TOF_XS+(pxx+dxx)];
+						if(dist != 0 && dist > avg-400 && dist < avg+400)
+						{
+							n_conforming++;
+							avg_conforming += dist;
+							cumul_dxx += dxx;
+							cumul_dyy += dyy;
+						}
+					}
+				}
+
+				if(n_conforming > 4)
+				{
+					int py, px;
+					if(cumul_dxx < -2) px = pxx-1; else if(cumul_dxx > 2) px = pxx+1; else px = pxx;
+					if(cumul_dyy < -2) py = pyy-1; else if(cumul_dyy > 2) py = pyy+1; else py = pyy;
+
+					float hor_ang, ver_ang;
+
+					switch(sensor_mounts[sidx].mount_mode)
+					{
+						case 1: 
+						hor_ang = y_angs[py*TOF_XS+px];
+						ver_ang = x_angs[py*TOF_XS+px];
+						break;
+
+						case 2: 
+						hor_ang = -1*y_angs[py*TOF_XS+px];
+						ver_ang = -1*x_angs[py*TOF_XS+px];
+						break;
+
+						case 3: // direction in which the original geometrical calibration was calculated in
+						hor_ang = x_angs[py*TOF_XS+px];
+						ver_ang = y_angs[py*TOF_XS+px];
+						break;
+
+						case 4: // Same as 3, but upside down
+						hor_ang = -1*x_angs[py*TOF_XS+px];
+						ver_ang = -1*y_angs[py*TOF_XS+px];
+						break;
+
+						default: printf("ERROR: illegal mount_mode in sensor mount table.\n"); return;
+					}
+
+					// From spherical to cartesian coordinates
+
+					float d = (float)avg_conforming/(float)n_conforming;
+
+					float x = d * sin(ver_ang) * cos(hor_ang);
+					float y = d * sin(ver_ang) * sin(hor_ang);
+					float z = d * cos(ver_ang);
+
+					int xspot = (int)(x / (float)TOF3D_HMAP_SPOT_SIZE) + TOF3D_HMAP_XMIDDLE;
+					int yspot = (int)(y / (float)TOF3D_HMAP_SPOT_SIZE) + TOF3D_HMAP_YMIDDLE;
+
+					if(xspot < 0 || xspot >= TOF3D_HMAP_XSPOTS || yspot < 0 || yspot >= TOF3D_HMAP_YSPOTS)
+					{
+						ignored++;
+						continue;
+					}
+
+					hmap_accum[xspot][yspot] += z;
+					hmap_nsamples[xspot][yspot]++;
+				}
+				
+			}
+			
+		}
+	}
+}
+
+static int calibrating = 0;
+static int calib_sensor_idx = 0;
+
+void pulutof_processing_thread()
+{
+	printf("tof3d: opening tof_zcalib.raw Z axis calibration file for read.\n");
+	FILE* floor = fopen("/home/hrst/rn1-host/tof_zcalib.raw", "r");
+	if(!floor)
+	{
+		printf("WARNING: Couldn't open tof_zcalib.raw for read. Floor calibration is disabled.\n");
+	}
+	else
+	{
+		fread(hmap_calib, 2, TOF3D_HMAP_XSPOTS*TOF3D_HMAP_YSPOTS, floor);
+		fclose(floor);
+	}
+}
+
+static void process_pulutof_frame(pulutof_frame_t *in)
+{
+	static int running_ok = 0;
+	static int prev_sidx = -1;
+
+	int sidx = in->sensor_idx;
+
+	if(sidx > NUM_PULUTOFS-1)
+	{
+		printf("WARNING:process_pulutof_frame: illegal sensor idx coming from hw.\n");
+		return;
+	}
+
+	int expected_sidx = prev_sidx+1; if(expected_sidx >= NUM_PULUTOFS) expected_sidx = 0;
+
+	if(running_ok && expected_sidx != sidx)
+	{
+		printf("WARNING:process_pulutof_frame: unexpected sensor idx %d, previous was %d, was expecting %d. Ignoring until 0\n", sidx, prev_sidx, expected_sidx);
+		running_ok = 0;
+	}
+
+	if(sidx == 0)
+	{
+		running_ok = 1;
+		for(int xx=0; xx < TOF3D_HMAP_XSPOTS; xx++) { for(int yy=0; yy < TOF3D_HMAP_YSPOTS; yy++)
+			{hmap_accum[xx][yy] = 0; hmap_nsamples[xx][yy] = 0; hmap_avgd[xx][yy] = 0;} }
+	}
+
+	if(running_ok)
+	{
+		if(calibrating)
+		{
+			if(calib_sensor_idx == sidx)
+			{
+				distances_to_objmap(in);
+				process_objmap();
+			}
+		}
+		else
+		{
+			distances_to_objmap(in);
+
+			if(sidx == NUM_PULUTOFS-1)
+			{
+				// Got all sensors: the objmap accumulation done, process it.
+				process_objmap();
+			}
+		}
+	}
+
+	prev_sidx = sidx;
+}
+
+tof3d_scan_t tof3ds[TOF3D_RING_BUF_LEN];
+int tof3d_wr;
+int tof3d_rd;
+
+tof3d_scan_t* get_tof3d()
+{
+	if(tof3d_wr == tof3d_rd)
+	{
+		return 0;
+	}
+	
+	tof3d_scan_t* ret = &tof3ds[tof3d_rd];
+	tof3d_rd++; if(tof3d_rd >= TOF3D_RING_BUF_LEN) tof3d_rd = 0;
+	return ret;
+}
+
+void run_3dtof_floor_calibration()
+{
+	
+	calibrating = 1;
+}
+
+static void process_objmap()
+{
+	for(int sx = 0; sx < TOF3D_HMAP_XSPOTS; sx++)
+	{
+		for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
+		{
+			if(hmap_nsamples[sx][sy] > 4)
+			{
+				hmap[sx][sy] = hmap_accum[sx][sy]/hmap_nsamples[sx][sy];
+				if(calibrating)
+				{
+					hmap_calib_accum[sx][sy] += hmap[sx][sy];
+					hmap_calib_cnt[sx][sy]++;
+				}
+				else
+				{
+					if(hmap_calib[sx][sy] == -9999)
+						hmap[sx][sy] = -9999;
+					else
+						hmap[sx][sy] -= hmap_calib[sx][sy];
+				}
+
+			}
+			else
+				hmap[sx][sy] = -9999;
+
+		}
+	}
+
+	#define NUM_CALIB_CNT 400
+	if(calibrating)
+	{
+		static int calib_cnt = 0;
+		calib_cnt++;
+		if(calib_cnt > NUM_CALIB_CNT)
+		{
+			if(calib_sensor_idx < NUM_PULUTOFS-1)
+			{
+				printf("\n------------------------------------------------------------------------------------------------------\n");
+				printf("INFO: Calibration done on sensor %d. Please align the robot for sensor %d and rerun calibration command.\n", calib_sensor_idx, calib_sensor_idx+1);
+				printf("------------------------------------------------------------------------------------------------------\n\n");
+				calib_cnt = 0;
+				calibrating = 0;
+				calib_sensor_idx++;
+				return;
+			}
+			else
+			{
+
+				FILE* floor = fopen("tof_zcalib.raw", "w");
+
+				int32_t avg_accum = 0;
+				int avg_cnt = 0;
+
+				for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
+				{
+					for(int sx = 0; sx < TOF3D_HMAP_YSPOTS; sx++)
+					{
+						if(hmap_calib_cnt[sx][sy] < 10)
+							hmap_calib[sx][sy] = -9999;
+						else
+						{
+							hmap_calib[sx][sy] = hmap_calib_accum[sx][sy] / hmap_calib_cnt[sx][sy];
+							if(hmap_calib_cnt[sx][sy] < 50)
+								hmap_calib[sx][sy] /= 2; // to avoid overcorrecting in tricky cases
+
+							avg_accum += hmap_calib[sx][sy];
+							avg_cnt++;
+						}
+					}
+				}
+
+				int32_t avg = avg_accum / avg_cnt;
+				int body_ignores = 0;
+
+				int16_t hmap_calib_copy[TOF3D_HMAP_XSPOTS][TOF3D_HMAP_YSPOTS];
+
+				memcpy(hmap_calib_copy, hmap_calib, sizeof(hmap_calib));
+
+				// Generate robot body ignores:
+				for(int sx = 0; sx < TOF3D_HMAP_XSPOTS; sx++)
+				{
+					for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
+					{
+						if(hmap_calib_copy[sx][sy] > avg + 70 || hmap_calib_copy[sx][sy] == -9999)
+						{
+							body_ignores++;
+							hmap_calib[sx+0][sy+0] = -9999;
+							if(sy>0) hmap_calib[sx+0][sy-1] = -9999;
+							if(sy<TOF3D_HMAP_YSPOTS-1) hmap_calib[sx+0][sy+1] = -9999;
+							if(sx < TOF3D_HMAP_XSPOTS-1)
+							{
+								hmap_calib[sx+1][sy+0] = -9999;
+								if(sy>0) hmap_calib[sx+1][sy-1] = -9999;
+								if(sy<TOF3D_HMAP_YSPOTS-1) hmap_calib[sx+1][sy+1] = -9999;
+							}
+							if(sx > 0)
+							{
+								hmap_calib[sx-1][sy+0] = -9999;
+								if(sy>0) hmap_calib[sx-1][sy-1] = -9999;
+								if(sy<TOF3D_HMAP_YSPOTS-1) hmap_calib[sx-1][sy+1] = -9999;
+							}
+						}
+					}
+				}
+				fwrite(hmap_calib, 2, TOF3D_HMAP_XSPOTS*TOF3D_HMAP_YSPOTS, floor);
+				fclose(floor);
+
+				FILE* floor_csv = fopen("tof_zcalib_stats.csv", "w");
+				for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
+				{
+					for(int sx = 0; sx < TOF3D_HMAP_XSPOTS; sx++)
+					{
+						if(hmap_calib[sx][sy] == -9999)
+							fprintf(floor_csv, "");
+						else
+							fprintf(floor_csv, "%d", hmap_calib[sx][sy]);
+						fprintf(floor_csv, ",");
+					}
+					fprintf(floor_csv, "\n");
+				}
+				fprintf(floor_csv, "\n");
+				fprintf(floor_csv, "frames=,%d,spots=,%d,out_of=,%d\n", NUM_CALIB_CNT, avg_cnt, TOF3D_HMAP_XSPOTS*TOF3D_HMAP_YSPOTS);
+				fprintf(floor_csv, "avg_corr=,%d,ignored=,%d,(+neighbors)\n", avg, body_ignores);
+
+				printf("------------------------------------------------------------------------\n");
+				printf("------------------------- CALIBRATION FINISHED -------------------------\n");
+				printf("------------------------------------------------------------------------\n");
+				printf(" %d frames    %d spots used (out of %d)\n", NUM_CALIB_CNT, avg_cnt, TOF3D_HMAP_XSPOTS*TOF3D_HMAP_YSPOTS);
+				printf(" avg corr = %d     ignored %d locations (+ their neighbors) as robot body\n", avg, body_ignores);
+				printf("------------------------------------------------------------------------\n");
+				printf("Calibration saved in tof_zcalib.raw. Also generated tof_zcalib_stats.csv\n");
+				printf("       Please quit and rerun rn1host to load the calibration\n");
+				printf("------------------------------------------------------------------------\n");
+				calibrating = 0;
+				calib_sensor_idx = 0;
+
+			}
+		}
+		return;
+	}
+
+
+	// ------------ GENERATE SOFT AVGD MAP ---------
+
+//	for(int sx = 0; sx < TOF3D_HMAP_XSPOTS; sx++)
+//		for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
+//			hmap_avgd[sx][sy] = 0;
+
+	for(int sx = 3; sx < TOF3D_HMAP_XSPOTS-3; sx++)
+	{
+		for(int sy = 3; sy < TOF3D_HMAP_YSPOTS-3; sy++)
+		{
+			int nsamp = 0;
+			int acc = 0;
+
+			for(int ix=-6; ix<=6; ix++)
+			{
+				for(int iy=-6; iy<=6; iy++)
+				{
+					if(sx+ix < 0 || sx+ix > TOF3D_HMAP_XSPOTS-1 || sy+iy < 0 || sy+iy > TOF3D_HMAP_YSPOTS-1)
+						continue;
+
+					if(hmap[sx+ix][sy+iy] > -50 && hmap[sx+ix][sy+iy] < 50)
+					{
+						nsamp++;
+						acc += hmap[sx+ix][sy+iy];
+					}
+				}
+			}
+
+			if(nsamp < 40 || hmap[sx][sy] < -1000)
+				hmap_avgd[sx][sy] = 0;
+			else
+				hmap_avgd[sx][sy] = hmap[sx][sy] - acc/nsamp;
+		}
+	}
+
+	// ------------ GENERATE OBJMAP BASED ON HMAP and AVGD -------------
+
+
+	int obst_cnts[3] = {0,0,0}; // [0] = very far counts, [1] somewhat near, [2] very near.
+
+//	for(int sx = 0; sx < TOF3D_HMAP_XSPOTS; sx++)
+//		for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
+//			tof3ds[tof3d_wr].objmap[sy*TOF3D_HMAP_XSPOTS+sx] = hmap[sx][sy]<-1000?-100:(hmap[sx][sy]/20);
+
+	for(int sx = 1; sx < TOF3D_HMAP_XSPOTS-1; sx++)
+	{
+		for(int sy = 1; sy < TOF3D_HMAP_YSPOTS-1; sy++)
+		{
+			int nearness = 0;
+			if(sx < (500)/TOF3D_HMAP_SPOT_SIZE &&
+			   sy > TOF3D_HMAP_YMIDDLE - (280)/TOF3D_HMAP_SPOT_SIZE &&
+			   sy < TOF3D_HMAP_YMIDDLE + (280)/TOF3D_HMAP_SPOT_SIZE)
+				nearness = 2;
+			else if(sx < (1000)/TOF3D_HMAP_SPOT_SIZE &&
+			   sy > TOF3D_HMAP_YMIDDLE - (360)/TOF3D_HMAP_SPOT_SIZE &&
+			   sy < TOF3D_HMAP_YMIDDLE + (360)/TOF3D_HMAP_SPOT_SIZE)
+				nearness = 1;
+
+
+			int8_t val = TOF3D_SEEN;
+			if(hmap[sx][sy] < -998 || hmap_avgd[sx][sy] < -998)
+				val = TOF3D_UNSEEN;
+			else if(hmap[sx][sy] < -200 || hmap_avgd[sx][sy] < -110)
+			{
+				val = TOF3D_DROP;
+
+				obst_cnts[nearness] += 8;
+			}
+			else if(hmap[sx][sy] < -170 || hmap_avgd[sx][sy] < -80)
+			{
+				val = TOF3D_POSSIBLE_DROP;
+				obst_cnts[nearness] += 1;
+			}
+			else if(hmap[sx][sy] > 200 || hmap_avgd[sx][sy] > 120)
+			{
+				val = TOF3D_WALL;
+				obst_cnts[nearness] += 8;
+			}
+			else if(hmap[sx][sy] > 100 || hmap_avgd[sx][sy] > 40)
+			{
+				val = TOF3D_BIG_ITEM;
+				obst_cnts[nearness] += 8;
+			}
+			else if(hmap[sx][sy] > 90 || hmap_avgd[sx][sy] > 25)
+			{
+				val = TOF3D_SMALL_ITEM;
+				obst_cnts[nearness] += 4;
+			}
+			else if(hmap[sx][sy] > 80 || hmap_avgd[sx][sy] > 15)
+			{
+				val = TOF3D_POSSIBLE_ITEM;
+				obst_cnts[nearness] += 1;
+			}
+			else
+			{
+				int diffsum = 0;
+
+				for(int ix=-1; ix<=1; ix++)
+				{
+					for(int iy=-1; iy<=1; iy++)
+					{
+						if(hmap_avgd[sx+ix][sy+iy] < 15)
+							diffsum += hmap_avgd[sx+ix][sy+iy];
+					}
+				}
+
+				if(diffsum > 90)
+				{
+					val = TOF3D_SMALL_ITEM;
+					obst_cnts[nearness] += 4;
+				}
+				else if(diffsum > 70)
+				{
+					val = TOF3D_POSSIBLE_ITEM;
+					obst_cnts[nearness] += 1;
+				}
+			}
+
+			tof3ds[tof3d_wr].objmap[sy*TOF3D_HMAP_XSPOTS+sx] = val;
+		}
+	}
+
+	pthread_mutex_lock(&cur_pos_mutex);
+	tof3d_obstacle_levels[0] = obst_cnts[0];
+	tof3d_obstacle_levels[1] = obst_cnts[1];
+	tof3d_obstacle_levels[2] = obst_cnts[2];
+	pthread_mutex_unlock(&cur_pos_mutex);
+
+
+
+	tof3d_wr++; if(tof3d_wr >= TOF3D_RING_BUF_LEN) tof3d_wr = 0;
+}
+
 static void print_table()
 {
 	for(int yy = 0; yy < TOF_YS; yy++)

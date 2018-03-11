@@ -407,9 +407,9 @@ static void distances_to_objmap(pulutof_frame_t *in)
 */
 
 					uint8_t new_val = 0;
-					if( z < -140.0)
+					if( z < -150.0)
 						new_val = TOF3D_BIG_DROP;
-					else if(z < -90.0)
+					else if(z < -120.0)
 						new_val = TOF3D_SMALL_DROP;
 					else if(z < 50.0)
 						new_val = TOF3D_FLOOR;
@@ -1056,6 +1056,7 @@ static int read_frame()
 		return -1;
 	}
 
+#ifdef SPI_PRINT_DBG
 	printf("Frame read ok, timing:\n");
 	for(int i=0; i<24; i++)
 	{
@@ -1075,6 +1076,7 @@ static int read_frame()
 	}
 	printf("\n");
 	printf("\n");
+#endif
 
 	int ret = pulutof_ringbuf[pulutof_ringbuf_wr].status;
 

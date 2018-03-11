@@ -1088,7 +1088,7 @@ void request_tof_quit()
 	running = 0;
 }
 
-void pulutof_cal_offset(idx)
+void pulutof_cal_offset(uint8_t idx)
 {
 	printf("Requesting offset calib\n");
 	struct spi_ioc_transfer xfer;

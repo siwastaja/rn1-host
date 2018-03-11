@@ -65,6 +65,8 @@ typedef struct __attribute__((packed))
 
 void request_tof_quit();
 void* pulutof_poll_thread();
+void* pulutof_processing_thread();
+
 pulutof_frame_t* get_pulutof_frame();
 
 void pulutof_decr_dbg();
@@ -89,32 +91,32 @@ void pulutof_cal_offset();
 
 */
 
-
-#define TOF3D_WALL           5    // Tall obstacle, count as wall
-#define TOF3D_BIG_ITEM       4    // Large obstacle
-#define TOF3D_SMALL_ITEM     3    // Small object. Could be a step, but most likely something to be avoided.
-#define TOF3D_POSSIBLE_ITEM  2    // Possibility of a small step; could be a false positive, too.
-#define TOF3D_SEEN           1    // Nothing special
-#define TOF3D_POSSIBLE_DROP -1    // Small hole or drop. Could be a false positive, too.
-#define TOF3D_DROP          -2    // Significant hole or drop.
+// Priority order: bigger number overrides smaller at same 2D spot
+#define TOF3D_WALL           7 
+#define TOF3D_BIG_ITEM       6 
+#define TOF3D_BIG_DROP       5
+#define TOF3D_SMALL_ITEM     4 
+#define TOF3D_SMALL_DROP     3
+#define TOF3D_THRESHOLD      2   
+#define TOF3D_FLOOR          1
 #define TOF3D_UNSEEN         0
 
-#define TOF3D_OBJMAP_SPOT_SIZE 40
+#define TOF3D_HMAP_SPOT_SIZE 40
 
 
-#define TOF3D_OBJMAP_YSPOTS 256
-#define TOF3D_OBJMAP_YMIDDLE 128
-#define TOF3D_OBJMAP_XSPOTS 256
-#define TOF3D_OBJMAP_XMIDDLE 128
+#define TOF3D_HMAP_YSPOTS 240
+#define TOF3D_HMAP_YMIDDLE 120
+#define TOF3D_HMAP_XSPOTS 240
+#define TOF3D_HMAP_XMIDDLE 120
 
-#define OBJMAP_BLOCK_MM 40
+#define HMAP_BLOCK_MM 40
 
 typedef struct
 {
 	pos_t robot_pos;
 //	int n_points;
 //	xyz_t cloud[TOF_XS*TOF_YS];
-	int8_t objmap[TOF3D_OBJMAP_YSPOTS*TOF3D_OBJMAP_XSPOTS];
+	int8_t objmap[TOF3D_HMAP_YSPOTS*TOF3D_HMAP_XSPOTS];
 } tof3d_scan_t;
 
 tof3d_scan_t* get_tof3d();

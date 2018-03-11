@@ -10,6 +10,7 @@ all: rn1host
 
 CFLAGS += -DSIMULATE_SERIAL
 CFLAGS += -DPULUTOF1
+CFLAGS += -DPULUTOF_ROBOT_SER_1_TO_4
 
 %.o: %.c $(DEPS)
 	gcc -c -o $@ $< $(CFLAGS) -pthread

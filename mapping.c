@@ -1287,17 +1287,17 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 
 				switch(tof->objmap[iy*TOF3D_HMAP_XSPOTS+ix])
 				{
-					case TOF3D_DROP         : drops[tm_y*MAP_PAGE_W+tm_x]++; break;
+					case TOF3D_BIG_DROP     : drops[tm_y*MAP_PAGE_W+tm_x]++; break;
 
-					case TOF3D_POSSIBLE_DROP:
-					case TOF3D_POSSIBLE_ITEM: maybes[tm_y*MAP_PAGE_W+tm_x]++; break;
+					case TOF3D_SMALL_DROP   :
+					case TOF3D_THRESHOLD    : maybes[tm_y*MAP_PAGE_W+tm_x]++; break;
 
 					case TOF3D_SMALL_ITEM   :
 					case TOF3D_BIG_ITEM     : items[tm_y*MAP_PAGE_W+tm_x]++; break;
 
 					case TOF3D_WALL         : walls[tm_y*MAP_PAGE_W+tm_x]++; break;
 
-					case TOF3D_SEEN         : if(ix > 4) seens[tm_y*MAP_PAGE_W+tm_x]++; break; // don't remove obstacles right next to the robot
+					case TOF3D_FLOOR        : if(ix > 4) seens[tm_y*MAP_PAGE_W+tm_x]++; break; // don't remove obstacles right next to the robot
 					default: break;
 				}
 			}
@@ -1366,14 +1366,10 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 			}
 			else if(drops[iy*MAP_PAGE_W+ix] >= drop_limit)
 			{
-				// Mapping the drops will be disabled until the bug is sorted out
-				// (Sometimes, when against the wall where the charger is located, a "drop" is seen some 1.2 meters away, on the
-				// other side of the wall, in the kitchen.)
-
-//				if(!(w->pages[px][py]->units[ox][oy].result & UNIT_DROP)) w->changed[px][py] = 1;
-//				w->pages[px][py]->units[ox][oy].result |= UNIT_DROP;
-//				w->pages[px][py]->units[ox][oy].latest |= UNIT_DROP;
-//				PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_3d_obstacles);
+				if(!(w->pages[px][py]->units[ox][oy].result & UNIT_DROP)) w->changed[px][py] = 1;
+				w->pages[px][py]->units[ox][oy].result |= UNIT_DROP;
+				w->pages[px][py]->units[ox][oy].latest |= UNIT_DROP;
+				PLUS_SAT_255(w->pages[px][py]->units[ox][oy].num_3d_obstacles);
 				cnt_drop++;
 			}
 			else if(seens[iy*MAP_PAGE_W+ix] >= seen_total_removal_limit && maybes[iy*MAP_PAGE_W+ix] == 0 && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)

@@ -24,7 +24,7 @@
 
 #include <stdint.h>
 #include "datatypes.h"
-#include "tof3d.h"
+#include "pulutof.h"
 
 #define UNIT_FREE	0
 #define UNIT_ITEM           (1<<0)	// Small obstacle, detected by sonars or bumping into it

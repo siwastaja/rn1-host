@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <pthread.h>
 
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -50,6 +51,7 @@
 
 
 static int spi_fd;
+static volatile int running = 1;
 
 static const unsigned char spi_mode = SPI_MODE_0;
 static const unsigned char spi_bits_per_word = 8;
@@ -130,9 +132,28 @@ void pulutof_incr_dbg()
 }
 
 #define PULUTOF_RINGBUF_LEN 16
-pulutof_frame_t pulutof_ringbuf[PULUTOF_RINGBUF_LEN];
-int pulutof_ringbuf_wr = 0;
-int pulutof_ringbuf_rd = 0;
+volatile pulutof_frame_t pulutof_ringbuf[PULUTOF_RINGBUF_LEN];
+volatile int pulutof_ringbuf_wr = 0;
+volatile int pulutof_ringbuf_rd = 0;
+
+#define TOF3D_RING_BUF_LEN 32
+
+volatile tof3d_scan_t tof3ds[TOF3D_RING_BUF_LEN];
+volatile int tof3d_wr;
+volatile int tof3d_rd;
+
+tof3d_scan_t* get_tof3d()
+{
+	if(tof3d_wr == tof3d_rd)
+	{
+		return 0;
+	}
+	
+	tof3d_scan_t* ret = &tof3ds[tof3d_rd];
+	tof3d_rd++; if(tof3d_rd >= TOF3D_RING_BUF_LEN) tof3d_rd = 0;
+	return ret;
+}
+
 
 pulutof_frame_t* get_pulutof_frame()
 {
@@ -283,8 +304,10 @@ static void distances_to_objmap(pulutof_frame_t *in)
 
 
 	for(int pyy = 1; pyy < TOF_YS-1; pyy++)
+//	for(int pyy = 25; pyy < 35; pyy++)
 	{
 		for(int pxx = 1; pxx < TOF_XS-1; pxx++)
+//		for(int pxx = 75; pxx < 85; pxx++)
 		{
 			int n_valids = 0;
 			int avg = 0;
@@ -359,21 +382,48 @@ static void distances_to_objmap(pulutof_frame_t *in)
 
 					float d = (float)avg_conforming/(float)n_conforming;
 
-					float x = d * sin(ver_ang) * cos(hor_ang);
-					float y = d * sin(ver_ang) * sin(hor_ang);
-					float z = d * cos(ver_ang);
+					float x = d * /*sin*/cos(ver_ang + sensor_yang) * cos(hor_ang + sensor_ang) + sensor_x;
+					float y = d * /*sin*/cos(ver_ang + sensor_yang) * sin(hor_ang + sensor_ang) + sensor_y;
+					float z = d * /*cos*/sin(ver_ang + sensor_yang) + sensor_z;
 
 					int xspot = (int)(x / (float)TOF3D_HMAP_SPOT_SIZE) + TOF3D_HMAP_XMIDDLE;
 					int yspot = (int)(y / (float)TOF3D_HMAP_SPOT_SIZE) + TOF3D_HMAP_YMIDDLE;
 
+					//printf("DIST = %.0f  x=%.0f  y=%.0f  z=%.0f  xspot=%d  yspot=%d  ver_ang=%.2f  sensor_yang=%.2f  hor_ang=%.2f  sensor_ang=%.2f\n", d, x, y, z, xspot, yspot, ver_ang, sensor_yang, hor_ang, sensor_ang); 
+
 					if(xspot < 0 || xspot >= TOF3D_HMAP_XSPOTS || yspot < 0 || yspot >= TOF3D_HMAP_YSPOTS)
 					{
-						ignored++;
+						//ignored++;
 						continue;
 					}
 
-					hmap_accum[xspot][yspot] += z;
-					hmap_nsamples[xspot][yspot]++;
+/*					int zi = z;
+					if(zi > -2000 && zi < 2000)
+					{
+						if(zi > hmap_accum[xspot][yspot])
+							hmap_accum[xspot][yspot] = zi;
+						hmap_nsamples[xspot][yspot]++;
+					}
+*/
+
+					uint8_t new_val = 0;
+					if( z < -100.0)
+						new_val = TOF3D_BIG_DROP;
+					else if(z < -50.0)
+						new_val = TOF3D_SMALL_DROP;
+					else if(z < 50.0)
+						new_val = TOF3D_FLOOR;
+					else if(z < 70.0)
+						new_val = TOF3D_THRESHOLD;
+					else if(z < 265.0)
+						new_val = TOF3D_SMALL_ITEM;
+					else if(z < 295.0)
+						new_val = TOF3D_WALL;
+					else if(z < 2100.0)
+						new_val = TOF3D_BIG_ITEM;
+
+					if(new_val > tof3ds[tof3d_wr].objmap[yspot*TOF3D_HMAP_XSPOTS+xspot])
+						tof3ds[tof3d_wr].objmap[yspot*TOF3D_HMAP_XSPOTS+xspot] = new_val;
 				}
 				
 			}
@@ -385,7 +435,9 @@ static void distances_to_objmap(pulutof_frame_t *in)
 static int calibrating = 0;
 static int calib_sensor_idx = 0;
 
-void pulutof_processing_thread()
+static void process_pulutof_frame(pulutof_frame_t *in);
+
+void* pulutof_processing_thread()
 {
 	printf("tof3d: opening tof_zcalib.raw Z axis calibration file for read.\n");
 	FILE* floor = fopen("/home/hrst/rn1-host/tof_zcalib.raw", "r");
@@ -398,7 +450,25 @@ void pulutof_processing_thread()
 		fread(hmap_calib, 2, TOF3D_HMAP_XSPOTS*TOF3D_HMAP_YSPOTS, floor);
 		fclose(floor);
 	}
+
+	while(running)
+	{
+		pulutof_frame_t* p_tof;
+		if( (p_tof = get_pulutof_frame()) )
+		{
+			process_pulutof_frame(p_tof);
+		}
+		else
+		{
+			usleep(5000);
+		}
+
+	}
+
+	return NULL;
+
 }
+static void process_objmap();
 
 static void process_pulutof_frame(pulutof_frame_t *in)
 {
@@ -424,8 +494,10 @@ static void process_pulutof_frame(pulutof_frame_t *in)
 	if(sidx == 0)
 	{
 		running_ok = 1;
-		for(int xx=0; xx < TOF3D_HMAP_XSPOTS; xx++) { for(int yy=0; yy < TOF3D_HMAP_YSPOTS; yy++)
-			{hmap_accum[xx][yy] = 0; hmap_nsamples[xx][yy] = 0; hmap_avgd[xx][yy] = 0;} }
+//		for(int xx=0; xx < TOF3D_HMAP_XSPOTS; xx++) { for(int yy=0; yy < TOF3D_HMAP_YSPOTS; yy++)
+//			{hmap_accum[xx][yy] = -9999; hmap_nsamples[xx][yy] = 0; hmap_avgd[xx][yy] = 0;} }
+
+		memset(tof3ds[tof3d_wr].objmap, 0, 1*TOF3D_HMAP_YSPOTS*TOF3D_HMAP_XSPOTS);
 	}
 
 	if(running_ok)
@@ -435,38 +507,25 @@ static void process_pulutof_frame(pulutof_frame_t *in)
 			if(calib_sensor_idx == sidx)
 			{
 				distances_to_objmap(in);
-				process_objmap();
+//				process_objmap();
 			}
 		}
 		else
 		{
+//			if(sidx==2)
 			distances_to_objmap(in);
 
 			if(sidx == NUM_PULUTOFS-1)
 			{
 				// Got all sensors: the objmap accumulation done, process it.
-				process_objmap();
+//				process_objmap();
+				tof3d_wr++; if(tof3d_wr >= TOF3D_RING_BUF_LEN) tof3d_wr = 0;
+
 			}
 		}
 	}
 
 	prev_sidx = sidx;
-}
-
-tof3d_scan_t tof3ds[TOF3D_RING_BUF_LEN];
-int tof3d_wr;
-int tof3d_rd;
-
-tof3d_scan_t* get_tof3d()
-{
-	if(tof3d_wr == tof3d_rd)
-	{
-		return 0;
-	}
-	
-	tof3d_scan_t* ret = &tof3ds[tof3d_rd];
-	tof3d_rd++; if(tof3d_rd >= TOF3D_RING_BUF_LEN) tof3d_rd = 0;
-	return ret;
 }
 
 void run_3dtof_floor_calibration()
@@ -475,15 +534,25 @@ void run_3dtof_floor_calibration()
 	calibrating = 1;
 }
 
+extern pthread_mutex_t cur_pos_mutex;
+extern int32_t cur_ang, cur_x, cur_y;
+int32_t tof3d_obstacle_levels[3];
+
+
 static void process_objmap()
 {
 	for(int sx = 0; sx < TOF3D_HMAP_XSPOTS; sx++)
 	{
 		for(int sy = 0; sy < TOF3D_HMAP_YSPOTS; sy++)
 		{
-			if(hmap_nsamples[sx][sy] > 4)
+			if(hmap_nsamples[sx][sy] > 0)
+				tof3ds[tof3d_wr].objmap[sy*TOF3D_HMAP_XSPOTS+sx] = hmap_accum[sx][sy]/20;
+			else
+				tof3ds[tof3d_wr].objmap[sy*TOF3D_HMAP_XSPOTS+sx] = 0;
+/*
+			if(hmap_nsamples[sx][sy] > 0)
 			{
-				hmap[sx][sy] = hmap_accum[sx][sy]/hmap_nsamples[sx][sy];
+				hmap[sx][sy] = hmap_accum[sx][sy]; //hmap_accum[sx][sy]/hmap_nsamples[sx][sy];
 				if(calibrating)
 				{
 					hmap_calib_accum[sx][sy] += hmap[sx][sy];
@@ -501,9 +570,12 @@ static void process_objmap()
 			else
 				hmap[sx][sy] = -9999;
 
+*/
 		}
 	}
 
+
+#if 0
 	#define NUM_CALIB_CNT 400
 	if(calibrating)
 	{
@@ -589,7 +661,7 @@ static void process_objmap()
 					for(int sx = 0; sx < TOF3D_HMAP_XSPOTS; sx++)
 					{
 						if(hmap_calib[sx][sy] == -9999)
-							fprintf(floor_csv, "");
+							;//	fprintf(floor_csv, "");
 						else
 							fprintf(floor_csv, "%d", hmap_calib[sx][sy]);
 						fprintf(floor_csv, ",");
@@ -747,6 +819,8 @@ static void process_objmap()
 	pthread_mutex_unlock(&cur_pos_mutex);
 
 
+#endif
+
 
 	tof3d_wr++; if(tof3d_wr >= TOF3D_RING_BUF_LEN) tof3d_wr = 0;
 }
@@ -773,8 +847,8 @@ static void outp_ang(int px, int py, float ax, float ay)
 	if(py < 0 || py > TOF_YS-1 || px < 0 || px > TOF_XS-1)
 		return;
 
-	x_angs[py*TOF_XS+px] = ax;
-	y_angs[py*TOF_XS+px] = ay;
+	x_angs[py*TOF_XS+px] = DEGTORAD(ax);
+	y_angs[py*TOF_XS+px] = DEGTORAD(ay);
 }
 
 static void gen_ang_tables()
@@ -826,8 +900,6 @@ static void gen_ang_tables()
 		}
 
 		outp_ang(lens_quadrant_coords[calyy][GEOCAL_N_X].sens_x, lens_quadrant_coords[calyy][GEOCAL_N_X].sens_y, lens_quadrant_coords[calyy][GEOCAL_N_X].ang_x, -1*lens_quadrant_coords[calyy][GEOCAL_N_X].ang_y);
-
-		printf("\n\n");
 
 	}
 
@@ -917,7 +989,7 @@ static void gen_ang_tables()
 		}
 	}
 
-	print_table();
+	//print_table();
 
 }
 
@@ -1011,8 +1083,6 @@ static int read_frame()
 	return ret;
 }
 
-int running = 1;
-
 void request_tof_quit()
 {
 	running = 0;
@@ -1044,6 +1114,7 @@ void pulutof_cal_offset()
 
 void* pulutof_poll_thread()
 {
+	gen_ang_tables();
 	init_spi();
 	while(running)
 	{
@@ -1060,7 +1131,8 @@ void* pulutof_poll_thread()
 
 		if(avail < 0)
 		{
-			break;
+			sleep(2);
+			continue;
 		}
 
 		if(avail < 250)
@@ -1071,7 +1143,6 @@ void* pulutof_poll_thread()
 		}
 
 		read_frame();
-
 
 
 		usleep(1000);

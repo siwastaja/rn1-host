@@ -1467,6 +1467,9 @@ void* main_thread()
 			}
 		}
 
+#endif
+
+/*
 		tof3d_scan_t *p_tof;
 		if( (p_tof = get_tof3d()) )
 		{
@@ -1476,15 +1479,18 @@ void* main_thread()
 				static int hmap_cnt = 0;
 				hmap_cnt++;
 
-				if(hmap_cnt >= 12)
+				if(hmap_cnt >= 1)
 				{
-//					printf("Send hmap\n");
-//					tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, cur_ang, cur_x, cur_y, TOF3D_HMAP_SPOT_SIZE, p_tof->objmap);
-//					printf("Done\n");
+					printf("Send hmap\n");
+					tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, cur_ang, cur_x, cur_y, TOF3D_HMAP_SPOT_SIZE, p_tof->objmap);
+					printf("Done\n");
 					hmap_cnt = 0;
 				}
 			}
+		}
+*/
 
+/*
 			static int32_t prev_x, prev_y, prev_ang;
 
 			if(mapping_on && !pwr_status.charging && !pwr_status.charged)
@@ -1530,7 +1536,9 @@ void* main_thread()
 			}
 
 		}
-#else
+*/
+
+
 		{
 			static double prev_incr = 0.0;
 			double stamp;
@@ -1546,7 +1554,6 @@ void* main_thread()
 				}
 			}
 		}
-#endif
 
 		lidar_scan_t* p_lid;
 
@@ -1707,6 +1714,7 @@ void* main_thread()
 				release_motors();
 		}
 
+
 		pulutof_frame_t* p_tof;
 		if( (p_tof = get_pulutof_frame()) )
 		{
@@ -1719,6 +1727,7 @@ void* main_thread()
 			}
 
 		}
+
 
 		sonar_point_t* p_son;
 		if( (p_son = get_sonar()) )
@@ -1778,35 +1787,34 @@ void* start_tof(void*);
 
 int main(int argc, char** argv)
 {
-	pthread_t thread_main, thread_tof;
-
-	uint8_t calib_tof = 0;
-	if(argc == 2 && argv[1][0] == 'c')
-		calib_tof = 1;
+	pthread_t thread_main, thread_tof, thread_tof2;
 
 	int ret;
 
-	if(!calib_tof)
+	if( (ret = pthread_create(&thread_main, NULL, main_thread, NULL)) )
 	{
-		if( (ret = pthread_create(&thread_main, NULL, main_thread, NULL)) )
-		{
-			printf("ERROR: main thread creation, ret = %d\n", ret);
-			return -1;
-		}
+		printf("ERROR: main thread creation, ret = %d\n", ret);
+		return -1;
 	}
 
 #ifdef PULUTOF1
 	if( (ret = pthread_create(&thread_tof, NULL, pulutof_poll_thread, NULL)) )
 	{
-		printf("ERROR: tof3d thread creation, ret = %d\n", ret);
+		printf("ERROR: tof3d access thread creation, ret = %d\n", ret);
 		return -1;
 	}
+//	if( (ret = pthread_create(&thread_tof2, NULL, pulutof_processing_thread, NULL)) )
+//	{
+//		printf("ERROR: tof3d processing thread creation, ret = %d\n", ret);
+//		return -1;
+//	}
 #endif
-	if(!calib_tof)
-		pthread_join(thread_main, NULL);
+
+	pthread_join(thread_main, NULL);
 
 #ifdef PULUTOF1
 	pthread_join(thread_tof, NULL);
+//	pthread_join(thread_tof2, NULL);
 #endif
 
 	return retval;

@@ -356,22 +356,22 @@ static void distances_to_objmap(pulutof_frame_t *in)
 					switch(sensor_mounts[sidx].mount_mode)
 					{
 						case 1: 
-						hor_ang = y_angs[py*TOF_XS+px];
+						hor_ang = -1*y_angs[py*TOF_XS+px];
 						ver_ang = x_angs[py*TOF_XS+px];
 						break;
 
 						case 2: 
-						hor_ang = -1*y_angs[py*TOF_XS+px];
+						hor_ang = y_angs[py*TOF_XS+px];
 						ver_ang = -1*x_angs[py*TOF_XS+px];
 						break;
 
 						case 3: // direction in which the original geometrical calibration was calculated in
-						hor_ang = x_angs[py*TOF_XS+px];
+						hor_ang = -1*x_angs[py*TOF_XS+px];
 						ver_ang = y_angs[py*TOF_XS+px];
 						break;
 
 						case 4: // Same as 3, but upside down
-						hor_ang = -1*x_angs[py*TOF_XS+px];
+						hor_ang = x_angs[py*TOF_XS+px];
 						ver_ang = -1*y_angs[py*TOF_XS+px];
 						break;
 

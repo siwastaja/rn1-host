@@ -1088,14 +1088,14 @@ void request_tof_quit()
 	running = 0;
 }
 
-void pulutof_cal_offset()
+void pulutof_cal_offset(idx)
 {
 	printf("Requesting offset calib\n");
 	struct spi_ioc_transfer xfer;
-	struct cmd { uint32_t header; uint32_t dummy;} cmd;
+	struct cmd { uint32_t header; uint8_t sensor_idx;} cmd;
 
 	cmd.header = 0xca0ff5e7;
-	cmd.dummy = 0;
+	cmd.sensor_idx = idx;
 
 	memset(&xfer, 0, sizeof(xfer)); // unused fields need to be initialized zero.
 	xfer.tx_buf = &cmd;

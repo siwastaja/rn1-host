@@ -953,9 +953,9 @@ void* main_thread()
 			{
 				pulutof_incr_dbg();
 			}
-			if(cmd == '1')
+			if(cmd >= '1' && cmd <= '4')
 			{
-				pulutof_cal_offset();
+				pulutof_cal_offset(cmd-'1');
 			}
 
 /*			if(cmd >= '1' && cmd <= '9')

@@ -1469,7 +1469,7 @@ void* main_thread()
 
 #endif
 
-/*
+
 		tof3d_scan_t *p_tof;
 		if( (p_tof = get_tof3d()) )
 		{
@@ -1488,7 +1488,7 @@ void* main_thread()
 				}
 			}
 		}
-*/
+
 
 /*
 			static int32_t prev_x, prev_y, prev_ang;
@@ -1714,7 +1714,7 @@ void* main_thread()
 				release_motors();
 		}
 
-
+/*
 		pulutof_frame_t* p_tof;
 		if( (p_tof = get_pulutof_frame()) )
 		{
@@ -1727,7 +1727,7 @@ void* main_thread()
 			}
 
 		}
-
+*/
 
 		sonar_point_t* p_son;
 		if( (p_son = get_sonar()) )

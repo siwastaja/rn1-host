@@ -373,7 +373,6 @@ void tcp_send_hmap(int xsamps, int ysamps, int32_t ang, int xorig_mm, int yorig_
 	buf[17] = unit_size_mm;
 
 	memcpy(&buf[18], (uint8_t*)hmap, xsamps*ysamps);
-//	memset(&buf[18], 55, xsamps*ysamps);
 
 	tcp_send(buf, size);
 	free(buf);

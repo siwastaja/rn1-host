@@ -407,9 +407,9 @@ static void distances_to_objmap(pulutof_frame_t *in)
 */
 
 					uint8_t new_val = 0;
-					if( z < -100.0)
+					if( z < -140.0)
 						new_val = TOF3D_BIG_DROP;
-					else if(z < -50.0)
+					else if(z < -90.0)
 						new_val = TOF3D_SMALL_DROP;
 					else if(z < 50.0)
 						new_val = TOF3D_FLOOR;

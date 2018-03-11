@@ -1803,18 +1803,18 @@ int main(int argc, char** argv)
 		printf("ERROR: tof3d access thread creation, ret = %d\n", ret);
 		return -1;
 	}
-//	if( (ret = pthread_create(&thread_tof2, NULL, pulutof_processing_thread, NULL)) )
-//	{
-//		printf("ERROR: tof3d processing thread creation, ret = %d\n", ret);
-//		return -1;
-//	}
+	if( (ret = pthread_create(&thread_tof2, NULL, pulutof_processing_thread, NULL)) )
+	{
+		printf("ERROR: tof3d processing thread creation, ret = %d\n", ret);
+		return -1;
+	}
 #endif
 
 	pthread_join(thread_main, NULL);
 
 #ifdef PULUTOF1
 	pthread_join(thread_tof, NULL);
-//	pthread_join(thread_tof2, NULL);
+	pthread_join(thread_tof2, NULL);
 #endif
 
 	return retval;

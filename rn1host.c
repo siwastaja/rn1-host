@@ -1490,7 +1490,7 @@ void* main_thread()
 		}
 
 
-/*
+		{
 			static int32_t prev_x, prev_y, prev_ang;
 
 			if(mapping_on && !pwr_status.charging && !pwr_status.charged)
@@ -1508,11 +1508,7 @@ void* main_thread()
 				tofs_to_map[n_tofs_to_map] = p_tof;
 				n_tofs_to_map++;
 
-				#ifdef PULU1
-				if(n_tofs_to_map >= (robot_moving?3:24))
-				#else
-				if(n_tofs_to_map >= (robot_moving?4:20))
-				#endif
+				if(n_tofs_to_map >= (robot_moving?4:30))
 				{
 					int32_t mid_x, mid_y;
 					map_3dtof(&world, n_tofs_to_map, tofs_to_map, &mid_x, &mid_y);
@@ -1536,7 +1532,7 @@ void* main_thread()
 			}
 
 		}
-*/
+
 
 
 		{

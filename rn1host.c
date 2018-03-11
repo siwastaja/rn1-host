@@ -1487,7 +1487,7 @@ void* main_thread()
 					hmap_cnt = 0;
 				}
 			}
-
+/*
 			static int32_t prev_x, prev_y, prev_ang;
 
 			if(mapping_on && !pwr_status.charging && !pwr_status.charged)
@@ -1527,7 +1527,7 @@ void* main_thread()
 					n_tofs_to_map = 0;
 				}
 			}
-
+*/
 		}
 
 

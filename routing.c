@@ -804,13 +804,13 @@ static void draw_robot_shape(int a_idx, float ang)
 
 	if(tight_shapes == 2)
 	{
-		robot_xs = (main_robot_xs - 100.0 + extra_x);
-		robot_ys = (main_robot_ys - 100.0 + extra_y);
+		robot_xs = (main_robot_xs + 20.0 + extra_x);
+		robot_ys = (main_robot_ys + 20.0 + extra_y);
 	}
 	else if(tight_shapes == 1)
 	{
-		robot_xs = (main_robot_xs - 40.0 + extra_x);
-		robot_ys = (main_robot_ys - 40.0 + extra_y);
+		robot_xs = (main_robot_xs + 80.0 + extra_x);
+		robot_ys = (main_robot_ys + 80.0 + extra_y);
 	}
 	else if(tight_shapes == 0)
 	{
@@ -1486,7 +1486,8 @@ int search_route(world_t *w, route_unit_t **route, float start_ang, int start_x_
 		else
 			printf("Found route with normal limits\n");
 	}
-	printf("Found route with WIDE limits\n");
+	else
+		printf("Found route with WIDE limits\n");
 
 
 	// normal_search_mode is put into action so that collision avoidance / step skipping/rounding can use it.

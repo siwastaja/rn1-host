@@ -1347,7 +1347,7 @@ void gen_routing_page(world_t *w, int xpage, int ypage, int forgiveness)
 		w->rpages[xpage][ypage] = malloc(sizeof(routing_page_t));
 	}
 
-	forgiveness = ROUTING_3D_FORGIVENESS;
+	forgiveness = 0; //ROUTING_3D_FORGIVENESS;
 	if(forgiveness == 0)
 	{
 		for(int xx=0; xx < MAP_PAGE_W; xx++)

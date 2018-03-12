@@ -63,7 +63,7 @@ double subsec_timestamp()
 	return (double)spec.tv_sec + (double)spec.tv_nsec/1.0e9;
 }
 
-int mapping_on = 0;
+int mapping_on = 1;
 int live_obstacle_checking_on = 1;
 int pos_corr_id = 42;
 #define INCR_POS_CORR_ID() {pos_corr_id++; if(pos_corr_id > 99) pos_corr_id = 0;}

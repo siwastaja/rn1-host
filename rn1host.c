@@ -1492,39 +1492,42 @@ void* main_thread()
 
 			if(mapping_on && !pwr_status.charging && !pwr_status.charged)
 			{
-				int robot_moving = 0;
-				if((prev_x != p_tof->robot_pos.x || prev_y != p_tof->robot_pos.y || prev_ang != p_tof->robot_pos.ang))
+				if(p_tof->robot_pos.x != 0 || p_tof->robot_pos.y != 0 || p_tof->robot_pos.ang != 0)
 				{
-					prev_x = p_tof->robot_pos.x; prev_y = p_tof->robot_pos.y; prev_ang = p_tof->robot_pos.ang;
-					robot_moving = 1;
-				}
-
-				static int n_tofs_to_map = 0;
-				static tof3d_scan_t* tofs_to_map[25];
-
-				tofs_to_map[n_tofs_to_map] = p_tof;
-				n_tofs_to_map++;
-
-				if(n_tofs_to_map >= (robot_moving?4:20))
-				{
-					int32_t mid_x, mid_y;
-					map_3dtof(&world, n_tofs_to_map, tofs_to_map, &mid_x, &mid_y);
-
-					if(do_follow_route)
+					int robot_moving = 0;
+					if((prev_x != p_tof->robot_pos.x || prev_y != p_tof->robot_pos.y || prev_ang != p_tof->robot_pos.ang))
 					{
-						int px, py, ox, oy;
-						page_coords(mid_x, mid_y, &px, &py, &ox, &oy);
-
-						for(int ix=-1; ix<=1; ix++)
-						{
-							for(int iy=-1; iy<=1; iy++)
-							{
-								gen_routing_page(&world, px+ix, py+iy, 0);
-							}
-						}
+						prev_x = p_tof->robot_pos.x; prev_y = p_tof->robot_pos.y; prev_ang = p_tof->robot_pos.ang;
+						robot_moving = 1;
 					}
 
-					n_tofs_to_map = 0;
+					static int n_tofs_to_map = 0;
+					static tof3d_scan_t* tofs_to_map[25];
+
+					tofs_to_map[n_tofs_to_map] = p_tof;
+					n_tofs_to_map++;
+
+					if(n_tofs_to_map >= (robot_moving?4:20))
+					{
+						int32_t mid_x, mid_y;
+						map_3dtof(&world, n_tofs_to_map, tofs_to_map, &mid_x, &mid_y);
+
+						if(do_follow_route)
+						{
+							int px, py, ox, oy;
+							page_coords(mid_x, mid_y, &px, &py, &ox, &oy);
+
+							for(int ix=-1; ix<=1; ix++)
+							{
+								for(int iy=-1; iy<=1; iy++)
+								{
+									gen_routing_page(&world, px+ix, py+iy, 0);
+								}
+							}
+						}
+
+						n_tofs_to_map = 0;
+					}
 				}
 			}
 

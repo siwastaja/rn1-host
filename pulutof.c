@@ -382,6 +382,8 @@ static void distances_to_objmap(pulutof_frame_t *in)
 
 					float d = (float)avg_conforming/(float)n_conforming;
 
+					d *= 0.84; // don't understand why, yet. Seems to be a very consistent error!
+
 					float x = d * /*sin*/cos(ver_ang + sensor_yang) * cos(hor_ang + sensor_ang) + sensor_x;
 					float y = -1* (d * /*sin*/cos(ver_ang + sensor_yang) * sin(hor_ang + sensor_ang)) + sensor_y;
 					float z = d * /*cos*/sin(ver_ang + sensor_yang) + sensor_z;

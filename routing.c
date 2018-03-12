@@ -37,6 +37,9 @@
 
 */
 
+#define ROUTING_3D_FORGIVENESS 5
+#define AVOID_3D_THINGS
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -59,8 +62,8 @@ float main_robot_ys = 330.0;
 float main_robot_middle_to_lidar = -90.0;
 
 #elif defined(DELIVERY_BOY)
-float main_robot_xs = 650.0 + 40.0;
-float main_robot_ys = 480.0 + 60.0;
+float main_robot_xs = 650.0 + 20.0;
+float main_robot_ys = 480.0 + 20.0;
 float main_robot_middle_to_lidar = -120.0;
 
 #else
@@ -1344,6 +1347,7 @@ void gen_routing_page(world_t *w, int xpage, int ypage, int forgiveness)
 		w->rpages[xpage][ypage] = malloc(sizeof(routing_page_t));
 	}
 
+	forgiveness = ROUTING_3D_FORGIVENESS;
 	if(forgiveness == 0)
 	{
 		for(int xx=0; xx < MAP_PAGE_W; xx++)

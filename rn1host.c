@@ -230,6 +230,7 @@ void do_live_obstacle_checking()
 
 		int hitcnt = check_direct_route_non_turning_hitcnt_mm(cur_x, cur_y, target_x, target_y);
 
+#if 0
 		if(hitcnt > 0 && maneuver_cnt < 2)
 		{
 			// See what happens if we steer left or right
@@ -307,6 +308,7 @@ void do_live_obstacle_checking()
 			else
 			{
 //				printf("!!!!!!!!  Steering cannot help in improving line-of-sight.\n");
+#endif
 				if(hitcnt < 3)
 				{
 //					printf("!!!!!!!!!!!  Direct line-of-sight to the next point has 1..2 obstacles, slowing down.\n");
@@ -321,9 +323,10 @@ void do_live_obstacle_checking()
 					stop_movement();
 					lookaround_creep_reroute = 1;
 				}
-
+#if 0
 			}
 		}
+#endif
 	}
 }
 

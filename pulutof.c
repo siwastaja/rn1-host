@@ -251,8 +251,8 @@ static const sensor_mount_t sensor_mounts[NUM_PULUTOFS] =
 {          //      mountmode    x     y       hor ang           ver ang      height    
  /*0: Left rear      */ { 2,  -276,  -233, DEGTORAD(      90), DEGTORAD( 0), 227 },
  /*1: Right rear     */ { 1,  -276,   233, DEGTORAD(     270), DEGTORAD( 0), 227 },
- /*2: Right front    */ { 2,   154,   164, DEGTORAD(       0), DEGTORAD( 0), 228 },
- /*3: Left front     */ { 1,   154,  -164, DEGTORAD(       0), DEGTORAD( 0), 228 }
+ /*2: Right front    */ { 2,   154,   164, DEGTORAD(      -3), DEGTORAD( 0), 228 },
+ /*3: Left front     */ { 1,   154,  -164, DEGTORAD(      -3), DEGTORAD( 0), 228 }
 };
 #endif
 

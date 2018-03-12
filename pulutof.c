@@ -1071,7 +1071,7 @@ static int read_frame()
 	}
 
 #ifdef SPI_PRINT_DBG
-	printf("Frame read ok, timing:\n");
+	printf("Frame (sensor_idx= %d) read ok, timing:\n", pulutof_ringbuf[pulutof_ringbuf_wr].sensor_idx);
 	for(int i=0; i<24; i++)
 	{
 		printf("%d:%.1f ", i, (float)pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]/10.0);

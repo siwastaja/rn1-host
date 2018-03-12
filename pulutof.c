@@ -1050,7 +1050,7 @@ static int poll_availability()
 	//printf("status=%d\n", response.status);
 	return response.status;
 }
-//#define SPI_PRINT_DBG
+#define SPI_PRINT_DBG
 
 static int read_frame()
 {

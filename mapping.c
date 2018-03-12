@@ -1271,7 +1271,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 		{
 			for(int ix=0; ix < TOF3D_HMAP_XSPOTS; ix++)
 			{
-				float pre_x = (float)tof->robot_pos.x + (float)ix*(float)TOF3D_HMAP_SPOT_SIZE - (float)mid_x;
+				float pre_x = (float)tof->robot_pos.x + (float)(ix-TOF3D_HMAP_XMIDDLE)*(float)TOF3D_HMAP_SPOT_SIZE - (float)mid_x;
 				float pre_y = (float)tof->robot_pos.y + (float)(iy-TOF3D_HMAP_YMIDDLE)*(float)TOF3D_HMAP_SPOT_SIZE - (float)mid_y;
 				int rotax = pre_x*cos(ang) + pre_y*sin(ang);
 				int rotay = -1*pre_x*sin(ang) + pre_y*cos(ang);

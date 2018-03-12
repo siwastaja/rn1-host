@@ -471,6 +471,10 @@ void* pulutof_processing_thread()
 
 }
 static void process_objmap();
+extern pthread_mutex_t cur_pos_mutex;
+extern int32_t cur_ang, cur_x, cur_y;
+int32_t tof3d_obstacle_levels[3];
+
 
 static void process_pulutof_frame(pulutof_frame_t *in)
 {
@@ -517,6 +521,16 @@ static void process_pulutof_frame(pulutof_frame_t *in)
 //			if(sidx==2)
 			distances_to_objmap(in);
 
+
+			if(sidx == 2)
+			{
+				pthread_mutex_lock(&cur_pos_mutex);
+				tof3ds[tof3d_wr].robot_pos.ang = cur_ang;
+				tof3ds[tof3d_wr].robot_pos.x = cur_x;
+				tof3ds[tof3d_wr].robot_pos.y = cur_y;
+				pthread_mutex_unlock(&cur_pos_mutex);
+			}
+
 			if(sidx == NUM_PULUTOFS-1)
 			{
 				// Got all sensors: the objmap accumulation done, process it.
@@ -536,9 +550,6 @@ void run_3dtof_floor_calibration()
 	calibrating = 1;
 }
 
-extern pthread_mutex_t cur_pos_mutex;
-extern int32_t cur_ang, cur_x, cur_y;
-int32_t tof3d_obstacle_levels[3];
 
 
 static void process_objmap()

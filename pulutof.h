@@ -53,10 +53,10 @@ typedef struct __attribute__((packed))
 	uint16_t depth[TOF_XS*TOF_YS];
 //	uint8_t  ampl[EPC_XS*EPC_YS];
 //	uint8_t  ambient[EPC_XS*EPC_YS];
-	uint16_t uncorrected_depth[TOF_XS*TOF_YS];
+//	uint16_t uncorrected_depth[TOF_XS*TOF_YS];
 
-	uint8_t dbg_id;
-	uint8_t dbg[2*TOF_XS*TOF_YS];
+//	uint8_t dbg_id;
+//	uint8_t dbg[2*TOF_XS*TOF_YS];
 
 	uint16_t timestamps[24]; // 0.1ms unit timestamps of various steps for analyzing the timing of low-level processing
 	int32_t  dbg_i32[8];

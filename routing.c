@@ -37,7 +37,7 @@
 
 */
 
-#define ROUTING_3D_FORGIVENESS 5
+#define ROUTING_3D_FORGIVENESS 0
 #define AVOID_3D_THINGS
 
 #include <stdint.h>
@@ -814,8 +814,8 @@ static void draw_robot_shape(int a_idx, float ang)
 	}
 	else if(tight_shapes == 0)
 	{
-		robot_xs = (main_robot_xs + 80.0 + extra_x);
-		robot_ys = (main_robot_ys + 80.0 + extra_y);
+		robot_xs = (main_robot_xs + 100.0 + extra_x);
+		robot_ys = (main_robot_ys + 100.0 + extra_y);
 	}
 	else // wide
 	{

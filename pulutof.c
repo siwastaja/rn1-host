@@ -1050,6 +1050,7 @@ static int poll_availability()
 	//printf("status=%d\n", response.status);
 	return response.status;
 }
+#define SPI_PRINT_DBG
 
 static int read_frame()
 {
@@ -1146,13 +1147,18 @@ void* pulutof_poll_thread()
 
 		if(avail < 0)
 		{
+#ifdef SPI_PRINT_DBG
+			printf("Sleeping 2 s\n");
+#endif
 			sleep(2);
 			continue;
 		}
 
 		if(avail < 250)
 		{
-	//		printf("Sleeping %d ms\n", avail);
+#ifdef SPI_PRINT_DBG
+			printf("Sleeping %d ms\n", avail);
+#endif
 			usleep(1000*avail);
 			continue;
 		}

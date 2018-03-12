@@ -55,7 +55,7 @@ static volatile int running = 1;
 
 static const unsigned char spi_mode = SPI_MODE_0;
 static const unsigned char spi_bits_per_word = 8;
-static const unsigned int spi_speed = 25000000; // Hz
+static const unsigned int spi_speed = 32000000; // Hz
 
 static int init_spi()
 {

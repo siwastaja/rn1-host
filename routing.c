@@ -1347,7 +1347,7 @@ void gen_routing_page(world_t *w, int xpage, int ypage, int forgiveness)
 		w->rpages[xpage][ypage] = malloc(sizeof(routing_page_t));
 	}
 
-	forgiveness = 0; //ROUTING_3D_FORGIVENESS;
+	forgiveness = ROUTING_3D_FORGIVENESS;
 	if(forgiveness == 0)
 	{
 		for(int xx=0; xx < MAP_PAGE_W; xx++)
@@ -1403,7 +1403,7 @@ void gen_routing_page(world_t *w, int xpage, int ypage, int forgiveness)
 					uint8_t res =  w->pages[xpage][ypage]->units[xx][yy*32+i].result;
 					uint8_t cons = w->pages[xpage][ypage]->units[xx][yy*32+i].constraints;
 #ifdef AVOID_3D_THINGS
-					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (w->pages[xpage][ypage]->units[xx][yy*32+i].num_3d_obstacles < forgiveness) || (cons & CONSTRAINT_FORBIDDEN);
+					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (w->pages[xpage][ypage]->units[xx][yy*32+i].num_3d_obstacles > forgiveness) || (cons & CONSTRAINT_FORBIDDEN);
 #else
 					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (cons & CONSTRAINT_FORBIDDEN);
 #endif
@@ -1419,7 +1419,7 @@ void gen_routing_page(world_t *w, int xpage, int ypage, int forgiveness)
 					uint8_t res  = w->pages[xpage][ypage+1]->units[xx][0*32+i].result;
 					uint8_t cons = w->pages[xpage][ypage+1]->units[xx][0*32+i].constraints;
 #ifdef AVOID_3D_THINGS
-					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (w->pages[xpage][ypage+1]->units[xx][0*32+i].num_3d_obstacles < forgiveness) || (cons & CONSTRAINT_FORBIDDEN);
+					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (w->pages[xpage][ypage+1]->units[xx][0*32+i].num_3d_obstacles > forgiveness) || (cons & CONSTRAINT_FORBIDDEN);
 #else
 					tmp |= (res & UNIT_FREE) || (res & UNIT_WALL) || (res & UNIT_INVISIBLE_WALL) || (cons & CONSTRAINT_FORBIDDEN);
 #endif

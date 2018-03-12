@@ -816,7 +816,7 @@ void* main_thread()
 	turn_and_go_rel_rel(0, -50, 25, 1);
 	sleep(1);
 
-	set_hw_obstacle_avoidance_margin(60);
+	set_hw_obstacle_avoidance_margin(10);
 
 	double chafind_timestamp = 0.0;
 	int lidar_ignore_over = 0;

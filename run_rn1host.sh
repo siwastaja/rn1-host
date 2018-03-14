@@ -51,6 +51,7 @@ do
 
 	7)	echo "Deleting maps & restarting rn1host..."
 		rm -f ${hostdir}/*.map
+		sleep 1
 		;;
 
 	*)	echo "Restarting rn1host..."

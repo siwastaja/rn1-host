@@ -382,7 +382,8 @@ static void distances_to_objmap(pulutof_frame_t *in)
 
 					float d = (float)avg_conforming/(float)n_conforming;
 
-					d *= 0.84; // don't understand why, yet. Seems to be a very consistent error!
+				//	d *= 0.84; // don't understand why, yet. Seems to be a very consistent error!
+					d *= 0.90;
 
 					float x = d * /*sin*/cos(ver_ang + sensor_yang) * cos(hor_ang + sensor_ang) + sensor_x;
 					float y = -1* (d * /*sin*/cos(ver_ang + sensor_yang) * sin(hor_ang + sensor_ang)) + sensor_y;
@@ -408,10 +409,12 @@ static void distances_to_objmap(pulutof_frame_t *in)
 					}
 */
 
+					z -= 50.0;
+
 					uint8_t new_val = 0;
-					if( z < -220.0)
+					if( z < -250.0)
 						new_val = TOF3D_BIG_DROP;
-					else if(z < -160.0)
+					else if(z < -200.0)
 						new_val = TOF3D_SMALL_DROP;
 					else if(z < 110.0)
 						new_val = TOF3D_FLOOR;

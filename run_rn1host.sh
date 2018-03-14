@@ -49,6 +49,10 @@ do
 		echo "Restarting rn1host..."
 		;;
 
+	7)	echo "Deleting maps & restarting rn1host..."
+		rm -f ${hostdir}/*.map
+		;;
+
 	*)	echo "Restarting rn1host..."
 		;;
 	esac

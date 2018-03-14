@@ -249,10 +249,10 @@ typedef struct
 #ifdef PULUTOF_ROBOT_SER_1_TO_4  // Retrofitted sensors
 static const sensor_mount_t sensor_mounts[NUM_PULUTOFS] =
 {          //      mountmode    x     y       hor ang           ver ang      height    
- /*0: Left rear      */ { 2,  -276,  -233, DEGTORAD(      90), DEGTORAD( -2), 227 },
- /*1: Right rear     */ { 1,  -276,   233, DEGTORAD(     270), DEGTORAD(  0), 227 },
- /*2: Right front    */ { 2,   154,   164, DEGTORAD(       0), DEGTORAD( -3), 180 },
- /*3: Left front     */ { 1,   154,  -164, DEGTORAD(       0), DEGTORAD( -3), 228 }
+ /*0: Left rear      */ { 2,  -276,  -233, DEGTORAD(      90), DEGTORAD( -2), 217 },
+ /*1: Right rear     */ { 1,  -276,   233, DEGTORAD(     270), DEGTORAD(  0), 180 },
+ /*2: Right front    */ { 2,   154,   164, DEGTORAD(       0), DEGTORAD( -3), 170 },
+ /*3: Left front     */ { 1,   154,  -164, DEGTORAD(       0), DEGTORAD( -3), 208 }
 };
 #endif
 
@@ -413,9 +413,9 @@ static void distances_to_objmap(pulutof_frame_t *in)
 						new_val = TOF3D_BIG_DROP;
 					else if(z < -160.0)
 						new_val = TOF3D_SMALL_DROP;
-					else if(z < 50.0)
+					else if(z < 100.0)
 						new_val = TOF3D_FLOOR;
-					else if(z < 70.0)
+					else if(z < 150.0)
 						new_val = TOF3D_THRESHOLD;
 					else if(z < 265.0)
 						new_val = TOF3D_SMALL_ITEM;

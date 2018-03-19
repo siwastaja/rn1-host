@@ -1480,10 +1480,13 @@ void* main_thread()
 		{
 			if(tcp_client_sock >= 0)
 			{
-//				tcp_send_picture(p_tof->dbg_id, 2, 160, 60, p_tof->dbg);
+#ifdef PULUTOF_EXTRA
+				tcp_send_picture(p_tof->dbg_id, 2, 160, 60, p_tof->dbg);
+#endif
 				tcp_send_picture(100,           2, 160, 60, (uint8_t*)p_tof->depth);
-//				tcp_send_picture(110,           2, 160, 60, (uint8_t*)p_tof->uncorrected_depth);
-//				tcp_send_picture(101,           1, 160, 60, p_tof->ambient);
+#ifdef PULUTOF_EXTRA
+				tcp_send_picture(110,           2, 160, 60, (uint8_t*)p_tof->uncorrected_depth);
+#endif
 			}
 
 		}

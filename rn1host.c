@@ -1473,7 +1473,7 @@ void* main_thread()
 
 #endif
 
-#ifdef PULUTOF_GIVE_RAWS
+#ifdef PULUTOF1_GIVE_RAWS
 
 		pulutof_frame_t* p_tof;
 		if( (p_tof = get_pulutof_frame()) )

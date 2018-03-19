@@ -19,6 +19,7 @@
 
 */
 
+#define PULUTOF1_GIVE_RAWS
 
 #define _POSIX_C_SOURCE 200809L
 #include <stdint.h>
@@ -1472,7 +1473,22 @@ void* main_thread()
 
 #endif
 
+#ifdef PULUTOF_GIVE_RAWS
 
+		pulutof_frame_t* p_tof;
+		if( (p_tof = get_pulutof_frame()) )
+		{
+			if(tcp_client_sock >= 0)
+			{
+//				tcp_send_picture(p_tof->dbg_id, 2, 160, 60, p_tof->dbg);
+				tcp_send_picture(100,           2, 160, 60, (uint8_t*)p_tof->depth);
+//				tcp_send_picture(110,           2, 160, 60, (uint8_t*)p_tof->uncorrected_depth);
+//				tcp_send_picture(101,           1, 160, 60, p_tof->ambient);
+			}
+
+		}
+
+#else
 		tof3d_scan_t *p_tof;
 		if( (p_tof = get_tof3d()) )
 		{
@@ -1535,7 +1551,7 @@ void* main_thread()
 			}
 
 		}
-
+#endif
 
 
 
@@ -1715,21 +1731,6 @@ void* main_thread()
 				release_motors();
 		}
 
-/*
-		pulutof_frame_t* p_tof;
-		if( (p_tof = get_pulutof_frame()) )
-		{
-			if(tcp_client_sock >= 0)
-			{
-				tcp_send_picture(p_tof->dbg_id, 2, 160, 60, p_tof->dbg);
-				tcp_send_picture(100,           2, 160, 60, (uint8_t*)p_tof->depth);
-				tcp_send_picture(110,           2, 160, 60, (uint8_t*)p_tof->uncorrected_depth);
-//				tcp_send_picture(101,           1, 160, 60, p_tof->ambient);
-			}
-
-		}
-*/
-
 		sonar_point_t* p_son;
 		if( (p_son = get_sonar()) )
 		{
@@ -1804,11 +1805,14 @@ int main(int argc, char** argv)
 		printf("ERROR: tof3d access thread creation, ret = %d\n", ret);
 		return -1;
 	}
-	if( (ret = pthread_create(&thread_tof2, NULL, pulutof_processing_thread, NULL)) )
-	{
-		printf("ERROR: tof3d processing thread creation, ret = %d\n", ret);
-		return -1;
-	}
+
+	#ifndef PULUTOF1_GIVE_RAWS
+		if( (ret = pthread_create(&thread_tof2, NULL, pulutof_processing_thread, NULL)) )
+		{
+			printf("ERROR: tof3d processing thread creation, ret = %d\n", ret);
+			return -1;
+		}
+	#endif
 #endif
 
 	pthread_join(thread_main, NULL);

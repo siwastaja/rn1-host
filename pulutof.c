@@ -1153,7 +1153,7 @@ void* pulutof_poll_thread()
 		if(avail < 0)
 		{
 #ifdef SPI_PRINT_DBG
-			printf("Sleeping 2 s\n");
+		//	printf("Sleeping 2 s\n");
 #endif
 			sleep(2);
 			continue;
@@ -1162,7 +1162,7 @@ void* pulutof_poll_thread()
 		if(avail < 250)
 		{
 #ifdef SPI_PRINT_DBG
-			printf("Sleeping %d ms\n", avail);
+		//	printf("Sleeping %d ms\n", avail);
 #endif
 			usleep(1000*avail);
 			continue;

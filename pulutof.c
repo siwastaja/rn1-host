@@ -1,4 +1,4 @@
-#define SPI_PRINT_DBG
+//#define SPI_PRINT_DBG
 
 /*
 	PULUROBOT RN1-HOST Computer-on-RobotBoard main software

@@ -19,7 +19,7 @@
 
 */
 
-#define PULUTOF1_GIVE_RAWS
+//#define PULUTOF1_GIVE_RAWS
 
 #define _POSIX_C_SOURCE 200809L
 #include <stdint.h>
@@ -941,6 +941,7 @@ void* main_thread()
 				if(motors_on)
 				{
 					motors_on = 0;
+					release_motors();
 					printf("Robot is free to move manually.\n");
 				}
 				else
@@ -1118,6 +1119,7 @@ void* main_thread()
 						do_follow_route = 0;
 						send_info(INFO_STATE_IDLE);
 						motors_on = 0;
+						release_motors();
 						mapping_on = 1;
 					} break;
 
@@ -1129,6 +1131,7 @@ void* main_thread()
 						send_info(INFO_STATE_IDLE);
 						do_follow_route = 0;
 						motors_on = 0;
+						release_motors();
 						mapping_on = 0;
 					} break;
 
@@ -1728,11 +1731,18 @@ void* main_thread()
 
 			}
 
+		}
+
+		static int keepalive_cnt = 0;
+		if(++keepalive_cnt > 500)
+		{
+			keepalive_cnt = 0;
 			if(motors_on)
 				send_keepalive();
 			else
 				release_motors();
 		}
+
 
 		sonar_point_t* p_son;
 		if( (p_son = get_sonar()) )

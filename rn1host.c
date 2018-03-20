@@ -53,6 +53,8 @@
 #include "mcu_micronavi_docu.c"
 
 
+int verbose_mode = 0;
+
 int max_speedlim = 45;
 int cur_speedlim = 45;
 
@@ -950,6 +952,12 @@ void* main_thread()
 					printf("Robot motors enabled again.\n");
 				}
 			}
+
+			if(cmd == 'V')
+			{
+				verbose_mode = verbose_mode?0:1;
+			}
+
 			if(cmd == 'z')
 			{
 				pulutof_decr_dbg();

@@ -46,6 +46,7 @@
 
 extern double subsec_timestamp();
 
+extern int verbose_mode;
 
 int lidar_wr = 0;
 int lidar_rd = 0;
@@ -109,7 +110,7 @@ extern double robot_pos_timestamp;
 pthread_mutex_t cur_pos_mutex = PTHREAD_MUTEX_INITIALIZER;
 int update_robot_pos(int32_t ang, int32_t x, int32_t y)
 {
-	//printf("update_robot_pos(%d, %d, %d)\n", ang, x, y);
+	if(verbose_mode) printf("update_robot_pos(%d, %d, %d)\n", ang, x, y);
 	static int error_cnt = 0;
 	if(   x <= -1*(MAP_PAGE_W_MM*(MAP_W/2-1)) || x >= MAP_PAGE_W_MM*(MAP_W/2-1)
 	   || y <= -1*(MAP_PAGE_W_MM*(MAP_W/2-1)) || y >= MAP_PAGE_W_MM*(MAP_W/2-1) )
@@ -275,6 +276,9 @@ int parse_uart_msg(uint8_t* buf, int msgid, int len)
 				lid->scan[i].valid = 1;
 			}
 
+			if(verbose_mode) printf("INFO: Got lidar scan, n_points=%d, robot_pos=%d,%d\n", lid->n_points, lid->robot_pos.x, lid->robot_pos.y);
+
+
 			if(is_significant)
 			{
 				significant_lidar_wr++; if(significant_lidar_wr >= SIGNIFICANT_LIDAR_RING_BUF_LEN) significant_lidar_wr = 0;
@@ -294,7 +298,7 @@ int parse_uart_msg(uint8_t* buf, int msgid, int len)
 			sonars[sonar_wr].z = (int16_t)I16FROMBUFLE(buf, 8);
 			sonars[sonar_wr].c = buf[10];
 
-			//printf("SONAR: x=%d   y=%d   z=%d   c=%d\n", sonars[sonar_wr].x, sonars[sonar_wr].y, sonars[sonar_wr].z, sonars[sonar_wr].c);
+			if(verbose_mode) printf("INFO: Got SONAR: x=%d   y=%d   z=%d   c=%d\n", sonars[sonar_wr].x, sonars[sonar_wr].y, sonars[sonar_wr].z, sonars[sonar_wr].c);
 
 			sonar_wr++; if(sonar_wr >= SONAR_RING_BUF_LEN) sonar_wr = 0;
 		}
@@ -322,6 +326,8 @@ int parse_uart_msg(uint8_t* buf, int msgid, int len)
 			pwr_status.bat_mv = I7I7_U16_lossy(buf[1], buf[2]);
 			pwr_status.bat_percentage = buf[3];
 			pwr_status.cha_mv = I7I7_U16_lossy(buf[4], buf[5]);
+
+			if(verbose_mode) printf("Got pwr status: %d mv (%d%%), cha input: %d mv, cha?:%d, done?:%d\n", pwr_status.bat_mv, pwr_status.bat_percentage, pwr_status.cha_mv, pwr_status.charging, pwr_status.charged);
 		}
 		break;
 
@@ -332,7 +338,7 @@ int parse_uart_msg(uint8_t* buf, int msgid, int len)
 			compass_round_active = buf[0];
 			cur_compass_ang = I7I7_U16_lossy(buf[1], buf[2])<<16;
 
-//			printf("cur_compass_ang = %6.1fdeg  %s\n", ANG32TOFDEG(cur_compass_ang), compass_round_active?"CALIBRATING":"");
+//			if(verbose_mode) printf("cur_compass_ang = %6.1fdeg  %s\n", ANG32TOFDEG(cur_compass_ang), compass_round_active?"CALIBRATING":"");
 		}
 		break;
 

@@ -1040,6 +1040,15 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 		return -1;
 	}
 
+	for(int i=0; i<n_lidars; i++)
+	{
+		if(!lidar_list[i] || lidar_list[i]->n_points > MAX_LIDAR_POINTS)
+		{
+			printf("ERROR: lidar_list[%d] sanity check fail\n", i);
+			return -1;
+		}
+	}
+
 
 	if(search_area_size > 0)
 	{

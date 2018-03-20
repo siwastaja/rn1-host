@@ -41,7 +41,7 @@
 
 
 #define SIGNIFICANT_LIDAR_RING_BUF_LEN 32
-#define LIDAR_RING_BUF_LEN 16
+#define LIDAR_RING_BUF_LEN 32
 #define SONAR_RING_BUF_LEN 128
 
 extern double subsec_timestamp();

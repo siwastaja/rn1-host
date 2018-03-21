@@ -1306,7 +1306,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 
 					case TOF3D_WALL         : walls[tm_y*MAP_PAGE_W+tm_x]++; break;
 
-					case TOF3D_FLOOR        : if(ix > 4) seens[tm_y*MAP_PAGE_W+tm_x]++; break; // don't remove obstacles right next to the robot
+					case TOF3D_FLOOR        : seens[tm_y*MAP_PAGE_W+tm_x]++; break;
 					default: break;
 				}
 			}
@@ -1391,11 +1391,21 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 			}
 			else if(seens[iy*MAP_PAGE_W+ix] >= seen_removal_limit && drops[iy*MAP_PAGE_W+ix] == 0 && items[iy*MAP_PAGE_W+ix] == 0 && walls[iy*MAP_PAGE_W+ix] == 0)
 			{
-				if(w->pages[px][py]->units[ox][oy].result & (UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL)) w->changed[px][py] = 1;
-				w->pages[px][py]->units[ox][oy].result &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
-				w->pages[px][py]->units[ox][oy].latest &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
-				w->pages[px][py]->units[ox][oy].num_3d_obstacles = 0;
-				cnt_removal++;
+				// Clear neighbors as well. But to save time/complexity, don't go over page borders.
+				for(int nx=-1; nx<=1; nx++)
+				{
+					for(int ny=-1; ny<=1; ny++)
+					{
+						int oxn = ox+nx; if(oxn < 0 || oxn >= MAP_PAGE_W) continue;
+						int oyn = oy+ny; if(oyn < 0 || oyn >= MAP_PAGE_W) continue;
+						if(w->pages[px][py]->units[oxn][oyn].result & (UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL)) w->changed[px][py] = 1;
+						w->pages[px][py]->units[oxn][oyn].result &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
+						w->pages[px][py]->units[oxn][oyn].latest &= ~(UNIT_DROP | UNIT_ITEM | UNIT_3D_WALL);
+						w->pages[px][py]->units[oxn][oyn].num_3d_obstacles = 0;
+						cnt_removal++;
+
+					}
+				}
 			}
 
 			ox++;

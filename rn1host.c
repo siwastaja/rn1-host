@@ -1212,6 +1212,7 @@ void* main_thread()
 			else if(ret == TCP_CR_SPEEDLIM_MID)
 			{
 				int new_lim = msg_cr_speedlim.speedlim_linear_fwd;
+				printf("INFO: Speedlim msg %d\n", new_lim);
 				if(new_lim < 1 || new_lim > MAX_CONFIGURABLE_SPEEDLIM)
 					max_speedlim = DEFAULT_SPEEDLIM;
 				else

@@ -1220,7 +1220,11 @@ void* main_thread()
 				else
 					max_speedlim = new_lim;
 
-				if(cur_speedlim > max_speedlim) cur_speedlim = max_speedlim;
+				if(cur_speedlim > max_speedlim)
+				{
+					cur_speedlim = max_speedlim;
+					limit_speed(cur_speedlim);
+				}
 			}
 		}
 

@@ -425,7 +425,7 @@ void move_to(int32_t x, int32_t y, int8_t backmode, int id, int speedlimit, int 
 		id = 0;
 	}
 
-	printf("Move(%d,%d),back=%d,id=%d\n", x,y,backmode,id);
+	printf("Move(%d,%d),back=%d,id=%d, speedlim=%d\n", x,y,backmode,id, speedlimit);
 
 	buf[0] = 0x82;
 	buf[1] = I32_I7_4(x);
@@ -484,7 +484,7 @@ void limit_speed(int speedlimit)
 {
 	uint8_t buf[3];
 
-//	printf("limit_speed(%d)\n", speedlimit);
+	printf("limit_speed(%d)\n", speedlimit);
 
 	buf[0] = 0x85;
 	buf[1] = speedlimit&0x7f;

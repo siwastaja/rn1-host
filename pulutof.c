@@ -1061,7 +1061,6 @@ static int poll_availability()
 	//printf("status=%d\n", response.status);
 	return response.status;
 }
-//#define SPI_PRINT_DBG
 
 static int read_frame()
 {
@@ -1082,7 +1081,7 @@ static int read_frame()
 	}
 
 #ifdef SPI_PRINT_DBG
-	printf("Frame (sensor_idx= %d) read ok, timing:\n", pulutof_ringbuf[pulutof_ringbuf_wr].sensor_idx);
+	printf("Frame (sensor_idx= %d) read ok, pose=(%d,%d,%d). Timing data:\n", pulutof_ringbuf[pulutof_ringbuf_wr].sensor_idx, pulutof_ringbuf[pulutof_ringbuf_wr].robot_pos.x, pulutof_ringbuf[pulutof_ringbuf_wr].robot_pos.y, pulutof_ringbuf[pulutof_ringbuf_wr].ang);
 	for(int i=0; i<24; i++)
 	{
 		printf("%d:%.1f ", i, (float)pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]/10.0);

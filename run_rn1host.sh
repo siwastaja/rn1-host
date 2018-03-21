@@ -3,8 +3,8 @@
 hostdir="/home/hrst/rn1-host"
 prog="/home/hrst/rn1-tools/p.sh"
 
-export LD_LIBRARY_PATH=/opt/softkinetic/DepthSenseSDK/lib
-export DEPTHSENSESDK_DIR=/opt/softkinetic/DepthSenseSDK
+#export LD_LIBRARY_PATH=/opt/softkinetic/DepthSenseSDK/lib
+#export DEPTHSENSESDK_DIR=/opt/softkinetic/DepthSenseSDK
 rm -f ${hostdir}/*.map
 
 while true

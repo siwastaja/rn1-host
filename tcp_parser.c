@@ -101,8 +101,16 @@ tcp_message_t msgmeta_cr_maintenance =
 	8, "ii"
 };
 
+tcp_cr_speedlim_t msg_cr_speedlim;
+tcp_message_t msgmeta_cr_speedlim =
+{
+	&msg_cr_speedlim,
+	TCP_CR_SPEEDLIM_MID,
+	5, "BBBBB"
+};
 
-#define NUM_CR_MSGS 8
+
+#define NUM_CR_MSGS 9
 tcp_message_t* CR_MSGS[NUM_CR_MSGS] =
 {
 	&msgmeta_cr_dest,
@@ -112,7 +120,8 @@ tcp_message_t* CR_MSGS[NUM_CR_MSGS] =
 	&msgmeta_cr_manu,
 	&msgmeta_cr_addconstraint,
 	&msgmeta_cr_remconstraint,
-	&msgmeta_cr_maintenance
+	&msgmeta_cr_maintenance,
+	&msgmeta_cr_speedlim
 };
 
 // Robot->Client messages

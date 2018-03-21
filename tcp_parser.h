@@ -122,6 +122,18 @@ typedef struct __attribute__ ((packed))
 
 extern tcp_cr_maintenance_t   msg_cr_maintenance;
 
+#define TCP_CR_SPEEDLIM_MID    63
+typedef struct __attribute__ ((packed))
+{
+	uint8_t speedlim_linear_fwd;  // right now, sets both linear (fwd and back) and angular speedlimit. 1..100. 0 = use default limit. Note that actual speedlimit may always be lower due to nearby obstacles.
+	uint8_t speedlim_linear_back; // for future use, not implemented yet 
+	uint8_t speedlim_angular; // for future use, not implemented yet
+	uint8_t accellim_linear;  // for future use, not implemented yet
+	uint8_t accellim_angular; // for future use, not implemented yet
+} tcp_cr_speedlim_t;
+
+extern tcp_cr_speedlim_t   msg_cr_speedlim;
+
 
 #define TCP_RC_POS_MID    130
 typedef struct __attribute__ ((packed))

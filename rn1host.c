@@ -52,11 +52,13 @@
 
 #include "mcu_micronavi_docu.c"
 
+#define DEFAULT_SPEEDLIM 45
+#define MAX_CONFIGURABLE_SPEEDLIM 70
 
 int verbose_mode = 0;
 
-int max_speedlim = 45;
-int cur_speedlim = 45;
+int max_speedlim = DEFAULT_SPEEDLIM;
+int cur_speedlim = DEFAULT_SPEEDLIM;
 
 double subsec_timestamp()
 {
@@ -1207,6 +1209,14 @@ void* main_thread()
 					printf("WARN: Illegal maintenance message magic number 0x%08x.\n", msg_cr_maintenance.magic);
 				}
 			}		
+			else if(ret == TCP_CR_SPEEDLIM_MID)
+			{
+				int new_lim = msg_cr_speedlim.speedlim_linear_fwd;
+				if(new_lim < 1 || new_lim > MAX_CONFIGURABLE_SPEEDLIM)
+					max_speedlim = DEFAULT_SPEEDLIM;
+				else
+					max_speedlim = new_lim;
+			}
 		}
 
 		if(FD_ISSET(tcp_listener_sock, &fds))

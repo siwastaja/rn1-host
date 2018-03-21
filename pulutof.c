@@ -251,10 +251,10 @@ typedef struct
 #ifdef PULUTOF_ROBOT_SER_1_TO_4  // Retrofitted sensors
 static const sensor_mount_t sensor_mounts[NUM_PULUTOFS] =
 {          //      mountmode    x     y       hor ang           ver ang      height    
- /*0: Left rear      */ { 2,  -276,  -233, DEGTORAD(      90), DEGTORAD( -2), 217 },
- /*1: Right rear     */ { 1,  -276,   233, DEGTORAD(     270), DEGTORAD(  0), 180 },
- /*2: Right front    */ { 2,   154,   164, DEGTORAD(       0), DEGTORAD( -3), 170 },
- /*3: Left front     */ { 1,   154,  -164, DEGTORAD(       0), DEGTORAD( -3), 208 }
+ /*0: Left rear      */ { 2,  -276,  -233, DEGTORAD(      90), DEGTORAD(  0), 227 },
+ /*1: Right rear     */ { 1,  -276,   233, DEGTORAD(     270), DEGTORAD(  0), 227 },
+ /*2: Right front    */ { 2,   154,   164, DEGTORAD(       0), DEGTORAD( -2), 228 },
+ /*3: Left front     */ { 1,   154,  -164, DEGTORAD(       0), DEGTORAD( -3), 228 }
 };
 #endif
 
@@ -337,7 +337,7 @@ static void distances_to_objmap(pulutof_frame_t *in)
 					for(int dxx=-1; dxx<=1; dxx++)
 					{
 						int dist = in->depth[(pyy+dyy)*TOF_XS+(pxx+dxx)];
-						if(dist != 0 && dist > avg-400 && dist < avg+400)
+						if(dist != 0 && dist > avg-350 && dist < avg+350)
 						{
 							n_conforming++;
 							avg_conforming += dist;
@@ -385,7 +385,7 @@ static void distances_to_objmap(pulutof_frame_t *in)
 					float d = (float)avg_conforming/(float)n_conforming;
 
 				//	d *= 0.84; // don't understand why, yet. Seems to be a very consistent error!
-					d *= 0.90;
+				//	d *= 0.90;
 
 					float x = d * /*sin*/cos(ver_ang + sensor_yang) * cos(hor_ang + sensor_ang) + sensor_x;
 					float y = -1* (d * /*sin*/cos(ver_ang + sensor_yang) * sin(hor_ang + sensor_ang)) + sensor_y;
@@ -411,16 +411,14 @@ static void distances_to_objmap(pulutof_frame_t *in)
 					}
 */
 
-					z -= 50.0;
-
 					uint8_t new_val = 0;
-					if( z < -250.0)
+					if( z < -150.0)
 						new_val = TOF3D_BIG_DROP;
-					else if(z < -200.0)
+					else if(z < -100.0)
 						new_val = TOF3D_SMALL_DROP;
-					else if(z < 110.0)
+					else if(z < 100.0)
 						new_val = TOF3D_FLOOR;
-					else if(z < 170.0)
+					else if(z < 150.0)
 						new_val = TOF3D_THRESHOLD;
 					else if(z < 265.0)
 						new_val = TOF3D_SMALL_ITEM;

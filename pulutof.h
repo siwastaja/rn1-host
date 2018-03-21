@@ -1,4 +1,4 @@
-#define PULUTOF_EXTRA
+//#define PULUTOF_EXTRA
 /*
 	PULUROBOT RN1-HOST Computer-on-RobotBoard main software
 

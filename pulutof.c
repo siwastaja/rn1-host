@@ -326,7 +326,7 @@ static void distances_to_objmap(pulutof_frame_t *in)
 				}
 			}
 
-			if(n_valids > 6)
+			if(n_valids > 4)
 			{
 				avg /= n_valids;
 				int n_conforming = 0;
@@ -347,7 +347,7 @@ static void distances_to_objmap(pulutof_frame_t *in)
 					}
 				}
 
-				if(n_conforming > 4)
+				if(n_conforming > 2)
 				{
 					int py, px;
 					if(cumul_dxx < -2) px = pxx-1; else if(cumul_dxx > 2) px = pxx+1; else px = pxx;
@@ -391,44 +391,52 @@ static void distances_to_objmap(pulutof_frame_t *in)
 					float y = -1* (d * /*sin*/cos(ver_ang + sensor_yang) * sin(hor_ang + sensor_ang)) + sensor_y;
 					float z = d * /*cos*/sin(ver_ang + sensor_yang) + sensor_z;
 
-					int xspot = (int)(x / (float)TOF3D_HMAP_SPOT_SIZE) + TOF3D_HMAP_XMIDDLE;
-					int yspot = (int)(y / (float)TOF3D_HMAP_SPOT_SIZE) + TOF3D_HMAP_YMIDDLE;
-
-					//printf("DIST = %.0f  x=%.0f  y=%.0f  z=%.0f  xspot=%d  yspot=%d  ver_ang=%.2f  sensor_yang=%.2f  hor_ang=%.2f  sensor_ang=%.2f\n", d, x, y, z, xspot, yspot, ver_ang, sensor_yang, hor_ang, sensor_ang); 
-
-					if(xspot < 0 || xspot >= TOF3D_HMAP_XSPOTS || yspot < 0 || yspot >= TOF3D_HMAP_YSPOTS)
+					if(z > 700 || (z > -100.0 && z < 100.0) || (n_valids > 7 && n_conforming > 5))
 					{
-						//ignored++;
-						continue;
+						// Data proving level floor is accepted with fewer samples
+						// High-z data is also accepted with fewer samples; else we miss obvious small high obstacles
+						// Otherwise, we require enough samples to be sure.
+
+						int xspot = (int)(x / (float)TOF3D_HMAP_SPOT_SIZE) + TOF3D_HMAP_XMIDDLE;
+						int yspot = (int)(y / (float)TOF3D_HMAP_SPOT_SIZE) + TOF3D_HMAP_YMIDDLE;
+
+						//printf("DIST = %.0f  x=%.0f  y=%.0f  z=%.0f  xspot=%d  yspot=%d  ver_ang=%.2f  sensor_yang=%.2f  hor_ang=%.2f  sensor_ang=%.2f\n", d, x, y, z, xspot, yspot, ver_ang, sensor_yang, hor_ang, sensor_ang); 
+
+						if(xspot < 0 || xspot >= TOF3D_HMAP_XSPOTS || yspot < 0 || yspot >= TOF3D_HMAP_YSPOTS)
+						{
+							//ignored++;
+							continue;
+						}
+
+	/*					int zi = z;
+						if(zi > -2000 && zi < 2000)
+						{
+							if(zi > hmap_accum[xspot][yspot])
+								hmap_accum[xspot][yspot] = zi;
+							hmap_nsamples[xspot][yspot]++;
+						}
+	*/
+
+						uint8_t new_val = 0;
+						if( z < -150.0)
+							new_val = TOF3D_BIG_DROP;
+						else if(z < -100.0)
+							new_val = TOF3D_SMALL_DROP;
+						else if(z < 100.0)
+							new_val = TOF3D_FLOOR;
+						else if(z < 150.0)
+							new_val = TOF3D_THRESHOLD;
+						else if(z < 265.0)
+							new_val = TOF3D_SMALL_ITEM;
+						else if(z < 295.0)
+							new_val = TOF3D_WALL;
+						else if(z < 2100.0)
+							new_val = TOF3D_BIG_ITEM;
+
+						if(new_val > tof3ds[tof3d_wr].objmap[yspot*TOF3D_HMAP_XSPOTS+xspot])
+							tof3ds[tof3d_wr].objmap[yspot*TOF3D_HMAP_XSPOTS+xspot] = new_val;
 					}
 
-/*					int zi = z;
-					if(zi > -2000 && zi < 2000)
-					{
-						if(zi > hmap_accum[xspot][yspot])
-							hmap_accum[xspot][yspot] = zi;
-						hmap_nsamples[xspot][yspot]++;
-					}
-*/
-
-					uint8_t new_val = 0;
-					if( z < -150.0)
-						new_val = TOF3D_BIG_DROP;
-					else if(z < -100.0)
-						new_val = TOF3D_SMALL_DROP;
-					else if(z < 100.0)
-						new_val = TOF3D_FLOOR;
-					else if(z < 150.0)
-						new_val = TOF3D_THRESHOLD;
-					else if(z < 265.0)
-						new_val = TOF3D_SMALL_ITEM;
-					else if(z < 295.0)
-						new_val = TOF3D_WALL;
-					else if(z < 2100.0)
-						new_val = TOF3D_BIG_ITEM;
-
-					if(new_val > tof3ds[tof3d_wr].objmap[yspot*TOF3D_HMAP_XSPOTS+xspot])
-						tof3ds[tof3d_wr].objmap[yspot*TOF3D_HMAP_XSPOTS+xspot] = new_val;
 				}
 				
 			}

@@ -60,6 +60,8 @@ int verbose_mode = 0;
 int max_speedlim = DEFAULT_SPEEDLIM;
 int cur_speedlim = DEFAULT_SPEEDLIM;
 
+#define SPEED(x_) do{ cur_speedlim = ((x_)>max_speedlim)?(max_speedlim):(x_); } while(0);
+
 double subsec_timestamp()
 {
 	struct timespec spec;
@@ -288,7 +290,7 @@ void do_live_obstacle_checking()
 
 				if( (abs(side_drifts[best_drift_idx]) < 50) || ( abs(side_drifts[best_drift_idx]) < 100 && drift_angles[best_angle_idx] < M_PI/13.0))
 				{
-					cur_speedlim = 18;
+					SPEED(18);
 					limit_speed(cur_speedlim);
 //					printf("!!!!!!!!!!   Steering is almost needed (not performed) to maintain line-of-sight, hitcnt now = %d, optimum drift = %.1f degs, %d mm (hitcnt=%d), cur(%d,%d) to(%d,%d)\n",
 //						hitcnt, RADTODEG(drift_angles[best_angle_idx]), side_drifts[best_drift_idx], best_hitcnt, cur_x, cur_y, best_new_x, best_new_y);
@@ -317,13 +319,13 @@ void do_live_obstacle_checking()
 				if(hitcnt < 3)
 				{
 //					printf("!!!!!!!!!!!  Direct line-of-sight to the next point has 1..2 obstacles, slowing down.\n");
-					cur_speedlim = 18;
+					SPEED(18);
 					limit_speed(cur_speedlim);
 				}
 				else
 				{
 //					printf("Direct line-of-sight to the next point has disappeared! Trying to solve.\n");
-					cur_speedlim = 18;
+					SPEED(18);
 					limit_speed(cur_speedlim);
 					stop_movement();
 					lookaround_creep_reroute = 1;
@@ -1217,6 +1219,8 @@ void* main_thread()
 					max_speedlim = DEFAULT_SPEEDLIM;
 				else
 					max_speedlim = new_lim;
+
+				if(cur_speedlim > max_speedlim) cur_speedlim = max_speedlim;
 			}
 		}
 
@@ -1592,6 +1596,12 @@ void* main_thread()
 				{
 					cur_speedlim++;
 					//printf("cur_speedlim++ to %d\n", cur_speedlim);
+					limit_speed(cur_speedlim);
+				}
+
+				if(cur_speedlim > max_speedlim)
+				{
+					cur_speedlim--;
 					limit_speed(cur_speedlim);
 				}
 			}

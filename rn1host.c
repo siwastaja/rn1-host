@@ -962,6 +962,7 @@ void* main_thread()
 				verbose_mode = verbose_mode?0:1;
 			}
 
+#ifdef PULUTOF1
 			if(cmd == 'z')
 			{
 				pulutof_decr_dbg();
@@ -974,6 +975,7 @@ void* main_thread()
 			{
 				pulutof_cal_offset(cmd-'1');
 			}
+#endif
 
 /*			if(cmd >= '1' && cmd <= '9')
 			{
@@ -1500,6 +1502,8 @@ void* main_thread()
 
 #endif
 
+#ifdef PULUTOF1
+
 #ifdef PULUTOF1_GIVE_RAWS
 
 		pulutof_frame_t* p_tof;
@@ -1581,6 +1585,7 @@ void* main_thread()
 			}
 
 		}
+#endif
 #endif
 
 

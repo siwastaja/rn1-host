@@ -391,7 +391,7 @@ static void distances_to_objmap(pulutof_frame_t *in)
 					float y = -1* (d * /*sin*/cos(ver_ang + sensor_yang) * sin(hor_ang + sensor_ang)) + sensor_y;
 					float z = d * /*cos*/sin(ver_ang + sensor_yang) + sensor_z;
 
-					if(z > 700 || (z > -100.0 && z < 100.0) || (n_valids > 7 && n_conforming > 5))
+					if(z > 700 || (z > -180.0 && z < 130.0) || (n_valids > 7 && n_conforming > 5))
 					{
 						// Data proving level floor is accepted with fewer samples
 						// High-z data is also accepted with fewer samples; else we miss obvious small high obstacles
@@ -418,13 +418,13 @@ static void distances_to_objmap(pulutof_frame_t *in)
 	*/
 
 						uint8_t new_val = 0;
-						if( z < -150.0)
+						if( z < -230.0)
 							new_val = TOF3D_BIG_DROP;
-						else if(z < -100.0)
+						else if(z < -180.0)
 							new_val = TOF3D_SMALL_DROP;
-						else if(z < 100.0)
+						else if(z < 130.0)
 							new_val = TOF3D_FLOOR;
-						else if(z < 150.0)
+						else if(z < 160.0)
 							new_val = TOF3D_THRESHOLD;
 						else if(z < 265.0)
 							new_val = TOF3D_SMALL_ITEM;

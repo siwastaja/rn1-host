@@ -1013,7 +1013,6 @@ void* main_thread()
 			{
 				motors_on = 1;
 				daiju_mode(0);
-				max_speedlim=40;
 
 				printf("  ---> DEST params: X=%d Y=%d backmode=0x%02x\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
 				if(msg_cr_dest.backmode & 0b1000) // Pose
@@ -1036,7 +1035,6 @@ void* main_thread()
 				motors_on = 1;
 				daiju_mode(0);
 				find_charger_state = 0;
-				max_speedlim=50;
 				if(run_search(msg_cr_route.x, msg_cr_route.y, 0, 1) == 1)
 				{
 					printf("Routing fails in the start, daijuing for a while to get a better position.\n");
@@ -1048,7 +1046,6 @@ void* main_thread()
 			}
 			else if(ret == TCP_CR_CHARGE_MID)
 			{
-				max_speedlim=50;
 				read_charger_pos();
 				find_charger_state = 1;
 			}

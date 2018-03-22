@@ -1313,7 +1313,7 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 		}
 	}
 
-	if(out_of_area_ignores)
+	if(out_of_area_ignores > 100)
 		printf("Ignored %d far-away points not fitting to tempmap.\n", out_of_area_ignores);
 
 	// Copy tempmaps to actual map

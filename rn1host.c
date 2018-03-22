@@ -882,7 +882,7 @@ void* main_thread()
 				retval = 5;
 				break;
 			}
-/*
+
 			if(cmd == 'S')
 			{
 				save_robot_pos();
@@ -891,7 +891,7 @@ void* main_thread()
 			{
 				retrieve_robot_pos();
 			}
-*/
+
 /*			if(cmd == 'c')
 			{
 				printf("Starting automapping from compass round.\n");

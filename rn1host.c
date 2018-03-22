@@ -1532,7 +1532,7 @@ void* main_thread()
 				static int hmap_cnt = 0;
 				hmap_cnt++;
 
-				if(hmap_cnt >= 1)
+				if(hmap_cnt >= 4)
 				{
 					//printf("Send hmap\n");
 					tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, cur_ang, cur_x, cur_y, TOF3D_HMAP_SPOT_SIZE, p_tof->objmap);

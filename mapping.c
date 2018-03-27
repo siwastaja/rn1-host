@@ -1042,8 +1042,13 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 	for(int i=0; i<n_lidars; i++)
 	{
-		if(lidar_list[i] == 0 || lidar_list[i] < &lidars[0] || lidar_list[i] > &significant_lidars[SIGNIFICANT_LIDAR_RING_BUF_LEN-1] || lidar_list[i]->n_points > MAX_LIDAR_POINTS)
-		{ // Unbelievable s**t, find the actual culprit instead (lidar_list[6] was pointing to address 0x14, rarely, can't understand why)
+	// Unbelievable s**t, super ugly hack, find the actual culprit instead (lidar_list[6] was pointing to address 0x14, rarely, can't understand why)
+
+		lidar_scan_t* mem_begin = &lidars[0]; if(&significant_lidars[0] < mem_begin) mem_begin = &significant_lidars[0];
+		lidar_scan_t* mem_end = &lidars[LIDAR_RING_BUF_LEN-1]; if(&significant_lidars[SIGNIFICANT_LIDAR_RING_BUF_LEN-1] > mem_end) mem_end = &significant_lidars[SIGNIFICANT_LIDAR_RING_BUF_LEN-1];
+
+		if(lidar_list[i] == 0 || lidar_list[i] < mem_begin || lidar_list[i] > mem_end || lidar_list[i]->n_points > MAX_LIDAR_POINTS)
+		{
 			if(i == n_lidars-1)
 			{
 				printf("ERROR: lidar_list[%d] sanity check fail, skipping last lidar\n", i);

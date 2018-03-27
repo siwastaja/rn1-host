@@ -1,3 +1,5 @@
+//#define MOTCON_PID_EXPERIMENT
+
 /*
 	PULUROBOT RN1-HOST Computer-on-RobotBoard main software
 
@@ -177,6 +179,7 @@ int run_search(int32_t dest_x, int32_t dest_y, int dont_map_lidars, int no_tight
 
 	the_route[len-1].take_next_early = 20;
 
+	msg_rc_route_status.num_reroutes++;
 
 	tcp_send_route(cur_x, cur_y, &some_route);
 
@@ -200,6 +203,23 @@ int run_search(int32_t dest_x, int32_t dest_y, int dont_map_lidars, int no_tight
 
 	return ret;
 
+}
+
+void send_route_end_status(uint8_t reason)
+{
+	if(cmd_state == TCP_CR_ROUTE_MID)
+	{
+		if(tcp_client_sock >= 0)
+		{
+			msg_rc_route_status.cur_ang = cur_ang>>16;
+			msg_rc_route_status.cur_x = cur_x;
+			msg_rc_route_status.cur_y = cur_y;
+			msg_rc_route_status.status = reason;
+			tcp_send_msg(&msgmeta_rc_movement_status, &msg_rc_movement_status);
+		}
+
+		cmd_state = 0;
+	}
 }
 
 int rerun_search()
@@ -488,8 +508,9 @@ void route_fsm()
 			}
 			else
 			{
+				int reret;
 				printf("Can't turn towards the dest, rerouting.\n");
-				if(rerun_search() == 1)
+				if((reret = rerun_search()) == 1)
 				{
 					printf("Routing failed in start, going to daiju mode for a while.\n");
 					send_info(INFO_STATE_DAIJUING);
@@ -499,6 +520,8 @@ void route_fsm()
 				else
 				{
 					printf("Routing succeeded, or failed later. Stopping lookaround, creep & reroute procedure.\n");
+					if(reret != 0) send_route_end_status(reret);
+
 					lookaround_creep_reroute = 0;
 				}
 			}
@@ -538,7 +561,8 @@ void route_fsm()
 			{
 				printf("We have creeped enough (dist to waypoint=%d, creep_cnt=%d), no line of sight to the waypoint, trying to reroute\n",
 					dist, creep_cnt);
-				if(rerun_search() == 1)
+				int reret;
+				if((reret=rerun_search()) == 1)
 				{
 					printf("Routing failed in start, going to daiju mode for a while.\n");
 					daiju_mode(1);
@@ -548,6 +572,7 @@ void route_fsm()
 				else
 				{
 					printf("Routing succeeded, or failed later. Stopping lookaround, creep & reroute procedure.\n");
+					if(reret != 0) send_route_end_status(reret);
 					lookaround_creep_reroute = 0;
 				}
 
@@ -562,7 +587,8 @@ void route_fsm()
 		{
 			printf("Daijued enough.\n");
 			daiju_mode(0);
-			if(rerun_search() == 1)
+			int reret;
+			if((reret = rerun_search()) == 1)
 			{
 				printf("Routing failed in start, going to daiju mode for a bit more...\n");
 				daiju_mode(1);
@@ -573,6 +599,7 @@ void route_fsm()
 			else
 			{
 				printf("Routing succeeded, or failed later. Stopping lookaround, creep & reroute procedure.\n");
+				if(reret != 0) send_route_end_status(reret);
 				lookaround_creep_reroute = 0;
 			}
 
@@ -610,13 +637,11 @@ void route_fsm()
 				else
 				{
 					printf("Micronavi STOP, too many of them already, rerouting.\n");
-					if(rerun_search() == 1)
+					int reret;
+					if((reret=rerun_search()) != 0)
 					{
-						printf("Routing failed in start, todo: handle this situation.\n");
-					}
-					else
-					{
-						printf("Routing succeeded, or failed later.\n");
+						printf("Routing failed.\n");
+						send_route_end_status(reret);
 					}
 				}
 			}
@@ -686,6 +711,7 @@ void route_fsm()
 						micronavi_stops = 0;
 						do_follow_route = 0;
 						route_finished_or_notfound = 1;
+						send_route_end_status(TCP_RC_ROUTE_STATUS_SUCCESS);
 					}
 				}
 				else if(live_obstacle_checking_on)
@@ -865,11 +891,13 @@ void* main_thread()
 			return NULL;
 		}
 
+#ifdef MOTCON_PID_EXPERIMENT
 		static uint8_t pid_i_max = 30;
 		static uint8_t pid_feedfwd = 30;
 		static uint8_t pid_p = 100;
 		static uint8_t pid_i = 20;
 		static uint8_t pid_d = 20;
+#endif
 
 		if(FD_ISSET(STDIN_FILENO, &fds))
 		{
@@ -979,7 +1007,8 @@ void* main_thread()
 			}
 #endif
 
-/*			if(cmd >= '1' && cmd <= '9')
+#if 0
+			if(cmd >= '1' && cmd <= '9')
 			{
 				uint8_t bufings[3];
 				bufings[0] = 0xd0 + cmd-'0';
@@ -988,6 +1017,9 @@ void* main_thread()
 				printf("Sending dev msg: %x\n", bufings[0]);
 				send_uart(bufings, 3);				
 			}
+#endif
+
+#ifdef MOTCON_PID_EXPERIMENT
 			if(cmd == 'A') {int tmp = (int)pid_i_max*5/4; if(tmp>255) tmp=255; pid_i_max=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
 			if(cmd == 'a') {int tmp = (int)pid_i_max*3/4; if(tmp<4) tmp=4;     pid_i_max=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
 			if(cmd == 'S') {int tmp = (int)pid_feedfwd*5/4; if(tmp>255) tmp=255; pid_feedfwd=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
@@ -1000,7 +1032,7 @@ void* main_thread()
 			if(cmd == 'g') {int tmp = (int)pid_d*3/4; if(tmp<4) tmp=4;     pid_d=tmp; send_motcon_pid(pid_i_max, pid_feedfwd, pid_p, pid_i, pid_d);}
 			if(cmd == 'z') {turn_and_go_rel_rel(0, 2000, 25, 1);}
 			if(cmd == 'Z') {turn_and_go_rel_rel(0, -2000, 25, 1);}
-*/
+#endif
 		}
 
 #ifndef SIMULATE_SERIAL
@@ -1019,6 +1051,15 @@ void* main_thread()
 				motors_on = 1;
 				daiju_mode(0);
 
+				msg_rc_movement_status.start_ang = cur_ang>>16;
+				msg_rc_movement_status.start_x = cur_x;
+				msg_rc_movement_status.start_y = cur_y;
+
+				msg_rc_movement_status.requested_x = msg_cr_dest.x;
+				msg_rc_movement_status.requested_y = msg_cr_dest.y;
+				msg_rc_movement_status.requested_backmode = msg_cr_dest.backmode;
+
+
 				printf("  ---> DEST params: X=%d Y=%d backmode=0x%02x\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
 				if(msg_cr_dest.backmode & 0b1000) // Rotate pose
 				{
@@ -1036,17 +1077,25 @@ void* main_thread()
 			}
 			else if(ret == TCP_CR_ROUTE_MID)
 			{
+
 				printf("  ---> ROUTE params: X=%d Y=%d dummy=%d\n", msg_cr_route.x, msg_cr_route.y, msg_cr_route.dummy);
+
+				msg_rc_route_status.start_ang = cur_ang>>16;
+				msg_rc_route_status.start_x = cur_x;
+				msg_rc_route_status.start_y = cur_y;
+
+				msg_rc_route_status.requested_x = msg_cr_route.x;
+				msg_rc_route_status.requested_y = msg_cr_route.y;
+				msg_rc_route_status.status = TCP_RC_ROUTE_STATUS_UNDEFINED;
+				msg_rc_route_status.num_reroutes = -1;
 
 				motors_on = 1;
 				daiju_mode(0);
 				find_charger_state = 0;
-				if(run_search(msg_cr_route.x, msg_cr_route.y, 0, 1) == 1)
+				int ret;
+				if((ret = run_search(msg_cr_route.x, msg_cr_route.y, 0, 1)) != 0)
 				{
-					printf("Routing fails in the start, daijuing for a while to get a better position.\n");
-					daiju_mode(1);
-					send_info(INFO_STATE_DAIJUING);
-					printf("(Please retry after some time.)\n");
+					send_route_end_status(ret);
 				}
 			}
 			else if(ret == TCP_CR_CHARGE_MID)
@@ -1270,6 +1319,21 @@ void* main_thread()
 				}
 
 				printf("\n");
+
+				if(cmd_state == TCP_CR_DEST_MID)
+				{
+					if(tcp_client_sock >= 0)
+					{
+						msg_rc_movement_status.cur_ang = cur_ang>>16;
+						msg_rc_movement_status.cur_x = cur_x;
+						msg_rc_movement_status.cur_y = cur_y;
+						msg_rc_movement_status.status = TCP_RC_MOVEMENT_STATUS_STOPPED;
+						msg_rc_movement_status.obstacle_flags = cur_xymove.micronavi_stop_flags;
+						tcp_send_msg(&msgmeta_rc_movement_status, &msg_rc_movement_status);
+					}
+
+					cmd_state = 0;
+				}
 			}
 		}
 		else
@@ -1673,6 +1737,7 @@ void* main_thread()
 						msg_rc_pos.ang = cur_ang>>16;
 						msg_rc_pos.x = cur_x;
 						msg_rc_pos.y = cur_y;
+						msg_rc_pos.cmd_state = cmd_state;
 						tcp_send_msg(&msgmeta_rc_pos, &msg_rc_pos);
 					}
 					curpos_send_cnt = 0;

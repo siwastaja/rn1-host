@@ -129,9 +129,28 @@ tcp_message_t msgmeta_rc_pos =
 {
 	0,
 	TCP_RC_POS_MID,
-	10, "sii"
+	11, "siiB"
 };
 tcp_rc_pos_t    msg_rc_pos;
+
+
+tcp_message_t msgmeta_rc_movement_status =
+{
+	0,
+	TCP_RC_MOVEMENT_STATUS_MID,
+	34, "siiiibsiiBI"
+};
+tcp_rc_movement_status_t    msg_rc_movement_status;
+
+
+tcp_message_t msgmeta_rc_route_status =
+{
+	0,
+	TCP_RC_ROUTE_STATUS_MID,
+	31, "siiiisiiBs"
+};
+tcp_rc_route_status_t    msg_rc_route_status;
+
 
 #define I32TOBUF(i_, b_, s_) {b_[(s_)] = ((i_)>>24)&0xff; b_[(s_)+1] = ((i_)>>16)&0xff; b_[(s_)+2] = ((i_)>>8)&0xff; b_[(s_)+3] = ((i_)>>0)&0xff; }
 #define I16TOBUF(i_, b_, s_) {b_[(s_)] = ((i_)>>8)&0xff; b_[(s_)+1] = ((i_)>>0)&0xff; }

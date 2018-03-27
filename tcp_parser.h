@@ -141,6 +141,7 @@ typedef struct __attribute__ ((packed))
 	int16_t ang;
 	int32_t x;
 	int32_t y;
+	uint8_t  cmd_state; // Message ID of the command/job the robot is currently taking (for example, TCP_CR_ROUTE_MID)
 } tcp_rc_pos_t;
 
 extern tcp_message_t   msgmeta_rc_pos;
@@ -173,6 +174,7 @@ extern tcp_rc_movement_status_t    msg_rc_movement_status;
 
 #define TCP_RC_ROUTE_STATUS_SUCCESS 0
 #define TCP_RC_ROUTE_STATUS_NOTFOUND 1
+#define TCP_RC_ROUTE_STATUS_UNDEFINED 2
 #define TCP_RC_ROUTE_STATUS_MID  144
 typedef struct __attribute__ ((packed))
 {
@@ -188,7 +190,7 @@ typedef struct __attribute__ ((packed))
 	int32_t cur_y;
 
 	uint8_t status;
-	uint16_t num_reroutes;
+	int16_t num_reroutes;
 } tcp_rc_route_status_t;
 extern tcp_message_t   msgmeta_rc_route_status;
 extern tcp_rc_route_status_t    msg_rc_route_status;

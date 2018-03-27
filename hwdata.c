@@ -35,13 +35,12 @@
 #include "mapping.h"
 #include "datatypes.h"
 #include "uart.h"
+#include "hwdata.h"
 
 #include "../rn1-brain/comm.h" // For the convenient 7-bit data handling macros.
 #define I14x2_I16(msb,lsb) ((int16_t)( ( ((uint16_t)(msb)<<9) | ((uint16_t)(lsb)<<2) ) ))
 
 
-#define SIGNIFICANT_LIDAR_RING_BUF_LEN 32
-#define LIDAR_RING_BUF_LEN 32
 #define SONAR_RING_BUF_LEN 128
 
 extern double subsec_timestamp();

@@ -1042,10 +1042,18 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 	for(int i=0; i<n_lidars; i++)
 	{
-		if(!lidar_list[i] || lidar_list[i]->n_points > MAX_LIDAR_POINTS)
-		{
-			printf("ERROR: lidar_list[%d] sanity check fail\n", i);
-			return -1;
+		if(lidar_list[i] == 0 || lidar_list[i] < &lidars[0] || lidar_list[i] > &significant_lidars[SIGNIFICANT_LIDAR_RING_BUF_LEN-1] || lidar_list[i]->n_points > MAX_LIDAR_POINTS)
+		{ // Unbelievable s**t, find the actual culprit instead (lidar_list[6] was pointing to address 0x14, rarely, can't understand why)
+			if(i == n_lidars-1)
+			{
+				printf("ERROR: lidar_list[%d] sanity check fail, skipping last lidar\n", i);
+				n_lidars--;
+			}
+			else
+			{
+				printf("ERROR: lidar_list[%d] sanity check fail on non-last lidar, not mapping\n", i);
+				return -1;
+			}
 		}
 	}
 

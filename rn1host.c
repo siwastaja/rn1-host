@@ -82,6 +82,8 @@ int motors_on = 1;
 
 uint32_t robot_id = 0xacdcabba; // Hopefully unique identifier for the robot.
 
+int cmd_state;
+
 extern world_t world;
 #define BUFLEN 2048
 
@@ -1011,19 +1013,21 @@ void* main_thread()
 		if(tcp_client_sock >= 0 && FD_ISSET(tcp_client_sock, &fds))
 		{
 			int ret = handle_tcp_client();
+			cmd_state = ret;
 			if(ret == TCP_CR_DEST_MID)
 			{
 				motors_on = 1;
 				daiju_mode(0);
 
 				printf("  ---> DEST params: X=%d Y=%d backmode=0x%02x\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
-				if(msg_cr_dest.backmode & 0b1000) // Pose
+				if(msg_cr_dest.backmode & 0b1000) // Rotate pose
 				{
 					float ang = atan2(msg_cr_dest.y-cur_y, msg_cr_dest.x-cur_x);
 					turn_and_go_abs_rel(RADTOANG32(ang), 0, cur_speedlim, 1);
 				}
 				else
 					move_to(msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode, 0, cur_speedlim, 1);
+
 				find_charger_state = 0;
 				lookaround_creep_reroute = 0;
 				do_follow_route = 0;
@@ -1044,7 +1048,6 @@ void* main_thread()
 					send_info(INFO_STATE_DAIJUING);
 					printf("(Please retry after some time.)\n");
 				}
-
 			}
 			else if(ret == TCP_CR_CHARGE_MID)
 			{
@@ -1067,7 +1070,8 @@ void* main_thread()
 					}
 				}
 			}
-			else if(ret == TCP_CR_MODE_MID)			{
+			else if(ret == TCP_CR_MODE_MID)	
+			{
 				printf("Request for MODE %d\n", msg_cr_mode.mode);
 				switch(msg_cr_mode.mode)
 				{

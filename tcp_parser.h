@@ -146,6 +146,54 @@ typedef struct __attribute__ ((packed))
 extern tcp_message_t   msgmeta_rc_pos;
 extern tcp_rc_pos_t    msg_rc_pos;
 
+
+#define TCP_RC_MOVEMENT_STATUS_SUCCESS 0
+#define TCP_RC_MOVEMENT_STATUS_STOPPED 1
+#define TCP_RC_MOVEMENT_STATUS_MID  143
+typedef struct __attribute__ ((packed))
+{
+	int16_t start_ang;
+	int32_t start_x;
+	int32_t start_y;
+
+	int32_t requested_x;
+	int32_t requested_y;
+	int8_t requested_backmode;
+
+	int16_t cur_ang;
+	int32_t cur_x;
+	int32_t cur_y;
+
+	uint8_t status;
+	uint32_t obstacle_flags;
+} tcp_rc_movement_status_t;
+extern tcp_message_t   msgmeta_rc_movement_status;
+extern tcp_rc_movement_status_t    msg_rc_movement_status;
+
+
+#define TCP_RC_ROUTE_STATUS_SUCCESS 0
+#define TCP_RC_ROUTE_STATUS_NOTFOUND 1
+#define TCP_RC_ROUTE_STATUS_MID  144
+typedef struct __attribute__ ((packed))
+{
+	int16_t start_ang;
+	int32_t start_x;
+	int32_t start_y;
+
+	int32_t requested_x;
+	int32_t requested_y;
+
+	int16_t cur_ang;
+	int32_t cur_x;
+	int32_t cur_y;
+
+	uint8_t status;
+	uint16_t num_reroutes;
+} tcp_rc_route_status_t;
+extern tcp_message_t   msgmeta_rc_route_status;
+extern tcp_rc_route_status_t    msg_rc_route_status;
+
+
 #define TCP_RC_LIDAR_LOWRES_MID     131
 #define TCP_RC_DBG_MID              132
 #define TCP_RC_SONAR_MID            133
@@ -158,6 +206,8 @@ extern tcp_rc_pos_t    msg_rc_pos;
 #define TCP_RC_ROBOTINFO_MID        140
 #define TCP_RC_LIDAR_HIGHRES_MID    141
 #define TCP_RC_PICTURE_MID	    142
+
+
 
 int tcp_parser(int sock);
 

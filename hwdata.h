@@ -52,5 +52,11 @@ void prevent_3dtoffing();
 
 void send_motcon_pid(uint8_t i_max, uint8_t feedfwd, uint8_t p, uint8_t i, uint8_t d);
 
+// These four lines are exposed here now because of a ugly temporary "bugfix", in do_map_lidars_new_quick in mapping.c.
+#define SIGNIFICANT_LIDAR_RING_BUF_LEN 32
+#define LIDAR_RING_BUF_LEN 32
+extern lidar_scan_t lidars[LIDAR_RING_BUF_LEN];
+extern lidar_scan_t significant_lidars[SIGNIFICANT_LIDAR_RING_BUF_LEN];
+
 
 #endif

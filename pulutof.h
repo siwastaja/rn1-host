@@ -95,8 +95,9 @@ void pulutof_cal_offset(uint8_t idx);
 */
 
 // Priority order: bigger number overrides smaller at same 2D spot
-#define TOF3D_WALL           7 
-#define TOF3D_BIG_ITEM       6 
+#define TOF3D_WALL           8 
+#define TOF3D_BIG_ITEM       7 
+#define TOF3D_LOW_CEILING    6 
 #define TOF3D_BIG_DROP       5
 #define TOF3D_SMALL_ITEM     4 
 #define TOF3D_SMALL_DROP     3

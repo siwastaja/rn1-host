@@ -58,6 +58,7 @@
 #define MAX_CONFIGURABLE_SPEEDLIM 70
 
 int verbose_mode = 0;
+volatile int send_raw_tof;
 
 int max_speedlim = DEFAULT_SPEEDLIM;
 int cur_speedlim = DEFAULT_SPEEDLIM;
@@ -1001,6 +1002,16 @@ void* main_thread()
 			{
 				pulutof_incr_dbg();
 			}
+			if(cmd == 'Z')
+			{
+				if(send_raw_tof >= 0) send_raw_tof--;
+				printf("Sending raw tof from sensor %d\n", send_raw_tof);
+			}
+			if(cmd == 'X')
+			{
+				if(send_raw_tof < 3) send_raw_tof++;
+				printf("Sending raw tof from sensor %d\n", send_raw_tof);
+			}
 			if(cmd >= '1' && cmd <= '4')
 			{
 				pulutof_cal_offset(cmd-'1');
@@ -1641,8 +1652,8 @@ void* main_thread()
 					//printf("Send hmap\n");
 					tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, p_tof->robot_pos.ang, p_tof->robot_pos.x, p_tof->robot_pos.y, TOF3D_HMAP_SPOT_SIZE, p_tof->objmap);
 
-				//	if(send_raw_tof)
-				//		tcp_send_picture(100, 2, 160, 60, (uint8_t*)p_tof->raw_depth);
+					if(send_raw_tof >= 0 && send_raw_tof < 4)
+						tcp_send_picture(100, 2, 160, 60, (uint8_t*)p_tof->raw_depth);
 
 					//printf("Done\n");
 					hmap_cnt = 0;

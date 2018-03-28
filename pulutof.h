@@ -115,12 +115,15 @@ void pulutof_cal_offset(uint8_t idx);
 
 #define HMAP_BLOCK_MM 40
 
+extern volatile int send_raw_tof; // which sensor id to send as raw_depth, <0 = N/A
+
 typedef struct
 {
 	pos_t robot_pos;
 //	int n_points;
 //	xyz_t cloud[TOF_XS*TOF_YS];
 	int8_t objmap[TOF3D_HMAP_YSPOTS*TOF3D_HMAP_XSPOTS];
+	uint16_t raw_depth[160*60]; // for development purposes
 } tof3d_scan_t;
 
 tof3d_scan_t* get_tof3d();

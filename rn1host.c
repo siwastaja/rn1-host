@@ -215,7 +215,7 @@ void send_route_end_status(uint8_t reason)
 			msg_rc_route_status.cur_x = cur_x;
 			msg_rc_route_status.cur_y = cur_y;
 			msg_rc_route_status.status = reason;
-			tcp_send_msg(&msgmeta_rc_movement_status, &msg_rc_movement_status);
+			tcp_send_msg(&msgmeta_rc_route_status, &msg_rc_route_status);
 		}
 
 		cmd_state = 0;

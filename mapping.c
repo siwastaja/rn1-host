@@ -503,6 +503,7 @@ static int32_t score_quick_search_xy(int8_t *scoremap, int n_lidars, lidar_scan_
 	*best_dx = dx_start+dx_step*best_ix;
 	*best_dy = dy_start+dy_step*best_iy;
 
+	if(n_points < 10) return 0;
 	return (200*best_score)/n_points;
 }
 

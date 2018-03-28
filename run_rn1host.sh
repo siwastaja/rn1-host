@@ -10,6 +10,8 @@ rm -f ${hostdir}/*.map
 while true
 do
 	sleep 1
+	/home/hrst/rn1-tools/spiprog r
+	sleep 4
 	mv ${hostdir}/log.3.txt ${hostdir}/log.4.txt
 	mv ${hostdir}/log.2.txt ${hostdir}/log.3.txt
 	mv ${hostdir}/log.1.txt ${hostdir}/log.2.txt

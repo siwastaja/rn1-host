@@ -1315,7 +1315,8 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 					case TOF3D_THRESHOLD    : maybes[tm_y*MAP_PAGE_W+tm_x]++; break;
 
 					case TOF3D_SMALL_ITEM   :
-					case TOF3D_BIG_ITEM     : items[tm_y*MAP_PAGE_W+tm_x]++; break;
+					case TOF3D_BIG_ITEM     :
+					case TOF3D_LOW_CEILING  : items[tm_y*MAP_PAGE_W+tm_x]++; break;
 
 					case TOF3D_WALL         : walls[tm_y*MAP_PAGE_W+tm_x]++; break;
 

@@ -1640,6 +1640,10 @@ void* main_thread()
 				{
 					//printf("Send hmap\n");
 					tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, p_tof->robot_pos.ang, p_tof->robot_pos.x, p_tof->robot_pos.y, TOF3D_HMAP_SPOT_SIZE, p_tof->objmap);
+
+				//	if(send_raw_tof)
+				//		tcp_send_picture(100, 2, 160, 60, (uint8_t*)p_tof->raw_depth);
+
 					//printf("Done\n");
 					hmap_cnt = 0;
 				}

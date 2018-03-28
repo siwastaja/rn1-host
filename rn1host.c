@@ -1059,6 +1059,7 @@ void* main_thread()
 				msg_rc_movement_status.requested_y = msg_cr_dest.y;
 				msg_rc_movement_status.requested_backmode = msg_cr_dest.backmode;
 
+				cur_xymove.remaining = 999999; // invalidate
 
 				printf("  ---> DEST params: X=%d Y=%d backmode=0x%02x\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
 				if(msg_cr_dest.backmode & 0b1000) // Rotate pose
@@ -1295,6 +1296,26 @@ void* main_thread()
 
 		static int micronavi_stop_flags_printed = 0;
 
+		if(cmd_state == TCP_CR_DEST_MID)
+		{
+			if(cur_xymove.remaining < 5)
+			{
+				if(tcp_client_sock >= 0)
+				{
+					msg_rc_movement_status.cur_ang = cur_ang>>16;
+					msg_rc_movement_status.cur_x = cur_x;
+					msg_rc_movement_status.cur_y = cur_y;
+					msg_rc_movement_status.status = TCP_RC_MOVEMENT_STATUS_SUCCESS;
+					msg_rc_movement_status.obstacle_flags = 0;
+					tcp_send_msg(&msgmeta_rc_movement_status, &msg_rc_movement_status);
+				}
+
+				cmd_state = 0;
+
+			}
+		}
+	
+
 		if(cur_xymove.micronavi_stop_flags)
 		{
 			if(!micronavi_stop_flags_printed)
@@ -1366,6 +1387,21 @@ void* main_thread()
 						}
 					}
 				}
+				if(cmd_state == TCP_CR_DEST_MID)
+				{
+					if(tcp_client_sock >= 0)
+					{
+						msg_rc_movement_status.cur_ang = cur_ang>>16;
+						msg_rc_movement_status.cur_x = cur_x;
+						msg_rc_movement_status.cur_y = cur_y;
+						msg_rc_movement_status.status = TCP_RC_MOVEMENT_STATUS_STOPPED_BY_FEEDBACK_MODULE;
+						msg_rc_movement_status.obstacle_flags = cur_xymove.feedback_stop_flags;
+						tcp_send_msg(&msgmeta_rc_movement_status, &msg_rc_movement_status);
+					}
+
+					cmd_state = 0;
+				}
+
 			}
 		}
 		else

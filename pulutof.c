@@ -427,7 +427,7 @@ static void distances_to_objmap(pulutof_frame_t *in)
 							new_val = TOF3D_SMALL_ITEM;
 						else if(z < 295.0)
 							new_val = TOF3D_WALL;
-						else if(z < 1800.0)
+						else if(z < 1500.0)
 							new_val = TOF3D_BIG_ITEM;
 						else if(z < 2050.0)
 							new_val = TOF3D_LOW_CEILING;

@@ -51,6 +51,7 @@
 
 #define PULUTOF_SPI_DEVICE "/dev/spidev0.0"
 
+extern volatile int verbose_mode;
 
 static int spi_fd;
 static volatile int running = 1;
@@ -1089,27 +1090,28 @@ static int read_frame()
 		return -1;
 	}
 
-#ifdef SPI_PRINT_DBG
-	printf("Frame (sensor_idx= %d) read ok, pose=(%d,%d,%d). Timing data:\n", pulutof_ringbuf[pulutof_ringbuf_wr].sensor_idx, pulutof_ringbuf[pulutof_ringbuf_wr].robot_pos.x, pulutof_ringbuf[pulutof_ringbuf_wr].robot_pos.y, pulutof_ringbuf[pulutof_ringbuf_wr].robot_pos.ang);
-	for(int i=0; i<24; i++)
+	if(verbose_mode)
 	{
-		printf("%d:%.1f ", i, (float)pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]/10.0);
+		printf("Frame (sensor_idx= %d) read ok, pose=(%d,%d,%d). Timing data:\n", pulutof_ringbuf[pulutof_ringbuf_wr].sensor_idx, pulutof_ringbuf[pulutof_ringbuf_wr].robot_pos.x, pulutof_ringbuf[pulutof_ringbuf_wr].robot_pos.y, pulutof_ringbuf[pulutof_ringbuf_wr].robot_pos.ang);
+		for(int i=0; i<24; i++)
+		{
+			printf("%d:%.1f ", i, (float)pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]/10.0);
+		}
+		printf("\n");
+		printf("Time deltas to:\n");
+		for(int i=1; i<24; i++)
+		{
+			printf(">%d:%.1f ", i, (float)(pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]-pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i-1])/10.0);
+		}
+		printf("\n");
+		printf("dbg_i32:\n");
+		for(int i=0; i<8; i++)
+		{
+			printf("[%d] %11d  ", i, pulutof_ringbuf[pulutof_ringbuf_wr].dbg_i32[i]);
+		}
+		printf("\n");
+		printf("\n");
 	}
-	printf("\n");
-	printf("Time deltas to:\n");
-	for(int i=1; i<24; i++)
-	{
-		printf(">%d:%.1f ", i, (float)(pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]-pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i-1])/10.0);
-	}
-	printf("\n");
-	printf("dbg_i32:\n");
-	for(int i=0; i<8; i++)
-	{
-		printf("[%d] %11d  ", i, pulutof_ringbuf[pulutof_ringbuf_wr].dbg_i32[i]);
-	}
-	printf("\n");
-	printf("\n");
-#endif
 
 	int ret = pulutof_ringbuf[pulutof_ringbuf_wr].status;
 

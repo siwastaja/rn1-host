@@ -57,7 +57,7 @@
 #define DEFAULT_SPEEDLIM 45
 #define MAX_CONFIGURABLE_SPEEDLIM 70
 
-int verbose_mode = 0;
+volatile int verbose_mode = 0;
 volatile int send_raw_tof = -1;
 
 int max_speedlim = DEFAULT_SPEEDLIM;

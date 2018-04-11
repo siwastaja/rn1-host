@@ -1,16 +1,15 @@
 #!/bin/bash
 
-hostdir="/home/hrst/rn1-host"
-prog="/home/hrst/rn1-tools/p.sh"
+user="pulu"
+hostdir="/home/${user}/rn1-host"
+prog="/home/${user}/rn1-tools/p.sh"
 
-#export LD_LIBRARY_PATH=/opt/softkinetic/DepthSenseSDK/lib
-#export DEPTHSENSESDK_DIR=/opt/softkinetic/DepthSenseSDK
 rm -f ${hostdir}/*.map
 
 while true
 do
 	sleep 1
-	/home/hrst/rn1-tools/spiprog r
+	/home/${user}/rn1-tools/spiprog r
 	sleep 4
 	mv ${hostdir}/log.3.txt ${hostdir}/log.4.txt
 	mv ${hostdir}/log.2.txt ${hostdir}/log.3.txt

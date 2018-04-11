@@ -552,6 +552,8 @@ static void process_pulutof_frame(pulutof_frame_t *in)
 				memcpy(tof3ds[tof3d_wr].raw_depth, in->depth, sizeof tof3ds[tof3d_wr].raw_depth);
 			}
 
+			memcpy(tof3ds[tof3d_wr].ampl_images[sidx], in->ampl, sizeof in->ampl);
+
 			if(sidx == NUM_PULUTOFS-1)
 			{
 				// Got all sensors: the objmap accumulation done, process it.

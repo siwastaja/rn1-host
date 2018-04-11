@@ -1649,13 +1649,14 @@ void* main_thread()
 
 				if(hmap_cnt >= 4)
 				{
-					//printf("Send hmap\n");
 					tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, p_tof->robot_pos.ang, p_tof->robot_pos.x, p_tof->robot_pos.y, TOF3D_HMAP_SPOT_SIZE, p_tof->objmap);
 
 					if(send_raw_tof >= 0 && send_raw_tof < 4)
+					{
 						tcp_send_picture(100, 2, 160, 60, (uint8_t*)p_tof->raw_depth);
+						tcp_send_picture(101, 2, 160, 60, (uint8_t*)p_tof->ampl_images[send_raw_tof]);
+					}
 
-					//printf("Done\n");
 					hmap_cnt = 0;
 				}
 			}

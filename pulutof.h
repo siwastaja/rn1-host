@@ -52,7 +52,7 @@ typedef struct __attribute__((packed))
 	pos_t robot_pos; // Robot pose during the acquisition
 
 	uint16_t depth[TOF_XS*TOF_YS];
-//	uint8_t  ampl[EPC_XS*EPC_YS];
+	uint8_t  ampl[TOF_XS*TOF_YS];
 //	uint8_t  ambient[EPC_XS*EPC_YS];
 #ifdef PULUTOF_EXTRA
 
@@ -124,6 +124,7 @@ typedef struct
 //	xyz_t cloud[TOF_XS*TOF_YS];
 	int8_t objmap[TOF3D_HMAP_YSPOTS*TOF3D_HMAP_XSPOTS];
 	uint16_t raw_depth[160*60]; // for development purposes
+	uint8_t ampl_images[4][160*60];
 } tof3d_scan_t;
 
 tof3d_scan_t* get_tof3d();

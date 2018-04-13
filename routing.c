@@ -64,7 +64,7 @@ float main_robot_middle_to_lidar = -90.0;
 #elif defined(DELIVERY_BOY)
 float main_robot_xs = 650.0 + 20.0;
 float main_robot_ys = 480.0 + 20.0;
-float main_robot_middle_to_lidar = -120.0;
+float main_robot_middle_to_lidar = -180.0;
 
 #else
 float main_robot_xs = 524.0;

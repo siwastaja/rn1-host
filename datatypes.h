@@ -113,6 +113,19 @@ typedef struct
 extern pwr_status_t pwr_status;
 extern xymove_t cur_xymove;
 
+typedef struct __attribute__((packed))
+{
+	int16_t first_movement_needed; // distance the robot needed to go fwd or back as the very first operation. 0 if within tolerances. in mm.
+	uint8_t turning_passes_needed; // optical positioning needed to move the robot this many passes without needing to back of / go forward again (adjusting angle was enough alone)
+	uint8_t vexling_passes_needed; // optical positioning needed to move the robot this many passes, doing a back-off-go-forward pass.
+	uint8_t accepted_pos;          // 1, if optical positioning succesful. 0 if failed there.
+	int16_t dist_before_push;      // after succesful optical positioning, the measured distance to the charger right before the push. in mm.
+	uint8_t result;                // 100 = success. Others = failure.
+} chafind_results_t;
+
+extern chafind_results_t chafind_results;
+
+
 #define MAP_SIGNIFICANT_IMGS     1
 #define MAP_SEMISIGNIFICANT_IMGS 2
 extern int map_significance_mode;

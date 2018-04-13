@@ -182,6 +182,8 @@ typedef struct __attribute__((packed))
 dbg_teleportation_bug_data_t buglog;
 dbg_teleportation_extra_t bugextra;
 
+chafind_results_t chafind_results;
+
 int parse_uart_msg(uint8_t* buf, int msgid, int len)
 {
 	switch(msgid)
@@ -392,6 +394,20 @@ int parse_uart_msg(uint8_t* buf, int msgid, int len)
 				bugextra.wd0, bugextra.wd1, bugextra.movement, bugextra.x_idx, bugextra.y_idx, bugextra.dx, bugextra.dy,
 				bugextra.x_before,bugextra.y_before,(int)(bugextra.x_before>>16),(int)(bugextra.y_before>>16),
 				bugextra.x_after,bugextra.y_after,(int)(bugextra.x_after>>16),(int)(bugextra.y_after>>16));
+		}
+		break;
+
+		case 0x95: // chafind results
+		{
+			memcpy(&chafind_results, buf, sizeof chafind_results);
+			printf("INFO: Got charger mount results:\n");
+			printf("INFO:    first movement needed = %d mm\n", chafind_results.first_movement_needed);
+			printf("INFO:    positioning: angular tune passes needed = %d\n", chafind_results.turning_passes_needed);
+			printf("INFO:    positioning: sideway repositioning passes needed = %d\n", chafind_results.vexling_passes_needed);
+			printf("INFO:    positioning result: %s (code %d)\n", chafind_results.accepted_pos?"SUCCESS": "FAILURE", chafind_results.accepted_pos);
+			printf("INFO:    distance before push: %d mm\n", chafind_results.dist_before_push);
+			printf("INFO:    result: %s (code %d)\n", chafind_results.result==100?"SUCCESS":"FAILURE", chafind_results.result);
+
 		}
 		break;
 

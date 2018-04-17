@@ -815,7 +815,7 @@ void save_pointcloud(int n_points, xyz_t* cloud)
 {
 	static int pc_cnt = 0;
 	char fname[256];
-	snprintf(fname, 255, "cloud%05d.csv", pc_cnt);
+	snprintf(fname, 255, "cloud%05d.xyz", pc_cnt);
 	printf("Saving pointcloud with %d samples to file %s.\n", n_points, fname);
 	FILE* pc_csv = fopen(fname, "w");
 	if(!pc_csv)
@@ -826,7 +826,7 @@ void save_pointcloud(int n_points, xyz_t* cloud)
 	{
 		for(int i=0; i < n_points; i++)
 		{
-			fprintf(pc_csv, "%d,%d,%d\n",cloud[i].x, -1*cloud[i].y, cloud[i].z);
+			fprintf(pc_csv, "%d %d %d\n",cloud[i].x, -1*cloud[i].y, cloud[i].z);
 		}
 		fclose(pc_csv);
 	}

@@ -830,6 +830,9 @@ void save_pointcloud(int n_points, xyz_t* cloud)
 		}
 		fclose(pc_csv);
 	}
+
+	pc_cnt++;
+	if(pc_cnt > 99999) pc_cnt = 0;
 }
 
 

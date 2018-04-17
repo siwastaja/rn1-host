@@ -304,6 +304,7 @@ static void distances_to_objmap(pulutof_frame_t *in)
 	float sensor_yang = sensor_mounts[sidx].vert_ang_rel_ground;
 	float sensor_z = sensor_mounts[sidx].z_rel_ground;
 	
+	int do_send_pointcloud = send_pointcloud;
 
 
 	for(int pyy = 1; pyy < TOF_YS-1; pyy++)
@@ -385,9 +386,9 @@ static void distances_to_objmap(pulutof_frame_t *in)
 
 					float d = (float)avg_conforming/(float)n_conforming;
 
-					float x = d * /*sin*/cos(ver_ang + sensor_yang) * cos(hor_ang + sensor_ang) + sensor_x;
-					float y = -1* (d * /*sin*/cos(ver_ang + sensor_yang) * sin(hor_ang + sensor_ang)) + sensor_y;
-					float z = d * /*cos*/sin(ver_ang + sensor_yang) + sensor_z;
+					float x = d * cos(ver_ang + sensor_yang) * cos(hor_ang + sensor_ang) + sensor_x;
+					float y = -1* (d * cos(ver_ang + sensor_yang) * sin(hor_ang + sensor_ang)) + sensor_y;
+					float z = d * sin(ver_ang + sensor_yang) + sensor_z;
 
 					if(z > 700 || (z > -180.0 && z < 130.0) || (n_valids > 7 && n_conforming > 5))
 					{
@@ -414,6 +415,31 @@ static void distances_to_objmap(pulutof_frame_t *in)
 							hmap_nsamples[xspot][yspot]++;
 						}
 	*/
+
+						if(do_send_pointcloud == 1) // relative to robot
+						{
+							if(tof3ds[tof3d_wr].n_points < 4*TOF_XS*TOF_YS)
+							{
+								tof3ds[tof3d_wr].cloud[tof3ds[tof3d_wr].n_points].x = x;
+								tof3ds[tof3d_wr].cloud[tof3ds[tof3d_wr].n_points].y = y;
+								tof3ds[tof3d_wr].cloud[tof3ds[tof3d_wr].n_points].z = z;
+								tof3ds[tof3d_wr].n_points++;
+							}
+						}
+						else if(do_send_pointcloud == 2) // in world coordinates
+						{
+							if(tof3ds[tof3d_wr].n_points < 4*TOF_XS*TOF_YS)
+							{
+								float robot_ang = ANG32TORAD(-1*in->robot_pos.ang);
+								float x_world = d * cos(ver_ang + sensor_yang) * cos(hor_ang + sensor_ang + robot_ang) + sensor_x + in->robot_pos.x;
+								float y_world = -1* (d * cos(ver_ang + sensor_yang) * sin(hor_ang + sensor_ang + robot_ang)) + sensor_y + in->robot_pos.y;
+
+								tof3ds[tof3d_wr].cloud[tof3ds[tof3d_wr].n_points].x = x_world;
+								tof3ds[tof3d_wr].cloud[tof3ds[tof3d_wr].n_points].y = y_world;
+								tof3ds[tof3d_wr].cloud[tof3ds[tof3d_wr].n_points].z = z;
+								tof3ds[tof3d_wr].n_points++;
+							}
+						}
 
 						uint8_t new_val = 0;
 						if( z < -230.0)
@@ -516,6 +542,7 @@ static void process_pulutof_frame(pulutof_frame_t *in)
 //			{hmap_accum[xx][yy] = -9999; hmap_nsamples[xx][yy] = 0; hmap_avgd[xx][yy] = 0;} }
 
 		memset(tof3ds[tof3d_wr].objmap, 0, 1*TOF3D_HMAP_YSPOTS*TOF3D_HMAP_XSPOTS);
+		tof3ds[tof3d_wr].n_points = 0;
 	}
 
 	if(running_ok)

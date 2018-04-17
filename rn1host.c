@@ -59,6 +59,7 @@
 
 volatile int verbose_mode = 0;
 volatile int send_raw_tof = -1;
+volatile int send_pointcloud = 0; // 0 = off, 1 = relative to robot, 2 = relative to actual world coords
 
 int max_speedlim = DEFAULT_SPEEDLIM;
 int cur_speedlim = DEFAULT_SPEEDLIM;
@@ -810,6 +811,29 @@ void read_charger_pos()
 }
 
 
+void save_pointcloud(int n_points, xyz_t* cloud)
+{
+	static int pc_cnt = 0;
+	char fname[256];
+	snprintf(fname, 255, "cloud%05d.csv", pc_cnt);
+	printf("Saving pointcloud with %d samples to file %s.\n", n_points, fname);
+	FILE* pc_csv = fopen(fname, "w");
+	if(!pc_csv)
+	{
+		printf("Error opening file for write.\n");
+	}
+	else
+	{
+		for(int i=0; i < n_points; i++)
+		{
+			fprintf(pc_csv, "%d,%d,%d\n",cloud[i].x, cloud[i].y, cloud[i].z);
+		}
+		fclose(pc_csv);
+	}
+}
+
+
+
 int cal_x_d_offset = 0;
 int cal_y_d_offset = 0;
 float cal_x_offset = 40.0;
@@ -1015,6 +1039,24 @@ void* main_thread()
 			if(cmd >= '1' && cmd <= '4')
 			{
 				pulutof_cal_offset(cmd-'1');
+			}
+			if(cmd == 'p')
+			{
+				if(send_pointcloud == 0)
+				{
+					printf("INFO: Will send pointclouds relative to robot origin\n");
+					send_pointcloud = 1;
+				}
+				else if(send_pointcloud == 1)
+				{
+					printf("INFO: Will send pointclouds relative to world origin\n");
+					send_pointcloud = 2;
+				}
+				else
+				{
+					printf("INFO: Will stop sending pointclouds\n");
+					send_pointcloud = 0;
+				}
 			}
 #endif
 
@@ -1658,6 +1700,11 @@ void* main_thread()
 					}
 
 					hmap_cnt = 0;
+
+					if(send_pointcloud)
+					{
+						save_pointcloud(p_tof->n_points, p_tof->cloud);
+					}
 				}
 			}
 

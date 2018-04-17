@@ -116,15 +116,18 @@ void pulutof_cal_offset(uint8_t idx);
 #define HMAP_BLOCK_MM 40
 
 extern volatile int send_raw_tof; // which sensor id to send as raw_depth, <0 = N/A
+extern volatile int send_pointcloud; // 0 = off, 1 = relative to robot, 2 = relative to actual world coords
 
 typedef struct
 {
 	pos_t robot_pos;
-//	int n_points;
-//	xyz_t cloud[TOF_XS*TOF_YS];
 	int8_t objmap[TOF3D_HMAP_YSPOTS*TOF3D_HMAP_XSPOTS];
-	uint16_t raw_depth[160*60]; // for development purposes
+	uint16_t raw_depth[160*60]; // for development purposes: populated only when enabled, with only 1 sensor at the time
 	uint8_t ampl_images[4][160*60];
+
+	// Point cloud is only populated when enabled:
+	int n_points;
+	xyz_t cloud[4*TOF_XS*TOF_YS];
 } tof3d_scan_t;
 
 tof3d_scan_t* get_tof3d();

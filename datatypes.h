@@ -79,11 +79,11 @@ typedef struct
 } sonar_point_t;
 
 
-typedef struct
+typedef struct __attribute__((packed))
 {
 	int32_t x;
 	int32_t y;
-	int16_t z;
+	int32_t z;
 } xyz_t;
 
 

@@ -406,7 +406,6 @@ void tcp_send_hmap(int xsamps, int ysamps, int32_t ang, int xorig_mm, int yorig_
 	free(buf);
 }
 
-
 void tcp_send_battery()
 {
 	const int size = 9;

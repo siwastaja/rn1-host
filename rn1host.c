@@ -826,7 +826,7 @@ void save_pointcloud(int n_points, xyz_t* cloud)
 	{
 		for(int i=0; i < n_points; i++)
 		{
-			fprintf(pc_csv, "%d,%d,%d\n",cloud[i].x, cloud[i].y, cloud[i].z);
+			fprintf(pc_csv, "%d,%d,%d\n",cloud[i].x, -1*cloud[i].y, cloud[i].z);
 		}
 		fclose(pc_csv);
 	}

@@ -503,6 +503,7 @@ static int32_t score_quick_search_xy(int8_t *scoremap, int n_lidars, lidar_scan_
 	*best_dx = dx_start+dx_step*best_ix;
 	*best_dy = dy_start+dy_step*best_iy;
 
+	if(n_points < 10) return 0;
 	return (200*best_score)/n_points;
 }
 
@@ -1322,7 +1323,8 @@ int map_3dtof(world_t* w, int n_tofs, tof3d_scan_t** tof_list, int32_t *mx, int3
 					case TOF3D_THRESHOLD    : maybes[tm_y*MAP_PAGE_W+tm_x]++; break;
 
 					case TOF3D_SMALL_ITEM   :
-					case TOF3D_BIG_ITEM     : items[tm_y*MAP_PAGE_W+tm_x]++; break;
+					case TOF3D_BIG_ITEM     :
+					case TOF3D_LOW_CEILING  : items[tm_y*MAP_PAGE_W+tm_x]++; break;
 
 					case TOF3D_WALL         : walls[tm_y*MAP_PAGE_W+tm_x]++; break;
 

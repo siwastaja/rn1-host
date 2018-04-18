@@ -150,6 +150,7 @@ extern tcp_rc_pos_t    msg_rc_pos;
 
 #define TCP_RC_MOVEMENT_STATUS_SUCCESS 0
 #define TCP_RC_MOVEMENT_STATUS_STOPPED 1
+#define TCP_RC_MOVEMENT_STATUS_STOPPED_BY_FEEDBACK_MODULE 1
 #define TCP_RC_MOVEMENT_STATUS_MID  143
 typedef struct __attribute__ ((packed))
 {

@@ -57,7 +57,9 @@
 #define DEFAULT_SPEEDLIM 45
 #define MAX_CONFIGURABLE_SPEEDLIM 70
 
-int verbose_mode = 0;
+volatile int verbose_mode = 0;
+volatile int send_raw_tof = -1;
+volatile int send_pointcloud = 0; // 0 = off, 1 = relative to robot, 2 = relative to actual world coords
 
 int max_speedlim = DEFAULT_SPEEDLIM;
 int cur_speedlim = DEFAULT_SPEEDLIM;
@@ -217,7 +219,7 @@ void send_route_end_status(uint8_t reason)
 			msg_rc_route_status.cur_x = cur_x;
 			msg_rc_route_status.cur_y = cur_y;
 			msg_rc_route_status.status = reason;
-			tcp_send_msg(&msgmeta_rc_movement_status, &msg_rc_movement_status);
+			tcp_send_msg(&msgmeta_rc_route_status, &msg_rc_route_status);
 		}
 
 		cmd_state = 0;
@@ -811,6 +813,32 @@ void read_charger_pos()
 }
 
 
+void save_pointcloud(int n_points, xyz_t* cloud)
+{
+	static int pc_cnt = 0;
+	char fname[256];
+	snprintf(fname, 255, "cloud%05d.xyz", pc_cnt);
+	printf("Saving pointcloud with %d samples to file %s.\n", n_points, fname);
+	FILE* pc_csv = fopen(fname, "w");
+	if(!pc_csv)
+	{
+		printf("Error opening file for write.\n");
+	}
+	else
+	{
+		for(int i=0; i < n_points; i++)
+		{
+			fprintf(pc_csv, "%d %d %d\n",cloud[i].x, -1*cloud[i].y, cloud[i].z);
+		}
+		fclose(pc_csv);
+	}
+
+	pc_cnt++;
+	if(pc_cnt > 99999) pc_cnt = 0;
+}
+
+
+
 int cal_x_d_offset = 0;
 int cal_y_d_offset = 0;
 float cal_x_offset = 40.0;
@@ -990,9 +1018,37 @@ void* main_thread()
 			{
 				pulutof_incr_dbg();
 			}
+			if(cmd == 'Z')
+			{
+				if(send_raw_tof >= 0) send_raw_tof--;
+				printf("Sending raw tof from sensor %d\n", send_raw_tof);
+			}
+			if(cmd == 'X')
+			{
+				if(send_raw_tof < 3) send_raw_tof++;
+				printf("Sending raw tof from sensor %d\n", send_raw_tof);
+			}
 			if(cmd >= '1' && cmd <= '4')
 			{
 				pulutof_cal_offset(cmd-'1');
+			}
+			if(cmd == 'p')
+			{
+				if(send_pointcloud == 0)
+				{
+					printf("INFO: Will send pointclouds relative to robot origin\n");
+					send_pointcloud = 1;
+				}
+				else if(send_pointcloud == 1)
+				{
+					printf("INFO: Will send pointclouds relative to world origin\n");
+					send_pointcloud = 2;
+				}
+				else
+				{
+					printf("INFO: Will stop sending pointclouds\n");
+					send_pointcloud = 0;
+				}
 			}
 #endif
 
@@ -1048,6 +1104,7 @@ void* main_thread()
 				msg_rc_movement_status.requested_y = msg_cr_dest.y;
 				msg_rc_movement_status.requested_backmode = msg_cr_dest.backmode;
 
+				cur_xymove.remaining = 999999; // invalidate
 
 				printf("  ---> DEST params: X=%d Y=%d backmode=0x%02x\n", msg_cr_dest.x, msg_cr_dest.y, msg_cr_dest.backmode);
 				if(msg_cr_dest.backmode & 0b1000) // Rotate pose
@@ -1284,6 +1341,26 @@ void* main_thread()
 
 		static int micronavi_stop_flags_printed = 0;
 
+		if(cmd_state == TCP_CR_DEST_MID)
+		{
+			if(cur_xymove.remaining < 5)
+			{
+				if(tcp_client_sock >= 0)
+				{
+					msg_rc_movement_status.cur_ang = cur_ang>>16;
+					msg_rc_movement_status.cur_x = cur_x;
+					msg_rc_movement_status.cur_y = cur_y;
+					msg_rc_movement_status.status = TCP_RC_MOVEMENT_STATUS_SUCCESS;
+					msg_rc_movement_status.obstacle_flags = 0;
+					tcp_send_msg(&msgmeta_rc_movement_status, &msg_rc_movement_status);
+				}
+
+				cmd_state = 0;
+
+			}
+		}
+	
+
 		if(cur_xymove.micronavi_stop_flags)
 		{
 			if(!micronavi_stop_flags_printed)
@@ -1355,6 +1432,21 @@ void* main_thread()
 						}
 					}
 				}
+				if(cmd_state == TCP_CR_DEST_MID)
+				{
+					if(tcp_client_sock >= 0)
+					{
+						msg_rc_movement_status.cur_ang = cur_ang>>16;
+						msg_rc_movement_status.cur_x = cur_x;
+						msg_rc_movement_status.cur_y = cur_y;
+						msg_rc_movement_status.status = TCP_RC_MOVEMENT_STATUS_STOPPED_BY_FEEDBACK_MODULE;
+						msg_rc_movement_status.obstacle_flags = cur_xymove.feedback_stop_flags;
+						tcp_send_msg(&msgmeta_rc_movement_status, &msg_rc_movement_status);
+					}
+
+					cmd_state = 0;
+				}
+
 			}
 		}
 		else
@@ -1591,10 +1683,20 @@ void* main_thread()
 
 				if(hmap_cnt >= 4)
 				{
-					//printf("Send hmap\n");
 					tcp_send_hmap(TOF3D_HMAP_XSPOTS, TOF3D_HMAP_YSPOTS, p_tof->robot_pos.ang, p_tof->robot_pos.x, p_tof->robot_pos.y, TOF3D_HMAP_SPOT_SIZE, p_tof->objmap);
-					//printf("Done\n");
+
+					if(send_raw_tof >= 0 && send_raw_tof < 4)
+					{
+						tcp_send_picture(100, 2, 160, 60, (uint8_t*)p_tof->raw_depth);
+						tcp_send_picture(101, 2, 160, 60, (uint8_t*)p_tof->ampl_images[send_raw_tof]);
+					}
+
 					hmap_cnt = 0;
+
+					if(send_pointcloud)
+					{
+						save_pointcloud(p_tof->n_points, p_tof->cloud);
+					}
 				}
 			}
 

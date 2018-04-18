@@ -149,26 +149,26 @@ int tcp_send(uint8_t* buf, int len)
 	uint8_t* p_buf = buf;
 	while(len)
 	{
-		int ret = write(tcp_client_sock, p_buf, len);
+		int ret = write(tcp_client_sock, p_buf, (len>50000)?50000:len); // write() is broken with len over about 65536, at least in linux.
 		if(ret < 0)
 		{
 			fprintf(stderr, "ERROR: tcp_send(): socket write error %d (%s). Closing TCP connection.\n", errno, strerror(errno));
 			tcp_comm_close();
 			return -1;
 		}
-		else if(ret == 0)
-		{
-			printf("INFO: tcp_send(): write() returned 0, closing TCP connection.\n");
-			tcp_comm_close();
-			return -2;
-		}
+//		else if(ret == 0)
+//		{
+//			printf("INFO: tcp_send(): write() returned 0, closing TCP connection.\n");
+//			tcp_comm_close();
+//			return -2;
+//		}
 		
 		len -= ret;
 		p_buf += ret;
 		if(len)
 		{
 			printf("INFO: tcp_send(): write() didn't write everything, written=%d, left=%d\n", ret, len);
-			usleep(100);
+			usleep(200);
 			timeout--;
 
 			if(timeout == 0)

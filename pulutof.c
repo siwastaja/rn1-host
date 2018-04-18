@@ -51,6 +51,7 @@
 
 #define PULUTOF_SPI_DEVICE "/dev/spidev0.0"
 
+extern volatile int verbose_mode;
 
 static int spi_fd;
 static volatile int running = 1;
@@ -303,6 +304,7 @@ static void distances_to_objmap(pulutof_frame_t *in)
 	float sensor_yang = sensor_mounts[sidx].vert_ang_rel_ground;
 	float sensor_z = sensor_mounts[sidx].z_rel_ground;
 	
+	int do_send_pointcloud = send_pointcloud;
 
 
 	for(int pyy = 1; pyy < TOF_YS-1; pyy++)
@@ -384,12 +386,9 @@ static void distances_to_objmap(pulutof_frame_t *in)
 
 					float d = (float)avg_conforming/(float)n_conforming;
 
-				//	d *= 0.84; // don't understand why, yet. Seems to be a very consistent error!
-				//	d *= 0.90;
-
-					float x = d * /*sin*/cos(ver_ang + sensor_yang) * cos(hor_ang + sensor_ang) + sensor_x;
-					float y = -1* (d * /*sin*/cos(ver_ang + sensor_yang) * sin(hor_ang + sensor_ang)) + sensor_y;
-					float z = d * /*cos*/sin(ver_ang + sensor_yang) + sensor_z;
+					float x = d * cos(ver_ang + sensor_yang) * cos(hor_ang + sensor_ang) + sensor_x;
+					float y = -1* (d * cos(ver_ang + sensor_yang) * sin(hor_ang + sensor_ang)) + sensor_y;
+					float z = d * sin(ver_ang + sensor_yang) + sensor_z;
 
 					if(z > 700 || (z > -180.0 && z < 130.0) || (n_valids > 7 && n_conforming > 5))
 					{
@@ -417,21 +416,48 @@ static void distances_to_objmap(pulutof_frame_t *in)
 						}
 	*/
 
+						if(do_send_pointcloud == 1) // relative to robot
+						{
+							if(tof3ds[tof3d_wr].n_points < 4*TOF_XS*TOF_YS)
+							{
+								tof3ds[tof3d_wr].cloud[tof3ds[tof3d_wr].n_points].x = x;
+								tof3ds[tof3d_wr].cloud[tof3ds[tof3d_wr].n_points].y = y;
+								tof3ds[tof3d_wr].cloud[tof3ds[tof3d_wr].n_points].z = z;
+								tof3ds[tof3d_wr].n_points++;
+							}
+						}
+						else if(do_send_pointcloud == 2) // in world coordinates
+						{
+							if(tof3ds[tof3d_wr].n_points < 4*TOF_XS*TOF_YS)
+							{
+								float robot_ang = ANG32TORAD(-1*in->robot_pos.ang);
+								float x_world = d * cos(ver_ang + sensor_yang) * cos(hor_ang + sensor_ang + robot_ang) + sensor_x + in->robot_pos.x;
+								float y_world = -1* (d * cos(ver_ang + sensor_yang) * sin(hor_ang + sensor_ang + robot_ang)) + sensor_y + in->robot_pos.y;
+
+								tof3ds[tof3d_wr].cloud[tof3ds[tof3d_wr].n_points].x = x_world;
+								tof3ds[tof3d_wr].cloud[tof3ds[tof3d_wr].n_points].y = y_world;
+								tof3ds[tof3d_wr].cloud[tof3ds[tof3d_wr].n_points].z = z;
+								tof3ds[tof3d_wr].n_points++;
+							}
+						}
+
 						uint8_t new_val = 0;
 						if( z < -230.0)
 							new_val = TOF3D_BIG_DROP;
 						else if(z < -180.0)
 							new_val = TOF3D_SMALL_DROP;
-						else if(z < 130.0)
+						else if((d < 600.0 && z < 80.0) || z < 120.0)
 							new_val = TOF3D_FLOOR;
-						else if(z < 160.0)
+						else if((d < 600.0 && z < 110.0) || z < 150.0)
 							new_val = TOF3D_THRESHOLD;
 						else if(z < 265.0)
 							new_val = TOF3D_SMALL_ITEM;
 						else if(z < 295.0)
 							new_val = TOF3D_WALL;
-						else if(z < 2100.0)
+						else if(z < 1500.0)
 							new_val = TOF3D_BIG_ITEM;
+						else if(z < 2050.0)
+							new_val = TOF3D_LOW_CEILING;
 
 						if(new_val > tof3ds[tof3d_wr].objmap[yspot*TOF3D_HMAP_XSPOTS+xspot])
 							tof3ds[tof3d_wr].objmap[yspot*TOF3D_HMAP_XSPOTS+xspot] = new_val;
@@ -516,6 +542,7 @@ static void process_pulutof_frame(pulutof_frame_t *in)
 //			{hmap_accum[xx][yy] = -9999; hmap_nsamples[xx][yy] = 0; hmap_avgd[xx][yy] = 0;} }
 
 		memset(tof3ds[tof3d_wr].objmap, 0, 1*TOF3D_HMAP_YSPOTS*TOF3D_HMAP_XSPOTS);
+		tof3ds[tof3d_wr].n_points = 0;
 	}
 
 	if(running_ok)
@@ -546,6 +573,13 @@ static void process_pulutof_frame(pulutof_frame_t *in)
 				tof3ds[tof3d_wr].robot_pos = in->robot_pos;
 #endif
 			}
+
+			if(sidx == send_raw_tof)
+			{
+				memcpy(tof3ds[tof3d_wr].raw_depth, in->depth, sizeof tof3ds[tof3d_wr].raw_depth);
+			}
+
+			memcpy(tof3ds[tof3d_wr].ampl_images[sidx], in->ampl, sizeof in->ampl);
 
 			if(sidx == NUM_PULUTOFS-1)
 			{
@@ -1085,27 +1119,28 @@ static int read_frame()
 		return -1;
 	}
 
-#ifdef SPI_PRINT_DBG
-	printf("Frame (sensor_idx= %d) read ok, pose=(%d,%d,%d). Timing data:\n", pulutof_ringbuf[pulutof_ringbuf_wr].sensor_idx, pulutof_ringbuf[pulutof_ringbuf_wr].robot_pos.x, pulutof_ringbuf[pulutof_ringbuf_wr].robot_pos.y, pulutof_ringbuf[pulutof_ringbuf_wr].robot_pos.ang);
-	for(int i=0; i<24; i++)
+	if(verbose_mode)
 	{
-		printf("%d:%.1f ", i, (float)pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]/10.0);
+		printf("Frame (sensor_idx= %d) read ok, pose=(%d,%d,%d). Timing data:\n", pulutof_ringbuf[pulutof_ringbuf_wr].sensor_idx, pulutof_ringbuf[pulutof_ringbuf_wr].robot_pos.x, pulutof_ringbuf[pulutof_ringbuf_wr].robot_pos.y, pulutof_ringbuf[pulutof_ringbuf_wr].robot_pos.ang);
+		for(int i=0; i<24; i++)
+		{
+			printf("%d:%.1f ", i, (float)pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]/10.0);
+		}
+		printf("\n");
+		printf("Time deltas to:\n");
+		for(int i=1; i<24; i++)
+		{
+			printf(">%d:%.1f ", i, (float)(pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]-pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i-1])/10.0);
+		}
+		printf("\n");
+		printf("dbg_i32:\n");
+		for(int i=0; i<8; i++)
+		{
+			printf("[%d] %11d  ", i, pulutof_ringbuf[pulutof_ringbuf_wr].dbg_i32[i]);
+		}
+		printf("\n");
+		printf("\n");
 	}
-	printf("\n");
-	printf("Time deltas to:\n");
-	for(int i=1; i<24; i++)
-	{
-		printf(">%d:%.1f ", i, (float)(pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i]-pulutof_ringbuf[pulutof_ringbuf_wr].timestamps[i-1])/10.0);
-	}
-	printf("\n");
-	printf("dbg_i32:\n");
-	for(int i=0; i<8; i++)
-	{
-		printf("[%d] %11d  ", i, pulutof_ringbuf[pulutof_ringbuf_wr].dbg_i32[i]);
-	}
-	printf("\n");
-	printf("\n");
-#endif
 
 	int ret = pulutof_ringbuf[pulutof_ringbuf_wr].status;
 

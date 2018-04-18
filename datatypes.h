@@ -146,25 +146,30 @@ typedef enum
 #define USER_IN_COMMAND 0
 #define EXPLORATION     1
 
-typedef struct __attribute__((packed))
+typedef union __attribute__((packed))
 {
-	uint8_t loca_2d;
-	uint8_t loca_3d;
-	uint8_t mapping_2d;
-	uint8_t mapping_3d;
-	uint8_t mapping_collisions;
-	uint8_t keepstill;
-	uint8_t command_source;
-	uint8_t localize_with_big_search_area;
-	uint8_t reserved2;
-	uint8_t reserved3;
-	uint8_t reserved4;
-	uint8_t reserved5;
-	uint8_t reserved6;
-	uint8_t reserved7;
-	uint8_t reserved8;
-	uint8_t reserved9;
-} state_vect_t;
+	struct __attribute__((packed))
+	{
+		uint8_t loca_2d;
+		uint8_t loca_3d;
+		uint8_t mapping_2d;
+		uint8_t mapping_3d;
+		uint8_t mapping_collisions;
+		uint8_t keep_position;
+		uint8_t command_source;
+		uint8_t localize_with_big_search_area;
+		uint8_t reserved2;
+		uint8_t reserved3;
+		uint8_t reserved4;
+		uint8_t reserved5;
+		uint8_t reserved6;
+		uint8_t reserved7;
+		uint8_t reserved8;
+		uint8_t reserved9;
+	} v;
+
+	uint8_t table[16];
+} state_vect_t; // if the length changes, tcp_parser.c requires modification
 
 extern state_vect_t state_vect;
 

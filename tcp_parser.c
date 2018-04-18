@@ -110,7 +110,15 @@ tcp_message_t msgmeta_cr_speedlim =
 };
 
 
-#define NUM_CR_MSGS 9
+tcp_message_t msgmeta_cr_statevect =
+{
+	&state_vect,
+	TCP_CR_STATEVECT_MID,
+	16, "BBBBBBBBBBBBBBBB"
+};
+
+
+#define NUM_CR_MSGS 10
 tcp_message_t* CR_MSGS[NUM_CR_MSGS] =
 {
 	&msgmeta_cr_dest,
@@ -121,7 +129,8 @@ tcp_message_t* CR_MSGS[NUM_CR_MSGS] =
 	&msgmeta_cr_addconstraint,
 	&msgmeta_cr_remconstraint,
 	&msgmeta_cr_maintenance,
-	&msgmeta_cr_speedlim
+	&msgmeta_cr_speedlim,
+	&msgmeta_cr_statevect
 };
 
 // Robot->Client messages
@@ -470,6 +479,16 @@ void tcp_send_dbgpoint(int x, int y, uint8_t r, uint8_t g, uint8_t b, int persis
 	tcp_send(buf, size);
 }
 
+void tcp_send_statevect()
+{
+	const int size = 3+sizeof(state_vect);
+	uint8_t buf[size];
+	buf[0] = TCP_RC_STATEVECT_MID;
+	buf[1] = ((size-3)>>8)&0xff;
+	buf[2] = (size-3)&0xff;
+	memcpy(&buf[3], state_vect.table, sizeof(state_vect.table));
+	tcp_send(buf, size);
+}
 
 int tcp_send_msg(tcp_message_t* msg_type, void* msg)
 {

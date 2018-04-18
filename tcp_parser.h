@@ -135,6 +135,9 @@ typedef struct __attribute__ ((packed))
 extern tcp_cr_speedlim_t   msg_cr_speedlim;
 
 
+#define TCP_CR_STATEVECT_MID        64
+
+
 #define TCP_RC_POS_MID    130
 typedef struct __attribute__ ((packed))
 {
@@ -210,6 +213,7 @@ extern tcp_rc_route_status_t    msg_rc_route_status;
 #define TCP_RC_LIDAR_HIGHRES_MID    141
 #define TCP_RC_PICTURE_MID	    142
 
+#define TCP_RC_STATEVECT_MID        145
 
 
 int tcp_parser(int sock);
@@ -228,6 +232,7 @@ void tcp_send_hmap(int xsamps, int ysamps, int32_t ang, int xorig_mm, int yorig_
 void tcp_send_info_state(info_state_t state);
 void tcp_send_robot_info();
 void tcp_send_picture(int16_t id, uint8_t bytes_per_pixel, int xs, int ys, uint8_t *pict);
+void tcp_send_statevect();
 
 
 #endif

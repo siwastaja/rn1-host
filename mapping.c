@@ -1028,16 +1028,16 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	*dx = 0;
 	*dy = 0;
 
-	if(state_vect.loca_2d == 0 && state_vect.mapping_2d == 0)
+	if(state_vect.v.loca_2d == 0 && state_vect.v.mapping_2d == 0)
 	{
 		printf("(timestamp=%.1f) Localization and mapping disabled - ignoring %d lidar images\n", subsec_timestamp(), n_lidars);
 		return 0;
 	}
 
-	if(state_vect.loca_2d && state_vect.mapping_2d)
+	if(state_vect.v.loca_2d && state_vect.v.mapping_2d)
 		printf("(timestamp=%.1f) Attempting to localize & map %d lidar images\n", subsec_timestamp(), n_lidars);
 	else
-		printf("(timestamp=%.1f) Attempting to %s %d lidar images\n", subsec_timestamp(), state_vect.loca_2d?"localize with":"map", n_lidars);
+		printf("(timestamp=%.1f) Attempting to %s %d lidar images\n", subsec_timestamp(), state_vect.v.loca_2d?"localize with":"map", n_lidars);
 
 	if(n_lidars > 32)
 	{
@@ -1090,7 +1090,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 
 	int corr_da=0, corr_dx=0, corr_dy=0;
 
-	if(state_vect.loca_2d)
+	if(state_vect.v.loca_2d)
 	{
 		time = subsec_timestamp();
 		if(search_area_size == 2)
@@ -1221,7 +1221,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	}
 
 	int32_t aft_corr_x = 0, aft_corr_y = 0;
-	if(state_vect.mapping_2d)
+	if(state_vect.v.mapping_2d)
 	{
 
 		time = subsec_timestamp();
@@ -2049,7 +2049,7 @@ void autofsm()
 
 		case S_START: {
 			daiju_mode(0);
-			state_vect.mapping_collisions = state_vect.mapping_3d = state_vect.mapping_2d = state_vect.loca_3d = state_vect.loca_2d = 0;
+			state_vect.v.mapping_collisions = state_vect.v.mapping_3d = state_vect.v.mapping_2d = state_vect.v.loca_3d = state_vect.v.loca_2d = 0;
 			cur_autostate++;
 		} break;
 
@@ -2091,7 +2091,7 @@ void autofsm()
 				int32_t ang = cur_compass_ang-90*ANG_1_DEG;
 				printf("DBG: cur_compass_ang=%d (%.1fdeg), ang=%d (%.1fdeg)\n", cur_compass_ang, ANG32TOFDEG(cur_compass_ang), ang, ANG32TOFDEG(ang));
 				set_robot_pos(ang,0,0);
-				state_vect.mapping_collisions = state_vect.mapping_3d = state_vect.mapping_2d = state_vect.loca_3d = state_vect.loca_2d = 1;
+				state_vect.v.mapping_collisions = state_vect.v.mapping_3d = state_vect.v.mapping_2d = state_vect.v.loca_3d = state_vect.v.loca_2d = 1;
 				massive_search_area();
 				if(automap_only_compass)
 					cur_autostate = S_IDLE;
@@ -2138,7 +2138,7 @@ void autofsm()
 			send_info(INFO_STATE_THINK);
 
 			map_significance_mode = MAP_SIGNIFICANT_IMGS | MAP_SEMISIGNIFICANT_IMGS;
-			state_vect.mapping_collisions = state_vect.mapping_3d = state_vect.mapping_2d = state_vect.loca_3d = state_vect.loca_2d = 1;
+			state_vect.v.mapping_collisions = state_vect.v.mapping_3d = state_vect.v.mapping_2d = state_vect.v.loca_3d = state_vect.v.loca_2d = 1;
 
 			#define NUM_LATEST_LIDARS_FOR_ROUTING_START 7
 			extern lidar_scan_t* lidars_to_map_at_routing_start[NUM_LATEST_LIDARS_FOR_ROUTING_START];

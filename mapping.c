@@ -276,7 +276,7 @@ y2 = -1*x*sin(a) + y*cos(a)
 #define TEMP_MAP_W (2*MAP_PAGE_W)
 #define TEMP_MAP_MIDDLE (TEMP_MAP_W/2)
 
-// Slower, allows stepping larger steps:
+// Slower, allows stepping larger steps, pays the used extra time back when searching large areas:
 static int gen_scoremap_for_large_steps(world_t *w, int8_t *scoremap, int mid_x, int mid_y)
 {
 	int px, py, ox, oy;
@@ -1010,11 +1010,6 @@ does not implement "I'm totally lost, where am I?" functionality.
 
 int search_area_size = 0;
 
-void big_search_area()
-{
-	search_area_size = 1;
-}
-
 void massive_search_area()
 {
 	search_area_size = 2;
@@ -1022,7 +1017,7 @@ void massive_search_area()
 
 extern double subsec_timestamp();
 
-int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy)
+int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy)
 {
 	double time;
 
@@ -1032,7 +1027,16 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	*dx = 0;
 	*dy = 0;
 
-	printf("(timestamp=%.1f) Attempting to map %d lidar images\n", subsec_timestamp(), n_lidars);
+	if(state_vect.loca_2d == 0 && state_vect.mapping_2d == 0)
+	{
+		printf("(timestamp=%.1f) Localization and mapping disabled - ignoring %d lidar images\n", subsec_timestamp(), n_lidars);
+		return 0;
+	}
+
+	if(state_vect.loca_2d && state_vect.mapping_2d)
+		printf("(timestamp=%.1f) Attempting to localize & map %d lidar images\n", subsec_timestamp(), n_lidars);
+	else
+		printf("(timestamp=%.1f) Attempting to %s %d lidar images\n", subsec_timestamp(), state_vect.loca_2d?"localize with":"map", n_lidars);
 
 	if(n_lidars > 32)
 	{
@@ -1042,7 +1046,7 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 
 	for(int i=0; i<n_lidars; i++)
 	{
-	// Unbelievable s**t, super ugly hack, find the actual culprit instead (lidar_list[6] was pointing to address 0x14, rarely, can't understand why)
+		// Unbelievable s**t, super ugly hack, find the actual culprit instead (lidar_list[6] was pointing to address 0x14, rarely, can't understand why)
 
 		lidar_scan_t* mem_begin = &lidars[0]; if(&significant_lidars[0] < mem_begin) mem_begin = &significant_lidars[0];
 		lidar_scan_t* mem_end = &lidars[LIDAR_RING_BUF_LEN-1]; if(&significant_lidars[SIGNIFICANT_LIDAR_RING_BUF_LEN-1] > mem_end) mem_end = &significant_lidars[SIGNIFICANT_LIDAR_RING_BUF_LEN-1];
@@ -1072,170 +1076,173 @@ int do_map_lidars_new_quick(world_t* w, int n_lidars, lidar_scan_t** lidar_list,
 	prefilter_lidar_list(n_lidars, lidar_list);
 	double prefilter_time = subsec_timestamp() - time;
 
+	double scoremap_time=0.0;
+	double pass1_time=0.0;
+	double pass2_time=0.0;
+	double mapping_time=0.0;
+
 	int mid_x, mid_y;
 
 	// Calculate average robot coordinates between the images, to find arithmetical midpoint.
 	// When correcting angle, image is rotated around this point.
 	lidars_avg_midpoint(n_lidars, lidar_list, &mid_x, &mid_y);
 
-	time = subsec_timestamp();
-	if(search_area_size == 2)
+	int corr_da=0, corr_dx=0, corr_dy=0;
+
+	if(state_vect.loca_2d)
 	{
-		stop_movement();
-		gen_scoremap_for_large_steps(w, scoremap, mid_x, mid_y);
-	}
-	else
-		gen_scoremap_for_small_steps(w, scoremap, mid_x, mid_y);
-	double scoremap_time = subsec_timestamp() - time;
-
-	int a_range, xy_range, xy_step, a_step;
-
-	if(search_area_size == 0)
-	{
-		a_range = 3;
-		xy_range = 400;
-		xy_step = 80;
-		a_step = 1*ANG_1_DEG;
-	}
-	else if(search_area_size == 1)
-	{
-		a_range = 6;
-		xy_range = 480;
-		xy_step = 40;
-		a_step = 1*ANG_1_DEG;
-	}
-	else // massive
-	{
-		a_range = 60;
-		xy_range = 2400; // max, produces 32 steps.
-		xy_step = 160;
-		a_step = 3*ANG_1_DEG;
-	}
-
-	int n_xy_steps = 2*(xy_range/xy_step) + 1;
-
-	int best_score = -999999;
-	int best1_da=0, best1_dx=0, best1_dy=0;
-
-	time = subsec_timestamp();
-
-	for(int ida=-1*a_range*ANG_1_DEG; ida<=a_range*ANG_1_DEG; ida+=a_step)
-	{
-		int32_t idx = 0, idy = 0;
-		int score_now = score_quick_search_xy(scoremap, n_lidars, lidar_list, mid_x, mid_y,
-			ida, -1*xy_range, xy_step, n_xy_steps, -1*xy_range, xy_step, n_xy_steps, &idx, &idy,1);
-		if(score_now > best_score)
+		time = subsec_timestamp();
+		if(search_area_size == 2)
 		{
-			best_score = score_now;
-			best1_da = ida;
-			best1_dx = idx;
-			best1_dy = idy;
+			stop_movement();
+			gen_scoremap_for_large_steps(w, scoremap, mid_x, mid_y);
 		}
-	}
+		else
+			gen_scoremap_for_small_steps(w, scoremap, mid_x, mid_y);
+		scoremap_time = subsec_timestamp() - time;
 
+		int a_range, xy_range, xy_step, a_step;
 
-	double pass1_time = subsec_timestamp() - time;
-
-	int pass2_a_range, pass2_a_step;
-	int pass2_dx_start, pass2_dx_step, pass2_num_dx, pass2_dy_start, pass2_dy_step, pass2_num_dy;
-
-	if(search_area_size == 0 || search_area_size == 1)
-	{
-		// we already generated scoremap for small steps
-		pass2_a_range = 2; // in half degs
-		pass2_a_step = ANG_0_5_DEG;
-		pass2_dx_start = best1_dx-80;
-		pass2_dx_step = 40;
-		pass2_num_dx = 2*(80/40) + 1;
-		pass2_dy_start = best1_dy-80;
-		pass2_dy_step = 40;
-		pass2_num_dy = 2*(80/40) + 1;
-	}
-	else // massive
-	{
-		printf("Pass1 complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best1_da/(float)ANG_1_DEG, best1_dx, best1_dy, best_score);
-
-		gen_scoremap_for_small_steps(w, scoremap, mid_x, mid_y); // overwrite large step scoremap.
-		pass2_a_range = 8; // in half degs
-		pass2_a_step = ANG_0_5_DEG;
-		pass2_dx_start = best1_dx-200;
-		pass2_dx_step = 20;
-		pass2_num_dx = 2*(200/20) + 1;
-		pass2_dy_start = best1_dy-200;
-		pass2_dy_step = 20;
-		pass2_num_dy = 2*(200/20) + 1;
-	}
-
-	best_score = -999999;
-	int best2_da=0, best2_dx=0, best2_dy=0;
-
-	time = subsec_timestamp();
-
-
-	for(int ida=best1_da-pass2_a_range*pass2_a_step; ida<=best1_da+pass2_a_range*pass2_a_step; ida+=pass2_a_step)
-	{
-		int32_t idx = 0, idy = 0;
-		int score_now = score_quick_search_xy(scoremap, n_lidars, lidar_list, mid_x, mid_y,
-			ida, pass2_dx_start, pass2_dx_step, pass2_num_dx, pass2_dy_start, pass2_dy_step, pass2_num_dy, &idx, &idy,0);
-		if(score_now > best_score)
+		if(search_area_size == 0)
 		{
-			best_score = score_now;
-			best2_da = ida;
-			best2_dx = idx;
-			best2_dy = idy;
+			a_range = 3;
+			xy_range = 400;
+			xy_step = 80;
+			a_step = 1*ANG_1_DEG;
 		}
-	}
+		else if(search_area_size == 1)
+		{
+			a_range = 6;
+			xy_range = 480;
+			xy_step = 40;
+			a_step = 1*ANG_1_DEG;
+		}
+		else // massive
+		{
+			a_range = 60;
+			xy_range = 2400; // max, produces 32 steps.
+			xy_step = 160;
+			a_step = 3*ANG_1_DEG;
+		}
 
-	double pass2_time = subsec_timestamp() - time;
+		int n_xy_steps = 2*(xy_range/xy_step) + 1;
 
-	int best_da = best2_da;
-	int best_dx = best2_dx;
-	int best_dy = best2_dy;
+		int best_score = -999999;
+		int best1_da=0, best1_dx=0, best1_dy=0;
 
-	printf("Map search complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best_da/(float)ANG_1_DEG, best_dx, best_dy, best_score);
+		time = subsec_timestamp();
 
-	if(best_score < 100)
-	{
-		printf("Best score low, mapping with zero correction.\n");
-		best_da = 0; best_dx = 0; best_dy = 0;
-		search_area_size = 0;
-	}
-	else
-	{
-		if(search_area_size) search_area_size--;
+		for(int ida=-1*a_range*ANG_1_DEG; ida<=a_range*ANG_1_DEG; ida+=a_step)
+		{
+			int32_t idx = 0, idy = 0;
+			int score_now = score_quick_search_xy(scoremap, n_lidars, lidar_list, mid_x, mid_y,
+				ida, -1*xy_range, xy_step, n_xy_steps, -1*xy_range, xy_step, n_xy_steps, &idx, &idy,1);
+			if(score_now > best_score)
+			{
+				best_score = score_now;
+				best1_da = ida;
+				best1_dx = idx;
+				best1_dy = idy;
+			}
+		}
+
+
+		pass1_time = subsec_timestamp() - time;
+
+		int pass2_a_range, pass2_a_step;
+		int pass2_dx_start, pass2_dx_step, pass2_num_dx, pass2_dy_start, pass2_dy_step, pass2_num_dy;
+
+		if(search_area_size == 0 || search_area_size == 1)
+		{
+			// we already generated scoremap for small steps
+			pass2_a_range = 2; // in half degs
+			pass2_a_step = ANG_0_5_DEG;
+			pass2_dx_start = best1_dx-80;
+			pass2_dx_step = 40;
+			pass2_num_dx = 2*(80/40) + 1;
+			pass2_dy_start = best1_dy-80;
+			pass2_dy_step = 40;
+			pass2_num_dy = 2*(80/40) + 1;
+		}
+		else // massive
+		{
+			printf("Pass1 complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)best1_da/(float)ANG_1_DEG, best1_dx, best1_dy, best_score);
+
+			gen_scoremap_for_small_steps(w, scoremap, mid_x, mid_y); // overwrite large step scoremap.
+			pass2_a_range = 8; // in half degs
+			pass2_a_step = ANG_0_5_DEG;
+			pass2_dx_start = best1_dx-200;
+			pass2_dx_step = 20;
+			pass2_num_dx = 2*(200/20) + 1;
+			pass2_dy_start = best1_dy-200;
+			pass2_dy_step = 20;
+			pass2_num_dy = 2*(200/20) + 1;
+		}
+
+		best_score = -999999;
+		int best2_da=0, best2_dx=0, best2_dy=0;
+
+		time = subsec_timestamp();
+
+
+		for(int ida=best1_da-pass2_a_range*pass2_a_step; ida<=best1_da+pass2_a_range*pass2_a_step; ida+=pass2_a_step)
+		{
+			int32_t idx = 0, idy = 0;
+			int score_now = score_quick_search_xy(scoremap, n_lidars, lidar_list, mid_x, mid_y,
+				ida, pass2_dx_start, pass2_dx_step, pass2_num_dx, pass2_dy_start, pass2_dy_step, pass2_num_dy, &idx, &idy,0);
+			if(score_now > best_score)
+			{
+				best_score = score_now;
+				best2_da = ida;
+				best2_dx = idx;
+				best2_dy = idy;
+			}
+		}
+
+		pass2_time = subsec_timestamp() - time;
+
+		corr_da = best2_da;
+		corr_dx = best2_dx;
+		corr_dy = best2_dy;
+
+		printf("Map search complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)corr_da/(float)ANG_1_DEG, corr_dx, corr_dy, best_score);
+
+		if(best_score < 300)
+		{
+			printf("Best score low, halving the correction to avoid making wrong decisions too big.\n");
+			corr_da/=2; corr_dx/=2; corr_dy/=2;
+		}
+		if(best_score < 100)
+		{
+			printf("Best score very low, using zero correction.\n");
+			corr_da = 0; corr_dx = 0; corr_dy = 0;
+		}
 	}
 
 	int32_t aft_corr_x = 0, aft_corr_y = 0;
+	if(state_vect.mapping_2d)
+	{
 
-	time = subsec_timestamp();
+		time = subsec_timestamp();
 
-	do_mapping(w, n_lidars, lidar_list, best_da, best_dx, best_dy, mid_x, mid_y, &aft_corr_x, &aft_corr_y);
+		do_mapping(w, n_lidars, lidar_list, corr_da, corr_dx, corr_dy, mid_x, mid_y, &aft_corr_x, &aft_corr_y);
 
-	double mapping_time = subsec_timestamp() - time;
+		mapping_time = subsec_timestamp() - time;
+	}
 
 	printf("Performance: prefilter %.1fms scoremap %.1fms pass1 %.1fms pass2 %.1fms mapping %.1fms\n",
 		prefilter_time*1000.0, scoremap_time*1000.0, pass1_time*1000.0, pass2_time*1000.0, mapping_time*1000.0);
 
-	*da = best_da;
-	*dx = best_dx + aft_corr_x;
-	*dy = best_dy + aft_corr_y;
+	*da = corr_da;
+	*dx = corr_dx + aft_corr_x;
+	*dy = corr_dy + aft_corr_y;
+
+
+	if(search_area_size) search_area_size--;
 
 	return 0;
 
 
-}
-
-int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy)
-{
-	int ret = -1;
-//	if( ( ret = do_map_lidars(w, n_lidars, lidar_list, da, dx, dy) ) == 5)
-//	{
-//		if( ( ret = do_map_lidars(w, n_lidars, lidar_list, da, dx, dy) ) == 5)
-//			ret = do_map_lidars(w, n_lidars, lidar_list, da, dx, dy);
-//	}
-
-	ret = do_map_lidars_new_quick(w, n_lidars, lidar_list, da, dx, dy);
-	return ret;
 }
 
 void tofs_avg_midpoint(int n_tofs, tof3d_scan_t** tof_list, int32_t* mid_x, int32_t* mid_y)
@@ -2018,7 +2025,6 @@ void autofsm()
 	extern int32_t cur_compass_ang;
 	extern int compass_round_active;
 	extern int32_t cur_x, cur_y;
-	extern int mapping_on;
 
 	int prev_autostate = cur_autostate;
 
@@ -2041,7 +2047,7 @@ void autofsm()
 
 		case S_START: {
 			daiju_mode(0);
-			mapping_on = 0;
+			state_vect.mapping_collisions = state_vect.mapping_3d = state_vect.mapping_2d = state_vect.loca_3d = state_vect.loca_2d = 0;
 			cur_autostate++;
 		} break;
 
@@ -2083,7 +2089,7 @@ void autofsm()
 				int32_t ang = cur_compass_ang-90*ANG_1_DEG;
 				printf("DBG: cur_compass_ang=%d (%.1fdeg), ang=%d (%.1fdeg)\n", cur_compass_ang, ANG32TOFDEG(cur_compass_ang), ang, ANG32TOFDEG(ang));
 				set_robot_pos(ang,0,0);
-				mapping_on = 1;
+				state_vect.mapping_collisions = state_vect.mapping_3d = state_vect.mapping_2d = state_vect.loca_3d = state_vect.loca_2d = 1;
 				massive_search_area();
 				if(automap_only_compass)
 					cur_autostate = S_IDLE;
@@ -2130,7 +2136,7 @@ void autofsm()
 			send_info(INFO_STATE_THINK);
 
 			map_significance_mode = MAP_SIGNIFICANT_IMGS | MAP_SEMISIGNIFICANT_IMGS;
-			mapping_on = 1;
+			state_vect.mapping_collisions = state_vect.mapping_3d = state_vect.mapping_2d = state_vect.loca_3d = state_vect.loca_2d = 1;
 
 			#define NUM_LATEST_LIDARS_FOR_ROUTING_START 7
 			extern lidar_scan_t* lidars_to_map_at_routing_start[NUM_LATEST_LIDARS_FOR_ROUTING_START];

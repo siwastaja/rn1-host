@@ -62,6 +62,9 @@ int verbose_mode = 0;
 int max_speedlim = DEFAULT_SPEEDLIM;
 int cur_speedlim = DEFAULT_SPEEDLIM;
 
+
+state_vect_t state_vect;
+
 #define SPEED(x_) do{ cur_speedlim = ((x_)>max_speedlim)?(max_speedlim):(x_); } while(0);
 
 double subsec_timestamp()
@@ -72,8 +75,7 @@ double subsec_timestamp()
 	return (double)spec.tv_sec + (double)spec.tv_nsec/1.0e9;
 }
 
-int mapping_on = 1;
-int live_obstacle_checking_on = 1;
+int live_obstacle_checking_on = 1; // only temporarily disabled by charger mounting code.
 int pos_corr_id = 42;
 #define INCR_POS_CORR_ID() {pos_corr_id++; if(pos_corr_id > 99) pos_corr_id = 0;}
 
@@ -117,7 +119,7 @@ int good_time_for_lidar_mapping = 0;
 
 #define sq(x) ((x)*(x))
 
-#define NUM_LATEST_LIDARS_FOR_ROUTING_START 7
+#define NUM_LATEST_LIDARS_FOR_ROUTING_START 4
 lidar_scan_t* lidars_to_map_at_routing_start[NUM_LATEST_LIDARS_FOR_ROUTING_START];
 
 void send_info(info_state_t state)
@@ -138,7 +140,7 @@ int run_search(int32_t dest_x, int32_t dest_y, int dont_map_lidars, int no_tight
 		int32_t da, dx, dy;
 		map_lidars(&world, NUM_LATEST_LIDARS_FOR_ROUTING_START, lidars_to_map_at_routing_start, &da, &dx, &dy);
 		INCR_POS_CORR_ID();
-		correct_robot_pos(da, dx, dy, pos_corr_id);
+		correct_robot_pos(da/2, dx/2, dy/2, pos_corr_id);
 	}
 
 	route_unit_t *some_route = NULL;
@@ -943,19 +945,6 @@ void* main_thread()
 			{
 				set_robot_pos(0,0,0);
 			}
-			if(cmd == 'm')
-			{
-				if(mapping_on)
-				{
-					mapping_on = 0;
-					printf("Turned mapping off.\n");
-				}
-				else
-				{
-					mapping_on = 1;
-					printf("Turned mapping on.\n");
-				}
-			}
 			if(cmd == 'M')
 			{
 				massive_search_area();
@@ -1119,7 +1108,7 @@ void* main_thread()
 					}
 				}
 			}
-			else if(ret == TCP_CR_MODE_MID)	
+			else if(ret == TCP_CR_MODE_MID)	// Most mode messages deprecated, here for backward-compatibility, will be removed soon.
 			{
 				printf("Request for MODE %d\n", msg_cr_mode.mode);
 				switch(msg_cr_mode.mode)
@@ -1129,7 +1118,7 @@ void* main_thread()
 						motors_on = 1;
 						daiju_mode(0);
 						stop_automapping();
-						mapping_on = 0;
+						state_vect.mapping_collisions = state_vect.mapping_3d = state_vect.mapping_2d = state_vect.loca_3d = state_vect.loca_2d = 0;
 					} break;
 
 					case 1:
@@ -1141,7 +1130,7 @@ void* main_thread()
 						lookaround_creep_reroute = 0;
 						do_follow_route = 0;
 						send_info(INFO_STATE_IDLE);
-						mapping_on = 1;
+						state_vect.mapping_collisions = state_vect.mapping_3d = state_vect.mapping_2d = state_vect.loca_3d = state_vect.loca_2d = 1;
 
 					} break;
 
@@ -1151,7 +1140,7 @@ void* main_thread()
 						daiju_mode(0);
 						routing_set_world(&world);
 						start_automapping_skip_compass();
-						mapping_on = 1;
+						state_vect.mapping_collisions = state_vect.mapping_3d = state_vect.mapping_2d = state_vect.loca_3d = state_vect.loca_2d = 1;
 					} break;
 
 					case 3:
@@ -1160,7 +1149,7 @@ void* main_thread()
 						daiju_mode(0);
 						routing_set_world(&world);
 						start_automapping_from_compass();
-						mapping_on = 1;
+						state_vect.mapping_collisions = state_vect.mapping_3d = state_vect.mapping_2d = state_vect.loca_3d = state_vect.loca_2d = 1;
 					} break;
 
 					case 4:
@@ -1172,7 +1161,7 @@ void* main_thread()
 						motors_on = 1;
 						send_info(INFO_STATE_DAIJUING);
 						daiju_mode(1);
-						mapping_on = 0;
+						state_vect.mapping_collisions = state_vect.mapping_3d = state_vect.mapping_2d = state_vect.loca_3d = state_vect.loca_2d = 0;
 					} break;
 
 					case 5:
@@ -1184,7 +1173,7 @@ void* main_thread()
 						send_info(INFO_STATE_IDLE);
 						motors_on = 0;
 						release_motors();
-						mapping_on = 1;
+						state_vect.mapping_collisions = state_vect.mapping_3d = state_vect.mapping_2d = state_vect.loca_3d = state_vect.loca_2d = 1;
 					} break;
 
 					case 6:
@@ -1196,7 +1185,7 @@ void* main_thread()
 						do_follow_route = 0;
 						motors_on = 0;
 						release_motors();
-						mapping_on = 0;
+						state_vect.mapping_collisions = state_vect.mapping_3d = state_vect.mapping_2d = state_vect.loca_3d = state_vect.loca_2d = 0;
 					} break;
 
 					case 7:
@@ -1348,11 +1337,11 @@ void* main_thread()
 				feedback_stop_flags_processed = 1;
 				int stop_reason = cur_xymove.feedback_stop_flags;
 				printf("Feedback module reported: %s\n", MCU_FEEDBACK_COLLISION_NAMES[stop_reason]);
-				if(mapping_on)
+				if(state_vect.mapping_collisions)
 				{
 					map_collision_obstacle(&world, cur_ang, cur_x, cur_y, stop_reason, cur_xymove.stop_xcel_vector_valid,
 						cur_xymove.stop_xcel_vector_ang_rad);
-					if(do_follow_route)
+					if(do_follow_route) // regenerate routing pages because the map is changed now.
 					{
 						int px, py, ox, oy;
 						page_coords(cur_x, cur_y, &px, &py, &ox, &oy);
@@ -1611,7 +1600,7 @@ void* main_thread()
 
 			static int32_t prev_x, prev_y, prev_ang;
 
-			if(mapping_on && !pwr_status.charging && !pwr_status.charged)
+			if(state_vect.mapping_3d && !pwr_status.charging && !pwr_status.charged)
 			{
 				if(p_tof->robot_pos.x != 0 || p_tof->robot_pos.y != 0 || p_tof->robot_pos.ang != 0)
 				{
@@ -1746,7 +1735,7 @@ void* main_thread()
 				page_coords(p_lid->robot_pos.x, p_lid->robot_pos.y, &idx_x, &idx_y, &offs_x, &offs_y);
 				load_25pages(&world, idx_x, idx_y);
 
-				if(mapping_on)
+				if(state_vect.mapping_collisions)
 				{
 					// Clear any walls and items within the robot:
 					clear_within_robot(&world, p_lid->robot_pos);
@@ -1760,6 +1749,7 @@ void* main_thread()
 					lidars_to_map_at_routing_start[i] = lidars_to_map_at_routing_start[i-1];
 				}
 				lidars_to_map_at_routing_start[0] = p_lid;
+
 				if(p_lid->significant_for_mapping & map_significance_mode)
 				{
 //					lidar_send_cnt = 0;
@@ -1767,68 +1757,45 @@ void* main_thread()
 
 					static int n_lidars_to_map = 0;
 					static lidar_scan_t* lidars_to_map[20];
-					if(mapping_on)
-					{
-						if(p_lid->is_invalid)
-						{
-							if(n_lidars_to_map < 5)
-							{
-								printf("Got DISTORTED significant lidar scan, have too few lidars -> mapping queue reset\n");
-								n_lidars_to_map = 0;
-							}
-							else
-							{
-								printf("Got DISTORTED significant lidar scan, running mapping early on previous images\n");
-								int32_t da, dx, dy;
-#ifdef PULUTOF1
-								prevent_3dtoffing();
-#endif
-								map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
-								INCR_POS_CORR_ID();
-								correct_robot_pos(da, dx, dy, pos_corr_id);
 
-								n_lidars_to_map = 0;
-							}
+					if(p_lid->is_invalid)
+					{
+						if(n_lidars_to_map < 3)
+						{
+							printf("Got DISTORTED significant lidar scan, have too few lidars -> mapping queue reset\n");
+							n_lidars_to_map = 0;
 						}
 						else
 						{
-							//printf("Got significant(%d) lidar scan, adding to the mapping queue(%d).\n", p_lid->significant_for_mapping, n_lidars_to_map);
-							lidars_to_map[n_lidars_to_map] = p_lid;
+							printf("Got DISTORTED significant lidar scan, running mapping early on previous images\n");
+							int32_t da, dx, dy;
 
-							n_lidars_to_map++;
-							if((good_time_for_lidar_mapping && n_lidars_to_map > 5) || n_lidars_to_map > 12)
-							{
-								if(good_time_for_lidar_mapping) good_time_for_lidar_mapping = 0;
-								int32_t da, dx, dy;
-#ifdef PULUTOF1
-								prevent_3dtoffing();
-#endif
-								map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
-								INCR_POS_CORR_ID();
-								correct_robot_pos(da, dx, dy, pos_corr_id);
+							map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
+							INCR_POS_CORR_ID();
+							correct_robot_pos(da/3, dx/3, dy/3, pos_corr_id);
 
-								// keep a few old lidars:
-								if(n_lidars_to_map > 12)
-								{
-									lidars_to_map[0] = lidars_to_map[9];
-									lidars_to_map[1] = lidars_to_map[10];
-									lidars_to_map[2] = lidars_to_map[11];
-									lidars_to_map[3] = lidars_to_map[12];
-									n_lidars_to_map = 4;
-								}
-								else
-								{
-									lidars_to_map[0] = lidars_to_map[n_lidars_to_map-2];
-									lidars_to_map[1] = lidars_to_map[n_lidars_to_map-1];
-									n_lidars_to_map = 2;
-								}
-
-							}
+							n_lidars_to_map = 0;
 						}
 					}
 					else
 					{
-						n_lidars_to_map = 0;
+						//printf("Got significant(%d) lidar scan, adding to the mapping queue(%d).\n", p_lid->significant_for_mapping, n_lidars_to_map);
+						lidars_to_map[n_lidars_to_map] = p_lid;
+
+						n_lidars_to_map++;
+
+
+						if((state_vect.localize_with_big_search_area && n_lidars_to_map > 11) ||
+						   (!state_vect.localize_with_big_search_area &&
+							((good_time_for_lidar_mapping && n_lidars_to_map > 3) || n_lidars_to_map > 4)))
+						{
+							if(good_time_for_lidar_mapping) good_time_for_lidar_mapping = 0;
+							int32_t da, dx, dy;
+
+							map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
+							INCR_POS_CORR_ID();
+							correct_robot_pos(da/2, dx/2, dy/2, pos_corr_id);
+						}
 					}
 
 				}
@@ -1852,7 +1819,7 @@ void* main_thread()
 		if( (p_son = get_sonar()) )
 		{
 			if(tcp_client_sock >= 0) tcp_send_sonar(p_son);
-			if(mapping_on)
+			if(state_vect.mapping_2d)
 				map_sonars(&world, 1, p_son);
 		}
 

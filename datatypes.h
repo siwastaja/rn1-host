@@ -130,4 +130,29 @@ typedef enum
 	INFO_STATE_DAIJUING = 7
 } info_state_t;
 
+#define USER_IN_COMMAND 0
+#define EXPLORATION     1
+
+typedef struct __attribute__((packed))
+{
+	uint8_t loca_2d;
+	uint8_t loca_3d;
+	uint8_t mapping_2d;
+	uint8_t mapping_3d;
+	uint8_t mapping_collisions;
+	uint8_t keepstill;
+	uint8_t command_source;
+	uint8_t localize_with_big_search_area;
+	uint8_t reserved2;
+	uint8_t reserved3;
+	uint8_t reserved4;
+	uint8_t reserved5;
+	uint8_t reserved6;
+	uint8_t reserved7;
+	uint8_t reserved8;
+	uint8_t reserved9;
+} state_vect_t;
+
+extern state_vect_t state_vect;
+
 #endif

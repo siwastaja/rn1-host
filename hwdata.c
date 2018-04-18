@@ -139,13 +139,6 @@ int update_robot_pos(int32_t ang, int32_t x, int32_t y)
 	return 0;
 }
 
-void prevent_3dtoffing()
-{
-	pthread_mutex_lock(&cur_pos_mutex);
-	cur_pos_invalid_for_3dtof = 1;
-	pthread_mutex_unlock(&cur_pos_mutex);
-}
-
 #define sq(x) ((x)*(x))
 
 #define I16FROMBUFLE(b_, s_)  ( ((uint16_t)b_[(s_)+1]<<8) | ((uint16_t)b_[(s_)+0]<<0) )

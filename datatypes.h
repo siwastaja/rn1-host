@@ -146,6 +146,7 @@ typedef enum
 #define USER_IN_COMMAND 0
 #define EXPLORATION     1
 
+#define STATE_VECT_LEN 16
 typedef union __attribute__((packed))
 {
 	struct __attribute__((packed))
@@ -168,8 +169,28 @@ typedef union __attribute__((packed))
 		uint8_t reserved9;
 	} v;
 
-	uint8_t table[16];
+	uint8_t table[STATE_VECT_LEN];
 } state_vect_t; // if the length changes, tcp_parser.c requires modification
+
+static const char* state_vect_names[STATE_VECT_LEN] =
+{
+	"2D localization",
+	"3D localization (not impl.)",
+	"2D mapping",
+	"3D mapping",
+	"collision mapping",
+	"keep position with motors",
+	"autonomous exploration",
+	"use big localization area",
+	"reserved",
+	"reserved",
+	"reserved",
+	"reserved",
+	"reserved",
+	"reserved",
+	"reserved",
+	"reserved"
+};
 
 extern state_vect_t state_vect;
 

@@ -1933,6 +1933,10 @@ void* main_thread()
 			start_automapping_skip_compass();
 			state_vect.v.mapping_collisions = state_vect.v.mapping_3d = state_vect.v.mapping_2d = state_vect.v.loca_3d = state_vect.v.loca_2d = 1;
 		}
+		if(!state_vect.v.command_source && prev_autonomous)
+		{
+			stop_automapping();
+		}
 		prev_autonomous = state_vect.v.command_source;
 
 		static int keepalive_cnt = 0;

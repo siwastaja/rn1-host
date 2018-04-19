@@ -1910,6 +1910,7 @@ void* main_thread()
 							map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
 							INCR_POS_CORR_ID();
 							correct_robot_pos(da/2, dx/2, dy/2, pos_corr_id);
+							n_lidars_to_map = 0;
 						}
 					}
 

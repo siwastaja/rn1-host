@@ -120,6 +120,8 @@ int handle_tcp_listener()
 	        ntohs(clientname.sin_port));
 
 	tcp_send_robot_info();
+	tcp_send_statevect();
+
 
 	return 0;
 }

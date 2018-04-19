@@ -1336,6 +1336,8 @@ void* main_thread()
 			else if(ret == TCP_CR_STATEVECT_MID)
 			{
 				tcp_send_statevect();
+
+				printf("%d %d %d\n", state_vect.v.loca_2d, state_vect.v.loca_3d, state_vect.v.keep_position);
 			}
 		}
 

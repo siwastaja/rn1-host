@@ -1926,7 +1926,7 @@ void* main_thread()
 		prev_keep_position = state_vect.v.keep_position;
 
 		static uint8_t prev_autonomous;
-		if(!state_vect.v.command_source && prev_autonomous)
+		if(state_vect.v.command_source && !prev_autonomous)
 		{
 			daiju_mode(0);
 			routing_set_world(&world);

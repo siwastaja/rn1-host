@@ -96,8 +96,6 @@ int pos_corr_id = 42;
 
 int map_significance_mode = MAP_SEMISIGNIFICANT_IMGS | MAP_SIGNIFICANT_IMGS;
 
-int motors_on = 1;
-
 uint32_t robot_id = 0xacdcabba; // Hopefully unique identifier for the robot.
 
 int cmd_state;
@@ -1003,15 +1001,14 @@ void* main_thread()
 			}
 			if(cmd == 'v')
 			{
-				if(motors_on)
+				if(state_vect.v.keep_position)
 				{
-					motors_on = 0;
-					release_motors();
+					state_vect.v.keep_position = 0;
 					printf("Robot is free to move manually.\n");
 				}
 				else
 				{
-					motors_on = 1;
+					state_vect.v.keep_position = 1;
 					printf("Robot motors enabled again.\n");
 				}
 			}
@@ -1105,7 +1102,7 @@ void* main_thread()
 			cmd_state = ret;
 			if(ret == TCP_CR_DEST_MID)
 			{
-				motors_on = 1;
+				state_vect.v.keep_position = 1;
 				daiju_mode(0);
 
 				msg_rc_movement_status.start_ang = cur_ang>>16;
@@ -1147,7 +1144,7 @@ void* main_thread()
 				msg_rc_route_status.status = TCP_RC_ROUTE_STATUS_UNDEFINED;
 				msg_rc_route_status.num_reroutes = -1;
 
-				motors_on = 1;
+				state_vect.v.keep_position = 1;
 				daiju_mode(0);
 				find_charger_state = 0;
 				int ret;
@@ -1184,7 +1181,7 @@ void* main_thread()
 				{
 					case 0:
 					{
-						motors_on = 1;
+						state_vect.v.keep_position = 1;
 						daiju_mode(0);
 						stop_automapping();
 						state_vect.v.mapping_collisions = state_vect.v.mapping_3d = state_vect.v.mapping_2d = state_vect.v.loca_3d = state_vect.v.loca_2d = 0;
@@ -1192,7 +1189,7 @@ void* main_thread()
 
 					case 1:
 					{
-						motors_on = 1;
+						state_vect.v.keep_position = 1;
 						daiju_mode(0);
 						stop_automapping();
 						find_charger_state = 0;
@@ -1205,7 +1202,7 @@ void* main_thread()
 
 					case 2:
 					{
-						motors_on = 1;
+						state_vect.v.keep_position = 1;
 						daiju_mode(0);
 						routing_set_world(&world);
 						start_automapping_skip_compass();
@@ -1214,7 +1211,7 @@ void* main_thread()
 
 					case 3:
 					{
-						motors_on = 1;
+						state_vect.v.keep_position = 1;
 						daiju_mode(0);
 						routing_set_world(&world);
 						start_automapping_from_compass();
@@ -1227,7 +1224,7 @@ void* main_thread()
 						find_charger_state = 0;
 						lookaround_creep_reroute = 0;
 						do_follow_route = 0;
-						motors_on = 1;
+						state_vect.v.keep_position = 1;
 						send_info(INFO_STATE_DAIJUING);
 						daiju_mode(1);
 						state_vect.v.mapping_collisions = state_vect.v.mapping_3d = state_vect.v.mapping_2d = state_vect.v.loca_3d = state_vect.v.loca_2d = 0;
@@ -1240,7 +1237,7 @@ void* main_thread()
 						lookaround_creep_reroute = 0;
 						do_follow_route = 0;
 						send_info(INFO_STATE_IDLE);
-						motors_on = 0;
+						state_vect.v.keep_position = 0;
 						release_motors();
 						state_vect.v.mapping_collisions = state_vect.v.mapping_3d = state_vect.v.mapping_2d = state_vect.v.loca_3d = state_vect.v.loca_2d = 1;
 					} break;
@@ -1252,7 +1249,7 @@ void* main_thread()
 						lookaround_creep_reroute = 0;
 						send_info(INFO_STATE_IDLE);
 						do_follow_route = 0;
-						motors_on = 0;
+						state_vect.v.keep_position = 0;
 						release_motors();
 						state_vect.v.mapping_collisions = state_vect.v.mapping_3d = state_vect.v.mapping_2d = state_vect.v.loca_3d = state_vect.v.loca_2d = 0;
 					} break;
@@ -1289,7 +1286,7 @@ void* main_thread()
 				#define MANU_RIGHT 13
 				stop_automapping();
 				daiju_mode(0);
-				motors_on = 1;
+				state_vect.v.keep_position = 1;
 				printf("Manual OP %d\n", msg_cr_manu.op);
 				switch(msg_cr_manu.op)
 				{
@@ -1335,6 +1332,10 @@ void* main_thread()
 					cur_speedlim = max_speedlim;
 					limit_speed(cur_speedlim);
 				}
+			}
+			else if(ret == TCP_CR_STATEVECT_MID)
+			{
+				tcp_send_statevect();
 			}
 		}
 
@@ -1471,7 +1472,7 @@ void* main_thread()
 
 		if(find_charger_state == 1)
 		{
-			motors_on = 1;
+			state_vect.v.keep_position = 1;
 			daiju_mode(0);
 			if(run_search(charger_first_x, charger_first_y, 0, 1) != 0)
 			{
@@ -1918,11 +1919,16 @@ void* main_thread()
 
 		}
 
+		static uint8_t prev_keep_position;
+		if(!state_vect.v.keep_position && prev_keep_position)
+			release_motors();
+		prev_keep_position = state_vect.v.keep_position;
+
 		static int keepalive_cnt = 0;
 		if(++keepalive_cnt > 500)
 		{
 			keepalive_cnt = 0;
-			if(motors_on)
+			if(state_vect.v.keep_position)
 				send_keepalive();
 			else
 				release_motors();

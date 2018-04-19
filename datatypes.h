@@ -175,13 +175,13 @@ typedef union __attribute__((packed))
 static const char* state_vect_names[STATE_VECT_LEN] =
 {
 	"2D localization",
-	"3D localization (not impl.)",
+	"3D localization",
 	"2D mapping",
 	"3D mapping",
 	"collision mapping",
-	"keep position with motors",
+	"motors on",
 	"autonomous exploration",
-	"use big localization area",
+	"big localization area",
 	"reserved",
 	"reserved",
 	"reserved",

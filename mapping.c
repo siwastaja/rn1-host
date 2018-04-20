@@ -1115,7 +1115,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 		{
 			a_range = 6;
 			xy_range = 480;
-			xy_step = 40;
+			xy_step = 80;
 			a_step = 1*ANG_1_DEG;
 		}
 		else // massive

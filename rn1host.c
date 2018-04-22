@@ -21,6 +21,47 @@
 
 */
 
+/*
+
+	Currently, we recommend the following procedure to localize on existing maps:
+
+	A) If possible, it's always most intuitive to map the new area by first time booting the robot
+	in a logical position and angle: for example, (almost) mounted in the charger is a good place.
+	If you do this to an accuracy of +/- 40cm and about +/- 4 degrees, you never need to do anything,
+	localization succeeds to the existing map, since robot boots to the same zero coordinate with enough
+	accuracy for the "normal" SLAM correction.
+
+
+	B) If you want to localize to another place than the origin in an existing map, or to a more uncertain position,
+	   please do the following:
+
+	1) As the very first step, send TCP_CR_STATEVECT_MID: disable mapping_*, enable loca_*, so that the map isn't messed up
+	   before succesful localization happens.
+
+	2) If necessary, also set localize_with_big_search_area=1 or =2 in the statevect.
+
+	3) Use TCP_CR_SETPOS_MID to send your estimate of the robot coordinates, with the following precision:
+		+/- 4 degree angle,  +/-  400mm x&y, if localize_with_big_search_area state is 0 (normal operation)
+		+/- 45 degree angle, +/- 2000mm x&y, if localize_with_big_search_area state is 1
+		    Any angle,       +/- 2400mm x&y, if localize_with_big_search_area state is 2
+
+	4) Instruct manual move(s) towards any desired direction where you can/want go to. If localize_with_big_search_area
+	   state is set, more than normal number of lidar scans will be accumulated before the localization happens -
+	   this typically means you need to move about 2-3 meters. Similarly, the localization with big search area
+	   will take up to 20-30 seconds typically, or even minutes when set to 2.
+
+	5) TCP_RC_LOCALIZATION_RESULT_MID is sent. If the localization results in high enough score,
+	   localize_with_big_search_area is automatically unset. If the score is low, it remains set, until localization
+	   is good. If you face a problem that you can't get high enough score, we advice you localize around a place with enough
+	   visual clues, and make sure the map built earlier actually shows them (enough time to build a detailed, strong map).
+
+	6) You can send TCP_CR_STATEVECT_MID with mapping_* turned on as well. These are not turned on automatically.
+
+
+
+*/
+
+
 //#define PULUTOF1_GIVE_RAWS
 
 #define _POSIX_C_SOURCE 200809L
@@ -898,6 +939,7 @@ void* main_thread()
 
 	double chafind_timestamp = 0.0;
 	int lidar_ignore_over = 0;
+	int flush_3dtof = 0;
 	while(1)
 	{
 		// Calculate fd_set size (biggest fd+1)
@@ -985,8 +1027,8 @@ void* main_thread()
 			}
 			if(cmd == 'M')
 			{
-				massive_search_area();
 				printf("Requesting massive search.\n");
+				state_vect.v.localize_with_big_search_area = 2;
 			}
 			if(cmd == 'L')
 			{
@@ -1337,6 +1379,18 @@ void* main_thread()
 			{
 				tcp_send_statevect();
 			}
+			else if(ret == TCP_CR_SETPOS_MID)
+			{
+				set_robot_pos(msg_cr_setpos.ang<<16, msg_cr_setpos.x, msg_cr_setpos.y);
+
+				INCR_POS_CORR_ID();
+				correct_robot_pos(0, 0, 0, pos_corr_id); // forces new LIDAR ID, so that correct amount of images (on old coords) are ignored
+
+#ifdef PULUTOF1
+				while(get_tof3d()); // flush 3DTOF queue
+#endif
+				flush_3dtof = 2; // Flush two extra scans
+			}
 		}
 
 		if(FD_ISSET(tcp_listener_sock, &fds))
@@ -1662,6 +1716,22 @@ void* main_thread()
 			}
 		}
 
+#else
+		{
+			static double prev_incr = 0.0;
+			double stamp;
+			if( (stamp=subsec_timestamp()) > prev_incr+0.15)
+			{
+				if(cur_speedlim < max_speedlim)
+				{
+					cur_speedlim++;
+					limit_speed(cur_speedlim);
+				}
+			}
+		}
+
+
+
 #endif
 
 #ifdef PULUTOF1
@@ -1686,6 +1756,7 @@ void* main_thread()
 
 #else
 		tof3d_scan_t *p_tof;
+
 		if( (p_tof = get_tof3d()) )
 		{
 
@@ -1715,7 +1786,7 @@ void* main_thread()
 
 			static int32_t prev_x, prev_y, prev_ang;
 
-			if(state_vect.v.mapping_3d && !pwr_status.charging && !pwr_status.charged)
+			if(!flush_3dtof && state_vect.v.mapping_3d && !pwr_status.charging && !pwr_status.charged)
 			{
 				if(p_tof->robot_pos.x != 0 || p_tof->robot_pos.y != 0 || p_tof->robot_pos.ang != 0)
 				{
@@ -1755,6 +1826,8 @@ void* main_thread()
 					}
 				}
 			}
+
+			if(flush_3dtof) flush_3dtof--;
 
 		}
 #endif
@@ -1909,7 +1982,11 @@ void* main_thread()
 
 							map_lidars(&world, n_lidars_to_map, lidars_to_map, &da, &dx, &dy);
 							INCR_POS_CORR_ID();
-							correct_robot_pos(da/2, dx/2, dy/2, pos_corr_id);
+
+							if(state_vect.v.localize_with_big_search_area)
+								correct_robot_pos(da, dx, dy, pos_corr_id);
+							else
+								correct_robot_pos(da/2, dx/2, dy/2, pos_corr_id);
 							n_lidars_to_map = 0;
 						}
 					}

@@ -117,8 +117,17 @@ tcp_message_t msgmeta_cr_statevect =
 	16, "BBBBBBBBBBBBBBBB"
 };
 
+tcp_cr_setpos_t msg_cr_setpos;
+tcp_message_t msgmeta_cr_setpos =
+{
+	&msg_cr_setpos,
+	TCP_CR_SETPOS_MID,
+	11, "siiB"
+};
 
-#define NUM_CR_MSGS 10
+
+
+#define NUM_CR_MSGS 11
 tcp_message_t* CR_MSGS[NUM_CR_MSGS] =
 {
 	&msgmeta_cr_dest,
@@ -130,7 +139,8 @@ tcp_message_t* CR_MSGS[NUM_CR_MSGS] =
 	&msgmeta_cr_remconstraint,
 	&msgmeta_cr_maintenance,
 	&msgmeta_cr_speedlim,
-	&msgmeta_cr_statevect
+	&msgmeta_cr_statevect,
+	&msgmeta_cr_setpos
 };
 
 // Robot->Client messages
@@ -489,6 +499,31 @@ void tcp_send_statevect()
 	memcpy(&buf[3], state_vect.table, sizeof(state_vect.table));
 	tcp_send(buf, size);
 }
+
+void tcp_send_localization_result(int32_t da, int32_t dx, int32_t dy, uint8_t success_code, int32_t score)
+{
+	const int size = 3+2+2+2+1+4;
+	uint8_t buf[size];
+
+	da >>= 16;
+
+	if(dx < -30000 || dx > 30000 || dy < -30000 || dy > 30000 || score < -1000000 || score > 1000000)
+	{
+		printf("tcp_send_localization_result: Out of range parameters.\n");
+		return;
+	}
+
+	buf[0] = TCP_RC_LOCALIZATION_RESULT_MID;
+	buf[1] = ((size-3)>>8)&0xff;
+	buf[2] = (size-3)&0xff;
+	I16TOBUF(da, buf, 3);
+	I16TOBUF(dx, buf, 5);
+	I16TOBUF(dy, buf, 7);
+	buf[9] = success_code; // 0 = success. 1 = possible success, some correction is applied, but big search area is still kept on (if used), 2 = score too low
+	I32TOBUF(score, buf, 10);
+	tcp_send(buf, size);
+}
+
 
 int tcp_send_msg(tcp_message_t* msg_type, void* msg)
 {

@@ -138,6 +138,22 @@ extern tcp_cr_speedlim_t   msg_cr_speedlim;
 #define TCP_CR_STATEVECT_MID        64
 
 
+/*
+SETPOS: Set new robot coordinates. Doesn't change states. Flushes lidar scan mapping queue.
+
+*/
+#define TCP_CR_SETPOS_MID    65
+typedef struct __attribute__ ((packed))
+{
+	int16_t ang;
+	int32_t x;
+	int32_t y;
+} tcp_cr_setpos_t;
+
+extern tcp_cr_setpos_t msg_cr_setpos;
+
+
+
 #define TCP_RC_POS_MID    130
 typedef struct __attribute__ ((packed))
 {
@@ -214,6 +230,7 @@ extern tcp_rc_route_status_t    msg_rc_route_status;
 #define TCP_RC_PICTURE_MID	    142
 
 #define TCP_RC_STATEVECT_MID        145
+#define TCP_RC_LOCALIZATION_RESULT_MID 146
 
 
 int tcp_parser(int sock);
@@ -233,6 +250,7 @@ void tcp_send_info_state(info_state_t state);
 void tcp_send_robot_info();
 void tcp_send_picture(int16_t id, uint8_t bytes_per_pixel, int xs, int ys, uint8_t *pict);
 void tcp_send_statevect();
+void tcp_send_localization_result(int32_t da, int32_t dx, int32_t dy, uint8_t success_code, int32_t score);
 
 
 #endif

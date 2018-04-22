@@ -1009,13 +1009,6 @@ does not implement "I'm totally lost, where am I?" functionality.
 
 */
 
-int search_area_size = 0;
-
-void massive_search_area()
-{
-	search_area_size = 2;
-}
-
 extern double subsec_timestamp();
 
 int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int* dx, int* dy)
@@ -1068,11 +1061,6 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	}
 
 
-	if(search_area_size > 0)
-	{
-		send_info(INFO_STATE_THINK);
-	}
-
 	time = subsec_timestamp();
 	prefilter_lidar_list(n_lidars, lidar_list);
 	double prefilter_time = subsec_timestamp() - time;
@@ -1092,8 +1080,13 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 
 	if(state_vect.v.loca_2d)
 	{
+		if(state_vect.v.localize_with_big_search_area)
+		{
+			send_info(INFO_STATE_THINK);
+		}
+
 		time = subsec_timestamp();
-		if(search_area_size == 2)
+		if(state_vect.v.localize_with_big_search_area)
 		{
 			stop_movement();
 			gen_scoremap_for_large_steps(w, scoremap, mid_x, mid_y);
@@ -1104,23 +1097,23 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 
 		int a_range, xy_range, xy_step, a_step;
 
-		if(search_area_size == 0)
+		if(state_vect.v.localize_with_big_search_area == 0)
 		{
 			a_range = 3;
 			xy_range = 400;
 			xy_step = 80;
 			a_step = 1*ANG_1_DEG;
 		}
-		else if(search_area_size == 1)
+		else if(state_vect.v.localize_with_big_search_area == 1)
 		{
-			a_range = 6;
-			xy_range = 480;
-			xy_step = 80;
-			a_step = 1*ANG_1_DEG;
+			a_range = 45;
+			xy_range = 1920;
+			xy_step = 160;
+			a_step = 3*ANG_1_DEG;
 		}
-		else // massive
+		else if(state_vect.v.localize_with_big_search_area == 2)
 		{
-			a_range = 60;
+			a_range = 178;
 			xy_range = 2400; // max, produces 32 steps.
 			xy_step = 160;
 			a_step = 3*ANG_1_DEG;
@@ -1153,7 +1146,7 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 		int pass2_a_range, pass2_a_step;
 		int pass2_dx_start, pass2_dx_step, pass2_num_dx, pass2_dy_start, pass2_dy_step, pass2_num_dy;
 
-		if(search_area_size == 0 || search_area_size == 1)
+		if(!state_vect.v.localize_with_big_search_area)
 		{
 			// we already generated scoremap for small steps
 			pass2_a_range = 2; // in half degs
@@ -1208,16 +1201,30 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 
 		printf("Map search complete, correction a=%.1fdeg, x=%dmm, y=%dmm, score=%d\n", (float)corr_da/(float)ANG_1_DEG, corr_dx, corr_dy, best_score);
 
-		if(best_score < 300)
-		{
-			printf("Best score low, halving the correction to avoid making wrong decisions too big.\n");
-			corr_da/=2; corr_dx/=2; corr_dy/=2;
-		}
+		uint8_t success_code = 0;
 		if(best_score < 100)
 		{
+			success_code = 2;
 			printf("Best score very low, using zero correction.\n");
 			corr_da = 0; corr_dx = 0; corr_dy = 0;
 		}
+		else if(best_score < 300)
+		{
+			success_code = 1;
+			printf("Best score low, halving the correction to avoid making wrong decisions too big.\n");
+			corr_da/=2; corr_dx/=2; corr_dy/=2;
+		}
+		else
+		{
+			success_code = 0;
+			state_vect.v.localize_with_big_search_area = 0;
+			if(tcp_client_sock >= 0)
+				tcp_send_statevect();
+		}
+
+		tcp_send_localization_result(corr_da, corr_dx, corr_dy, success_code, best_score);
+
+
 	}
 
 	int32_t aft_corr_x = 0, aft_corr_y = 0;
@@ -1238,8 +1245,6 @@ int map_lidars(world_t* w, int n_lidars, lidar_scan_t** lidar_list, int* da, int
 	*dx = corr_dx + aft_corr_x;
 	*dy = corr_dy + aft_corr_y;
 
-
-	if(search_area_size) search_area_size--;
 
 	return 0;
 
@@ -2092,7 +2097,7 @@ void autofsm()
 				printf("DBG: cur_compass_ang=%d (%.1fdeg), ang=%d (%.1fdeg)\n", cur_compass_ang, ANG32TOFDEG(cur_compass_ang), ang, ANG32TOFDEG(ang));
 				set_robot_pos(ang,0,0);
 				state_vect.v.mapping_collisions = state_vect.v.mapping_3d = state_vect.v.mapping_2d = state_vect.v.loca_3d = state_vect.v.loca_2d = 1;
-				massive_search_area();
+				state_vect.v.localize_with_big_search_area = 1;
 				if(automap_only_compass)
 					cur_autostate = S_IDLE;
 				else

@@ -12,6 +12,7 @@ all: rn1host
 CFLAGS += -DPULUTOF1
 CFLAGS += -DPULUTOF_ROBOT_SER_1_TO_4
 #CFLAGS += -DPULUTOF_ROBOT_SER_5_UP
+#CFLAGS += -DMOTCON_PID_EXPERIMENT
 
 %.o: %.c $(DEPS)
 	gcc -c -o $@ $< $(CFLAGS) -pthread

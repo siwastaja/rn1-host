@@ -136,6 +136,33 @@ int update_robot_pos(int32_t ang, int32_t x, int32_t y)
 	cur_pos_invalid_for_3dtof = 0;
 	pthread_mutex_unlock(&cur_pos_mutex);
 
+
+#ifdef MOTCON_PID_EXPERIMENT
+
+	static FILE* coord_log;
+	static int coord_log_inited = 0;
+
+	if(!coord_log_inited)
+	{
+		coord_log = fopen("coord_log.csv", "w");
+		if(!coord_log)
+		{
+			printf("ERROR: Opening coord_log.csv for write failed\n");
+		}
+		else
+		{
+			coord_log_inited = 1;
+			fprintf(coord_log, "ang_deg,x_mm,y_mm\n");
+		}
+	}
+
+	if(coord_log_inited)
+	{
+		fprintf(coord_log, "%.2f, %d, %d\n", ANG32TOFDEG(ang), x, y);
+	}
+
+#endif
+
 	return 0;
 }
 

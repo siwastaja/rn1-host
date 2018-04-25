@@ -1,5 +1,3 @@
-//#define MOTCON_PID_EXPERIMENT
-
 /*
 	PULUROBOT RN1-HOST Computer-on-RobotBoard main software
 

@@ -159,6 +159,7 @@ int update_robot_pos(int32_t ang, int32_t x, int32_t y)
 	if(coord_log_inited)
 	{
 		fprintf(coord_log, "%.2f, %d, %d\n", ANG32TOFDEG(ang), x, y);
+		fflush(coord_log);
 	}
 
 #endif

@@ -9,10 +9,10 @@ OBJ = rn1host.o mapping.o map_memdisk.o uart.o hwdata.o tcp_comm.o tcp_parser.o 
 all: rn1host
 
 #CFLAGS += -DSIMULATE_SERIAL
-CFLAGS += -DPULUTOF1
-CFLAGS += -DPULUTOF_ROBOT_SER_1_TO_4
+#CFLAGS += -DPULUTOF1
+#CFLAGS += -DPULUTOF_ROBOT_SER_1_TO_4
 #CFLAGS += -DPULUTOF_ROBOT_SER_5_UP
-#CFLAGS += -DMOTCON_PID_EXPERIMENT
+CFLAGS += -DMOTCON_PID_EXPERIMENT
 
 %.o: %.c $(DEPS)
 	gcc -c -o $@ $< $(CFLAGS) -pthread

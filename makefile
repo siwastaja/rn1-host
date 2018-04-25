@@ -1,6 +1,6 @@
 MODEL=DELIVERY_BOY
 
-CFLAGS = -D$(MODEL) -DMAP_DIR=\"/home/hrst/rn1-host\" -DSERIAL_DEV=\"/dev/serial0\" -Wall -Winline -std=c99 -g
+CFLAGS = -D$(MODEL) -DMAP_DIR=\"/home/pulu/rn1-host\" -DSERIAL_DEV=\"/dev/serial0\" -Wall -Winline -std=c99 -g
 LDFLAGS = 
 
 DEPS = mapping.h uart.h map_memdisk.h datatypes.h hwdata.h tcp_comm.h tcp_parser.h routing.h map_opers.h pulutof.h

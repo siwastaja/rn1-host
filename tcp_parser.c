@@ -122,7 +122,7 @@ tcp_message_t msgmeta_cr_setpos =
 {
 	&msg_cr_setpos,
 	TCP_CR_SETPOS_MID,
-	11, "siiB"
+	10, "sii"
 };
 
 

@@ -976,9 +976,9 @@ void* main_thread()
 #ifdef MOTCON_PID_EXPERIMENT
 		static uint8_t pid_i_max = 30;
 		static uint8_t pid_feedfwd = 30;
-		static uint8_t pid_p = 100;
-		static uint8_t pid_i = 20;
-		static uint8_t pid_d = 20;
+		static uint8_t pid_p = 80;
+		static uint8_t pid_i = 80;
+		static uint8_t pid_d = 50;
 #endif
 
 		if(FD_ISSET(STDIN_FILENO, &fds))

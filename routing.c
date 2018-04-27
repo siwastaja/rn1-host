@@ -1032,22 +1032,17 @@ static int search(route_unit_t **route, float start_ang, int start_x_mm, int sta
 			}
 
 			route_unit_t *rt = *route;
-			while(1)
+			while(rt->next && rt->next->next)
 			{
-				if(rt->next && rt->next->next)
+				if(line_of_sight(rt->loc, rt->next->next->loc))
 				{
-					if(line_of_sight(rt->loc, rt->next->next->loc))
-					{
-//						printf("Deleting.\n");
-						route_unit_t *tmp = rt->next;
-						DL_DELETE(*route, tmp);
-						free(tmp);
-					}
-					else
-						rt = rt->next;
+//					printf("Deleting.\n");
+					route_unit_t *tmp = rt->next;
+					DL_DELETE(*route, tmp);
+					free(tmp);
 				}
 				else
-					break;
+					rt = rt->next;
 			}
 
 			// Remove the first, because it's the starting point.

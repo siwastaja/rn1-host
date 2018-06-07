@@ -328,7 +328,7 @@ static void distances_to_objmap(pulutof_frame_t *in)
 				}
 			}
 
-			if(n_valids > 4)
+			if(n_valids > 2)
 			{
 				avg /= n_valids;
 				int n_conforming = 0;
@@ -349,7 +349,7 @@ static void distances_to_objmap(pulutof_frame_t *in)
 					}
 				}
 
-				if(n_conforming > 2)
+				if(n_conforming > 1)
 				{
 					int py, px;
 					if(cumul_dxx < -2) px = pxx-1; else if(cumul_dxx > 2) px = pxx+1; else px = pxx;

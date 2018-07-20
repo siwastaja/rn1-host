@@ -1046,7 +1046,8 @@ static void gen_ang_tables()
 	{
 		for(int pxx=0; pxx < TOF_XS/2; pxx++)
 		{
-			int out_pxx = TOF_XS-pxx-0;
+//Bug (index out of bondary):			int out_pxx = TOF_XS-pxx-0;
+		   	int out_pxx = TOF_XS-pxx-1;			
 			x_angs[pyy*TOF_XS+out_pxx] = -1*x_angs[pyy*TOF_XS+pxx];
 			y_angs[pyy*TOF_XS+out_pxx] = y_angs[pyy*TOF_XS+pxx];	
 		}
